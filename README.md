@@ -18,8 +18,6 @@ SAHA-Care is a proposed **offline-first, community-based disease surveillance (C
 
 The app enables community health workers (CHWs) and displaced individuals to report standardized case definitions even during **connectivity blackouts**, using SMS/USSD fallback when internet is unavailable. Reports are aggregated on a cloud-based backend with automated triage and alerting.
 
-This project is a graduate capstone for **GH598-2: Digital Health Interventions in Low and Middle-Income Countries** at the **Rollins School of Public Health, Emory University**.
-
 ---
 
 ## The Problem
@@ -134,8 +132,6 @@ Working in conflict-affected zones introduces significant ethical responsibiliti
 | **Leo** | Software Engineering, Technical Architecture, GCP Deployment | CS Graduate Student, Emory University |
 | **Dalia** | Public Health Framing, Literature Review, Health Domain Expertise | Public Health Graduate Student, Rollins School of Public Health |
 
-**Course:** GH598-2 — Digital Health Interventions in Low and Middle-Income Countries
-
 ---
 
 ## Repository Structure
@@ -162,4 +158,4 @@ This project is open-source under the [MIT License](LICENSE). We encourage adapt
 
 ---
 
-*SAHA-Care — GH598-2 Capstone | Emory University | Spring 2025*
+*SAHA-Care| Emory University | Spring 2025*
