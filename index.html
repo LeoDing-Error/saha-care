@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SAHA-Care — Community Disease Surveillance</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,300&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg:       #0d0f0e;
+      --bg2:      #131615;
+      --bg3:      #1a1d1b;
+      --border:   #252926;
+      --amber:    #d48b3a;
+      --amber2:   #e8a84e;
+      --olive:    #6b7c5a;
+      --olive2:   #8a9e72;
+      --text:     #c8cfc6;
+      --text-dim: #6b726a;
+      --text-hi:  #e8ede5;
+      --red:      #c25a3a;
+      --mono:     'IBM Plex Mono', monospace;
+      --display:  'Syne', sans-serif;
+      --serif:    'Fraunces', serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 14px;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ── NOISE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    /* ── GRID BACKGROUND ── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.3;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2.5rem;
+      height: 56px;
+      background: rgba(13,15,14,0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-brand {
+      font-family: var(--display);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--amber);
+      letter-spacing: 0.05em;
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--amber); }
+
+    /* ── SECTIONS ── */
+    section, header {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 8rem 2.5rem 5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero-eyebrow {
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--olive2);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .hero-eyebrow::before {
+      content: '';
+      display: inline-block;
+      width: 2rem;
+      height: 1px;
+      background: var(--olive2);
+    }
+
+    .hero h1 {
+      font-family: var(--display);
+      font-size: clamp(3.5rem, 9vw, 8rem);
+      font-weight: 800;
+      line-height: 0.95;
+      color: var(--text-hi);
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+
+    .hero h1 span {
+      color: var(--amber);
+      font-style: italic;
+      font-family: var(--serif);
+      font-weight: 300;
+    }
+
+    .hero-sub {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      max-width: 520px;
+      margin-top: 2rem;
+      margin-bottom: 3rem;
+      line-height: 1.9;
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.3rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      background: var(--bg2);
+    }
+
+    .badge.amber { border-color: var(--amber); color: var(--amber); }
+    .badge.olive { border-color: var(--olive); color: var(--olive2); }
+
+    /* ── CONTENT LAYOUT ── */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+
+    @media (max-width: 860px) {
+      .content-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── SECTION BLOCK ── */
+    .block {
+      padding: 4rem 2.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .block:nth-child(odd) { border-right: 1px solid var(--border); }
+
+    .block-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--olive2);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .block-label span {
+      font-size: 0.6rem;
+      color: var(--text-dim);
+    }
+
+    .block h2 {
+      font-family: var(--display);
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--text-hi);
+      margin-bottom: 1.25rem;
+      line-height: 1.2;
+    }
+
+    .block p {
+      color: var(--text);
+      font-size: 0.8rem;
+      line-height: 1.85;
+      max-width: 480px;
+    }
+
+    /* ── PROBLEM TABLE ── */
+    .problem-list {
+      margin-top: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .problem-row {
+      display: flex;
+      gap: 2rem;
+      align-items: flex-start;
+      padding: 0.75rem;
+      background: var(--bg3);
+      border-left: 2px solid var(--red);
+      font-size: 0.75rem;
+    }
+
+    .problem-row .tag {
+      color: var(--red);
+      flex-shrink: 0;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-top: 0.1rem;
+      width: 120px;
+    }
+
+    .problem-row .desc { color: var(--text); }
+
+    /* ── ARCH DIAGRAM ── */
+    .arch-box {
+      margin-top: 1.5rem;
+      border: 1px solid var(--border);
+      background: var(--bg3);
+      padding: 1.5rem;
+      font-size: 0.7rem;
+      line-height: 1.9;
+      color: var(--olive2);
+      overflow-x: auto;
+    }
+
+    .arch-box pre {
+      font-family: var(--mono);
+      white-space: pre;
+    }
+
+    .arch-box .hl { color: var(--amber); }
+    .arch-box .dim { color: var(--text-dim); }
+
+    /* ── STACK TABLE ── */
+    .stack-grid {
+      margin-top: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .stack-row {
+      display: flex;
+      background: var(--bg3);
+    }
+
+    .stack-layer {
+      width: 120px;
+      padding: 0.65rem 0.75rem;
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      border-right: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .stack-tech {
+      padding: 0.65rem 0.75rem;
+      font-size: 0.72rem;
+      color: var(--amber2);
+    }
+
+    /* ── DELIVERABLES ── */
+    .deliverables-list {
+      margin-top: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .deliverable-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.85rem 1rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .deliverable-item:hover {
+      border-color: var(--amber);
+      background: rgba(212,139,58,0.05);
+    }
+
+    .deliverable-item.disabled {
+      opacity: 0.45;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .deliverable-icon {
+      font-size: 1rem;
+      width: 24px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .deliverable-info { flex: 1; }
+
+    .deliverable-title {
+      font-size: 0.78rem;
+      color: var(--text-hi);
+      margin-bottom: 0.15rem;
+    }
+
+    .deliverable-desc {
+      font-size: 0.65rem;
+      color: var(--text-dim);
+    }
+
+    .deliverable-tag {
+      font-size: 0.6rem;
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+      padding: 0.15rem 0.5rem;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .deliverable-item:not(.disabled) .deliverable-tag {
+      border-color: var(--amber);
+      color: var(--amber);
+    }
+
+    /* ── TEAM ── */
+    .team-cards {
+      margin-top: 1.5rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    .team-card {
+      padding: 1.25rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+    }
+
+    .team-initial {
+      width: 40px;
+      height: 40px;
+      border-radius: 2px;
+      background: var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--display);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--amber);
+      margin-bottom: 0.75rem;
+    }
+
+    .team-name {
+      font-family: var(--display);
+      font-size: 0.95rem;
+      color: var(--text-hi);
+      margin-bottom: 0.25rem;
+    }
+
+    .team-role {
+      font-size: 0.65rem;
+      color: var(--amber);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.6rem;
+    }
+
+    .team-desc {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      line-height: 1.7;
+    }
+
+    /* ── RATIONALE SECTION ── */
+    .rationale-section {
+      margin-top: 3rem;
+      padding-top: 2.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .rationale-header {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--olive2);
+      margin-bottom: 1rem;
+    }
+
+    .rationale-intro {
+      font-size: 0.8rem;
+      color: var(--text);
+      line-height: 1.85;
+      max-width: 760px;
+      margin-bottom: 2rem;
+    }
+
+    .rationale-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    @media (max-width: 700px) {
+      .rationale-grid { grid-template-columns: 1fr; }
+    }
+
+    .rationale-card {
+      background: var(--bg3);
+      padding: 1.5rem;
+      transition: background 0.2s;
+    }
+
+    .rationale-card:hover { background: var(--bg2); }
+
+    .rationale-card-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 0.4rem;
+    }
+
+    .rationale-card-title {
+      font-family: var(--display);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-hi);
+      margin-bottom: 0.75rem;
+      line-height: 1.3;
+    }
+
+    .rationale-card-body {
+      font-size: 0.72rem;
+      color: var(--text);
+      line-height: 1.85;
+    }
+
+    /* ── FULL-WIDTH BLOCKS ── */
+    .block-full {
+      grid-column: 1 / -1;
+      border-right: none !important;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative;
+      z-index: 1;
+      padding: 2.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+    }
+
+    footer a {
+      color: var(--olive2);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    footer a:hover { color: var(--amber); }
+
+    /* ── ANIMATIONS ── */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(18px);
+      animation: fadeUp 0.7s ease forwards;
+    }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in:nth-child(1) { animation-delay: 0.1s; }
+    .fade-in:nth-child(2) { animation-delay: 0.25s; }
+    .fade-in:nth-child(3) { animation-delay: 0.4s; }
+    .fade-in:nth-child(4) { animation-delay: 0.55s; }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <a class="nav-brand" href="#">SAHA-Care</a>
+  <ul class="nav-links">
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#team">Team</a></li>
+    <li><a href="#deliverables">Deliverables</a></li>
+    <li><a href="https://github.com/" target="_blank">GitHub ↗</a></li>
+  </ul>
+</nav>
+
+<!-- ── HERO ── -->
+<header class="hero">
+  <div class="hero-eyebrow">GH598-2 Capstone · Emory University · Spring 2025</div>
+  <h1 class="fade-in">
+    SAHA-<span>Care</span>
+  </h1>
+  <p class="hero-sub fade-in">
+    Community-based disease surveillance for conflict-affected regions.
+    Offline-first. SMS fallback. Open-source.<br/>
+    Built for when infrastructure fails most.
+  </p>
+  <div class="hero-meta fade-in">
+    <div class="badge amber">⬤ &nbsp;In Development</div>
+    <div class="badge olive">📡 &nbsp;Initial Context: Gaza Strip</div>
+    <div class="badge">Android · GCP · FastAPI</div>
+    <div class="badge">MIT License</div>
+  </div>
+</header>
+
+<!-- ── MAIN GRID ── -->
+<main>
+  <div class="content-grid">
+
+    <!-- OVERVIEW -->
+    <div class="block" id="overview">
+      <div class="block-label">01 <span>/ Overview</span></div>
+      <h2>Surveillance that works when everything else doesn't</h2>
+      <p>
+        SAHA-Care is a proposed <strong style="color:var(--text-hi)">offline-first, community-based surveillance (CBS)</strong> mobile app for infectious disease detection in conflict-affected environments. Its initial deployment context is the Gaza Strip, where ongoing conflict has collapsed existing health infrastructure and displaced millions.
+      </p>
+      <p style="margin-top:1rem">
+        Community health workers and displaced individuals can report standardized case definitions even during connectivity blackouts — falling back to structured SMS/USSD when mobile data is unavailable. Reports aggregate to a GCP cloud backend with automated triage.
+      </p>
+    </div>
+
+    <!-- THE PROBLEM -->
+    <div class="block" id="problem">
+      <div class="block-label">02 <span>/ The Problem</span></div>
+      <h2>Why existing systems fail in crisis</h2>
+      <div class="problem-list">
+        <div class="problem-row">
+          <div class="tag">Infrastructure</div>
+          <div class="desc">Surveillance systems go dark precisely when disease risk is highest</div>
+        </div>
+        <div class="problem-row">
+          <div class="tag">Displacement</div>
+          <div class="desc">Hard-to-reach populations remain invisible to traditional reporting chains</div>
+        </div>
+        <div class="problem-row">
+          <div class="tag">Connectivity</div>
+          <div class="desc">Internet-dependent tools fail during blackouts — the norm in active conflict</div>
+        </div>
+        <div class="problem-row">
+          <div class="tag">Fragmentation</div>
+          <div class="desc">No shared case definitions across humanitarian actors, leading to data silos</div>
+        </div>
+        <div class="problem-row">
+          <div class="tag">Trust</div>
+          <div class="desc">Top-down systems exclude community knowledge and erode local agency</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ARCHITECTURE -->
+    <div class="block block-full" id="architecture">
+      <div class="block-label">03 <span>/ Architecture & Tech Stack</span></div>
+      <h2>System Design</h2>
+
+      <div class="arch-box">
+        <pre>
+  <span class="dim">┌──────────────────────────────────────────────────────────────────┐</span>
+  <span class="dim">│</span>  <span class="hl">FIELD LAYER</span>                                                      <span class="dim">│</span>
+  <span class="dim">│</span>                                                                    <span class="dim">│</span>
+  <span class="dim">│</span>  ┌──────────────┐     ┌──────────────┐     ┌───────────────────┐  <span class="dim">│</span>
+  <span class="dim">│</span>  │ Android App  │     │ SMS / USSD   │     │ CHW Web Portal    │  <span class="dim">│</span>
+  <span class="dim">│</span>  │ (offline-    │     │ fallback via │     │ (low bandwidth,   │  <span class="dim">│</span>
+  <span class="dim">│</span>  │  first,      │     │ Africa's     │     │  progressive web) │  <span class="dim">│</span>
+  <span class="dim">│</span>  │  SQLite)     │     │ Talking /    │     │                   │  <span class="dim">│</span>
+  <span class="dim">│</span>  │              │     │ Twilio       │     │                   │  <span class="dim">│</span>
+  <span class="dim">│</span>  └──────┬───────┘     └──────┬───────┘     └─────────┬─────────┘  <span class="dim">│</span>
+  <span class="dim">│</span>         │                   │                         │             <span class="dim">│</span>
+  <span class="dim">└─────────┼───────────────────┼─────────────────────────┼────────────┘</span>
+            │       (sync on connectivity)                │
+            └───────────────────┬─────────────────────────┘
+                                │  <span class="hl">HTTPS / REST</span>
+  <span class="dim">┌───────────────────────────────▼──────────────────────────────────┐</span>
+  <span class="dim">│</span>  <span class="hl">GCP BACKEND</span>                                                      <span class="dim">│</span>
+  <span class="dim">│</span>                                                                    <span class="dim">│</span>
+  <span class="dim">│</span>  Cloud Run (FastAPI)  →  Firestore (case data)                     <span class="dim">│</span>
+  <span class="dim">│</span>  Cloud Functions      →  Pub/Sub (event streaming)                 <span class="dim">│</span>
+  <span class="dim">│</span>  Firebase Auth        →  Cloud Storage (attachments)               <span class="dim">│</span>
+  <span class="dim">│</span>  BigQuery             →  Looker Studio (dashboards)                 <span class="dim">│</span>
+  <span class="dim">│</span>                                                                    <span class="dim">│</span>
+  <span class="dim">└──────────────────────────────────────────────────────────────────┘</span>
+        </pre>
+      </div>
+
+      <div class="stack-grid" style="margin-top:1.5rem; max-width: 640px;">
+        <div class="stack-row">
+          <div class="stack-layer">Mobile</div>
+          <div class="stack-tech">Android (Kotlin) · SQLite · WorkManager</div>
+        </div>
+        <div class="stack-row">
+          <div class="stack-layer">SMS</div>
+          <div class="stack-tech">Africa's Talking · Twilio SMS Gateway</div>
+        </div>
+        <div class="stack-row">
+          <div class="stack-layer">API</div>
+          <div class="stack-tech">Python FastAPI · Cloud Run</div>
+        </div>
+        <div class="stack-row">
+          <div class="stack-layer">Database</div>
+          <div class="stack-tech">Firestore (primary) · Cloud SQL (analytics)</div>
+        </div>
+        <div class="stack-row">
+          <div class="stack-layer">Auth</div>
+          <div class="stack-tech">Firebase Identity Platform</div>
+        </div>
+        <div class="stack-row">
+          <div class="stack-layer">Messaging</div>
+          <div class="stack-tech">GCP Pub/Sub</div>
+        </div>
+        <div class="stack-row">
+          <div class="stack-layer">CI/CD</div>
+          <div class="stack-tech">GitHub Actions → Cloud Run</div>
+        </div>
+      </div>
+
+      <div class="rationale-section">
+        <div class="rationale-header">Design Rationale</div>
+        <p class="rationale-intro">
+          Every layer was chosen around one constraint: the system must work when infrastructure is degraded or absent. Offline-first on the device, SMS fallback for zero-data environments, serverless on the backend to minimize cost and maintenance overhead.
+        </p>
+
+        <div class="rationale-grid">
+
+          <div class="rationale-card">
+            <div class="rationale-card-label">Android · Kotlin</div>
+            <div class="rationale-card-title">Built for the field</div>
+            <p class="rationale-card-body">Android dominates device ownership in LMICs. Native Kotlin gives direct access to WorkManager for guaranteed background sync and the Android Keystore for encryption — critical APIs that cross-platform frameworks abstract poorly.</p>
+          </div>
+
+          <div class="rationale-card">
+            <div class="rationale-card-label">Africa's Talking</div>
+            <div class="rationale-card-title">SMS/USSD when data is unavailable</div>
+            <p class="rationale-card-body">Chosen over Twilio for direct MENA carrier integrations and native USSD support. USSD works on any SIM with zero data, extending reporting to feature phones and fully offline conditions.</p>
+          </div>
+
+          <div class="rationale-card">
+            <div class="rationale-card-label">FastAPI · Cloud Run</div>
+            <div class="rationale-card-title">Scalable, cost-effective backend</div>
+            <p class="rationale-card-body">FastAPI provides fast development, async handling, and automatic validation. Cloud Run scales to zero when idle — eliminating hosting costs between uses — and deploys directly from GitHub Actions on every push.</p>
+          </div>
+
+          <div class="rationale-card">
+            <div class="rationale-card-label">Firestore · Firebase Auth</div>
+            <div class="rationale-card-title">Real-time data with enforced access control</div>
+            <p class="rationale-card-body">Firestore's document model suits self-contained case reports and its real-time listeners power live dashboards. Firebase Auth enables phone-number OTP login for field workers, with security rules enforcing data isolation at the database level.</p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- DELIVERABLES -->
+    <div class="block" id="deliverables">
+      <div class="block-label">04 <span>/ Deliverables</span></div>
+      <h2>Academic & Technical Outputs</h2>
+      <div class="deliverables-list">
+        <a class="deliverable-item disabled" href="#">
+          <div class="deliverable-icon">📄</div>
+          <div class="deliverable-info">
+            <div class="deliverable-title">Project Proposal</div>
+            <div class="deliverable-desc">Scope, rationale, and literature review</div>
+          </div>
+          <div class="deliverable-tag">Coming Soon</div>
+        </a>
+        <a class="deliverable-item disabled" href="#">
+          <div class="deliverable-icon">🏗️</div>
+          <div class="deliverable-info">
+            <div class="deliverable-title">System Design Document</div>
+            <div class="deliverable-desc">Architecture, ERD, and API specification</div>
+          </div>
+          <div class="deliverable-tag">Coming Soon</div>
+        </a>
+        <a class="deliverable-item disabled" href="#">
+          <div class="deliverable-icon">📊</div>
+          <div class="deliverable-info">
+            <div class="deliverable-title">Midterm Presentation</div>
+            <div class="deliverable-desc">Progress showcase</div>
+          </div>
+          <div class="deliverable-tag">Coming Soon</div>
+        </a>
+        <a class="deliverable-item disabled" href="#">
+          <div class="deliverable-icon">📝</div>
+          <div class="deliverable-info">
+            <div class="deliverable-title">Final Report</div>
+            <div class="deliverable-desc">Full evaluation, RE-AIM analysis, and recommendations</div>
+          </div>
+          <div class="deliverable-tag">Coming Soon</div>
+        </a>
+        <a class="deliverable-item disabled" href="#">
+          <div class="deliverable-icon">🎤</div>
+          <div class="deliverable-info">
+            <div class="deliverable-title">Final Capstone Presentation</div>
+            <div class="deliverable-desc">End-of-semester showcase slides</div>
+          </div>
+          <div class="deliverable-tag">Coming Soon</div>
+        </a>
+      </div>
+    </div>
+
+    <!-- TEAM -->
+    <div class="block block-full" id="team">
+      <div class="block-label">05 <span>/ Team</span></div>
+      <h2>Who We Are</h2>
+      <div class="team-cards">
+        <div class="team-card">
+          <div class="team-initial">L</div>
+          <div class="team-name">Leo</div>
+          <div class="team-role">Software Engineering · Architecture</div>
+          <div class="team-desc">CS Graduate Student, Emory University. Responsible for all technical design, Android development, GCP deployment, and CI/CD infrastructure.</div>
+        </div>
+        <div class="team-card">
+          <div class="team-initial">D</div>
+          <div class="team-name">Dalia</div>
+          <div class="team-role">Public Health · Domain Expertise</div>
+          <div class="team-desc">Public Health Graduate Student, Rollins School of Public Health. Responsible for health domain framing, literature review, case definitions, and evaluation design.</div>
+        </div>
+      </div>
+    </div><!-- end content-grid -->
+</main>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div>SAHA-Care &mdash; GH598-2 Capstone · Emory University</div>
+  <div>
+    <a href="https://github.com/" target="_blank">GitHub Repository</a>
+    &nbsp;·&nbsp;
+    <a href="https://opensource.org/licenses/MIT" target="_blank">MIT License</a>
+    &nbsp;·&nbsp;
+    <span>Open source. Built for humanitarian use.</span>
+  </div>
+</footer>
+
+<script>
+  // Intersection observer for scroll-triggered fade-ins on blocks
+  const blocks = document.querySelectorAll('.block, .block-full');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.08 });
+
+  blocks.forEach(b => {
+    b.style.opacity = '0';
+    b.style.transform = 'translateY(24px)';
+    b.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    obs.observe(b);
+  });
+</script>
+
+</body>
+</html>
