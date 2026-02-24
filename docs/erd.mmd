@@ -1,0 +1,89 @@
+erDiagram
+    users {
+        string uid PK
+        string email
+        string displayName
+        string role "volunteer | supervisor | official"
+        string status "pending | approved"
+        string supervisorId FK "references users.uid"
+        string region
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    reports {
+        string id PK
+        string disease FK "references caseDefinitions.disease"
+        string[] symptoms
+        float temp
+        float lat
+        float lng
+        string locationName
+        string status "pending | verified | rejected"
+        string reporterId FK "references users.uid"
+        string verifiedBy FK "references users.uid"
+        string region
+        timestamp createdAt
+        timestamp verifiedAt
+    }
+
+    caseDefinitions {
+        string id PK
+        string disease UK
+        json symptoms "symptom checklist"
+        string[] dangerSigns
+        string guidance
+        boolean active
+        int threshold "alert threshold per region"
+    }
+
+    conversations {
+        string id PK
+        string reportId FK "references reports.id"
+        string[] participantIds "references users.uid"
+        timestamp lastMessageAt
+        timestamp createdAt
+    }
+
+    messages {
+        string id PK
+        string conversationId FK "references conversations.id"
+        string senderId FK "references users.uid"
+        string text
+        boolean read
+        timestamp sentAt
+    }
+
+    alerts {
+        string id PK
+        string disease FK "references caseDefinitions.disease"
+        string region
+        int caseCount
+        int threshold
+        string severity "low | medium | high | critical"
+        string status "active | resolved"
+        timestamp createdAt
+        timestamp resolvedAt
+    }
+
+    aggregates {
+        string id PK "disease_region_period"
+        string disease FK "references caseDefinitions.disease"
+        string region
+        string period "day | week"
+        int caseCount
+        int verifiedCount
+        timestamp lastUpdated
+    }
+
+    %% Relationships
+    users ||--o{ reports : "submits (reporterId)"
+    users ||--o{ reports : "verifies (verifiedBy)"
+    users ||--o{ users : "supervises (supervisorId)"
+    users }o--o{ conversations : "participates in"
+    caseDefinitions ||--o{ reports : "defines disease"
+    reports ||--o| conversations : "discussed in"
+    conversations ||--|{ messages : "contains"
+    users ||--o{ messages : "sends"
+    caseDefinitions ||--o{ alerts : "triggers for disease"
+    caseDefinitions ||--o{ aggregates : "aggregated by disease"

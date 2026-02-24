@@ -1,0 +1,74 @@
+graph TD
+    subgraph Client ["Client (Browser)"]
+        PWA["React PWA<br/>(Vite + TypeScript)"]
+        SW["Service Worker<br/>(Vite PWA Plugin)"]
+        Cache["Firestore<br/>Offline Cache"]
+        UI["MUI + Leaflet + Recharts"]
+        State["Zustand Store"]
+
+        PWA --- UI
+        PWA --- State
+        PWA --- SW
+        PWA --- Cache
+    end
+
+    subgraph Views ["Role-Based Views"]
+        V["Volunteer<br/>Submit Reports"]
+        S["Supervisor<br/>Verify & Approve"]
+        O["Official<br/>Dashboard & Maps"]
+    end
+
+    subgraph Firebase ["Firebase"]
+        Hosting["Firebase Hosting<br/>(CDN + SSL)"]
+        Auth["Firebase Auth<br/>(Email/Password + Custom Claims)"]
+        Firestore[("Firestore DB")]
+
+        subgraph Functions ["Cloud Functions"]
+            F1["onUserApproval<br/><i>users/{uid} onUpdate</i>"]
+            F2["onReportWrite<br/><i>reports/{id} onCreate</i>"]
+            F3["aggregateCases<br/><i>reports/{id} onWrite</i>"]
+        end
+    end
+
+    subgraph Collections ["Firestore Collections"]
+        users["users"]
+        reports["reports"]
+        caseDefs["caseDefinitions"]
+        conversations["conversations"]
+        alerts["alerts"]
+        aggregates["aggregates"]
+    end
+
+    %% Client to Firebase
+    Hosting -->|serves| PWA
+    PWA -->|authenticates| Auth
+    Cache <-->|"auto-sync<br/>(online)"| Firestore
+
+    %% Role views
+    PWA --> Views
+
+    %% Firestore triggers Cloud Functions
+    Firestore -->|triggers| F1
+    Firestore -->|triggers| F2
+    Firestore -->|triggers| F3
+
+    %% Cloud Functions write back
+    F1 -->|validates & writes| users
+    F2 -->|creates| alerts
+    F3 -->|updates| aggregates
+
+    %% Firestore contains collections
+    Firestore --- Collections
+
+    %% Styling
+    classDef firebase fill:#FFA000,stroke:#F57C00,color:#fff
+    classDef client fill:#1976D2,stroke:#1565C0,color:#fff
+    classDef functions fill:#7B1FA2,stroke:#6A1B9A,color:#fff
+    classDef collection fill:#388E3C,stroke:#2E7D32,color:#fff
+    classDef views fill:#00796B,stroke:#00695C,color:#fff
+
+    class Hosting,Auth,Firestore firebase
+    class PWA,SW,Cache,UI,State client
+    class F1,F2,F3 functions
+    class users,reports,caseDefs,conversations,alerts,aggregates collection
+    class V,S,O views

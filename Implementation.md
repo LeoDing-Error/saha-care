@@ -27,10 +27,14 @@ Service	Role
 Firestore	NoSQL database, offline sync, real-time listeners, security rules
 Firebase Auth	Email/password auth, custom claims for roles
 Firebase Hosting	Free hosting with SSL and CDN
+Cloud Functions	Server-side triggers: approval validation, alert detection, data aggregation (3 functions)
 Cloud Storage	Attachments (optional, if needed)
 NOTE
 
-No Cloud Functions needed for the simplified stack. Alert logic can be handled via Firestore onSnapshot listeners client-side or added later as a Cloud Function if needed.
+Cloud Functions handle three server-side concerns that can't be reliably done client-side:
+1. **Approval enforcement** (`onUserApproval`) — validates role escalation server-side, enforces region scoping (security)
+2. **Alert detection** (`onReportWrite`) — checks thresholds and creates alerts even when no dashboard is open (reliability)
+3. **Data aggregation** (`aggregateCases`) — pre-computes rollups so dashboards load fast on low-end devices (performance)
 
 Security & Encryption
 Layer	Approach
@@ -46,10 +50,10 @@ GitHub Actions	CI/CD: lint → test → build → deploy to Firebase Hosting
 Firebase Emulator Suite	Local development (Firestore, Auth)
 Cost Estimate
 Service	Cost
-Firebase Spark (free)	1 GB Firestore, 10 GB hosting, 50K reads/day
+Firebase Blaze (pay-as-you-go)	Firestore, Auth, Hosting, Cloud Functions — free tier includes 2M function invocations/month, 1 GB Firestore, 10 GB hosting
 GitHub Actions	2,000 min/month free
 Leaflet + OpenStreetMap	Free
-Total	$0
+Total	$0 (within free tier at project scale)
 Sprint Roadmap — 10 Weeks / 5 Sprints
 Sprint 1 — Foundation & Core Reporting (Weeks 1–2)
 Goal: Volunteer can register, log in, and submit offline case reports.
@@ -74,10 +78,14 @@ Dashboard view: KPI cards, Recharts charts (disease counts, trends)
 Leaflet map: report markers, clustering, color-coded by disease
 Filtering: disease, date range, location, status
 Role-based view scoping
-Sprint 4 — Alerts, Polish & Security (Weeks 7–8)
-Goal: Alert thresholds, security audit, UI polish.
+Sprint 4 — Alerts, Cloud Functions & Security (Weeks 7–8)
+Goal: Server-side logic, alert thresholds, security audit, UI polish.
 
-Client-side alert detection (threshold monitoring via Firestore queries)
+Cloud Functions setup: `functions/` directory, TypeScript config, deploy pipeline
+Deploy `onUserApproval`: server-side approval validation (replaces client-side role writes)
+Deploy `onReportWrite`: threshold detection, auto-create `alerts` documents
+Deploy `aggregateCases`: pre-computed rollups in `aggregates` collection for dashboard
+Alert threshold configuration (disease/region thresholds in `caseDefinitions`)
 Firestore security rules audit
 UI polish: loading states, error handling, responsive design, accessibility
 CI/CD pipeline via GitHub Actions
@@ -92,4 +100,3 @@ Future Phase (Out of Scope)
 SMS/USSD fallback via Twilio + Cloud Functions
 Native mobile app (Flutter or React Native)
 Push notifications via FCM
-Cloud Functions for server-side alert triggers
