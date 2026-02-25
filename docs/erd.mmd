@@ -37,23 +37,6 @@ erDiagram
         int threshold "alert threshold per region"
     }
 
-    conversations {
-        string id PK
-        string reportId FK "references reports.id"
-        string[] participantIds "references users.uid"
-        timestamp lastMessageAt
-        timestamp createdAt
-    }
-
-    messages {
-        string id PK
-        string conversationId FK "references conversations.id"
-        string senderId FK "references users.uid"
-        string text
-        boolean read
-        timestamp sentAt
-    }
-
     alerts {
         string id PK
         string disease FK "references caseDefinitions.disease"
@@ -80,10 +63,27 @@ erDiagram
     users ||--o{ reports : "submits (reporterId)"
     users ||--o{ reports : "verifies (verifiedBy)"
     users ||--o{ users : "supervises (supervisorId)"
-    users }o--o{ conversations : "participates in"
     caseDefinitions ||--o{ reports : "defines disease"
-    reports ||--o| conversations : "discussed in"
-    conversations ||--|{ messages : "contains"
-    users ||--o{ messages : "sends"
     caseDefinitions ||--o{ alerts : "triggers for disease"
     caseDefinitions ||--o{ aggregates : "aggregated by disease"
+
+    %% Future Phase — In-App Messaging
+    %% conversations {
+    %%     string id PK
+    %%     string reportId FK "references reports.id"
+    %%     string[] participantIds "references users.uid"
+    %%     timestamp lastMessageAt
+    %%     timestamp createdAt
+    %% }
+    %% messages {
+    %%     string id PK
+    %%     string conversationId FK "references conversations.id"
+    %%     string senderId FK "references users.uid"
+    %%     string text
+    %%     boolean read
+    %%     timestamp sentAt
+    %% }
+    %% users }o--o{ conversations : "participates in"
+    %% reports ||--o| conversations : "discussed in"
+    %% conversations ||--|{ messages : "contains"
+    %% users ||--o{ messages : "sends"

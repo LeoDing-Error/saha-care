@@ -8,7 +8,7 @@ Community-based disease surveillance PWA for conflict zones (Gaza Strip). Offlin
 - **UI:** Material UI (MUI) + Leaflet + Recharts
 - **BaaS:** Firebase (Firestore, Auth, Hosting, Cloud Functions)
 - **Server-side:** Cloud Functions (Node.js/TypeScript) — approval enforcement, alert triggers, data aggregation
-- **State:** Zustand
+- **State:** React Context (AuthContext) + Firestore `onSnapshot` listeners + local `useState`
 - **Offline:** Firestore offline cache + Vite PWA plugin (service worker)
 
 ## Architecture
@@ -33,9 +33,9 @@ One app, three role-based views: Volunteer (reporting), Supervisor (verification
 
 | Role | Access | Approval |
 |---|---|---|
-| **Volunteer** | Submit reports, messaging | Approved by supervisor |
-| **Supervisor** | Review/verify reports, approve volunteers, messaging | Approved by official |
-| **Official** | Dashboard, aggregated data, approve supervisors | Pre-provisioned |
+| **Volunteer** | Submit reports | Approved by supervisor |
+| **Supervisor** | Review/verify reports, approve volunteers, maps, regional charts | Approved by official |
+| **Official** | Dashboard, aggregated data, maps, charts, approve supervisors | Pre-provisioned |
 
 Self-registration with approval — users enter `pending` state until approved by higher role.
 
@@ -54,9 +54,9 @@ Server-side logic deployed as Firebase Cloud Functions (Node.js/TypeScript). Tri
 - `users` — uid, email, displayName, role, status (pending/approved), supervisorId, region
 - `reports` — disease, symptoms, temp, location (lat/lng + name), status (pending/verified/rejected), reporterId, verifiedBy
 - `caseDefinitions` — disease, symptoms (JSON), dangerSigns, guidance, active flag
-- `conversations` — reportId, participantIds, lastMessageAt
-  - `messages` (subcollection) — senderId, text, read, sentAt
 - `alerts` — disease, region, caseCount, threshold, severity, status
+- `conversations` — reportId, participantIds, lastMessageAt *(future phase)*
+  - `messages` (subcollection) — senderId, text, read, sentAt *(future phase)*
 - `aggregates` — disease, region, period (day/week), caseCount, verifiedCount, lastUpdated (maintained by Cloud Function)
 
 ## Key Constraints
@@ -74,10 +74,11 @@ saha-care/
 │   ├── pages/
 │   │   ├── auth/             # Login, Register
 │   │   ├── volunteer/        # Report form, report list
-│   │   ├── supervisor/       # Verification, approval, messaging
+│   │   ├── supervisor/       # Verification, approval
 │   │   └── dashboard/        # Charts, maps, filtering
 │   ├── services/             # Firebase config, auth, firestore helpers
-│   ├── stores/               # Zustand stores
+│   ├── contexts/             # React Context providers (AuthContext)
+│   ├── hooks/                # Custom hooks (useReports, useAlerts, etc.)
 │   ├── types/                # TypeScript interfaces
 │   ├── App.tsx
 │   └── main.tsx

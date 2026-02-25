@@ -4,18 +4,20 @@ graph TD
         SW["Service Worker<br/>(Vite PWA Plugin)"]
         Cache["Firestore<br/>Offline Cache"]
         UI["MUI + Leaflet + Recharts"]
-        State["Zustand Store"]
+        Ctx["React Context<br/>(AuthContext)"]
+        Hooks["Custom Hooks<br/>(useReports, useAlerts)"]
 
         PWA --- UI
-        PWA --- State
+        PWA --- Ctx
+        PWA --- Hooks
         PWA --- SW
         PWA --- Cache
     end
 
     subgraph Views ["Role-Based Views"]
         V["Volunteer<br/>Submit Reports"]
-        S["Supervisor<br/>Verify & Approve"]
-        O["Official<br/>Dashboard & Maps"]
+        S["Supervisor<br/>Verify, Approve, Maps & Charts"]
+        O["Official<br/>Dashboard, Maps & Charts"]
     end
 
     subgraph Firebase ["Firebase"]
@@ -34,7 +36,6 @@ graph TD
         users["users"]
         reports["reports"]
         caseDefs["caseDefinitions"]
-        conversations["conversations"]
         alerts["alerts"]
         aggregates["aggregates"]
     end
@@ -68,7 +69,7 @@ graph TD
     classDef views fill:#00796B,stroke:#00695C,color:#fff
 
     class Hosting,Auth,Firestore firebase
-    class PWA,SW,Cache,UI,State client
+    class PWA,SW,Cache,UI,Ctx,Hooks client
     class F1,F2,F3 functions
-    class users,reports,caseDefs,conversations,alerts,aggregates collection
+    class users,reports,caseDefs,alerts,aggregates collection
     class V,S,O views
