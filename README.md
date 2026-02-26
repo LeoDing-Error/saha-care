@@ -7,7 +7,7 @@
 [![Platform: PWA](https://img.shields.io/badge/Platform-PWA-green)](https://web.dev/progressive-web-apps/)
 [![Backend: Firebase](https://img.shields.io/badge/Backend-Firebase-blue)](https://firebase.google.com/)
 
-> Project Page: *[SAHA-Care](https://leoding-error.github.io/saha-care/)*
+> Main Project Page: *[SAHA-Care](https://leoding-error.github.io/saha-care/)*
 
 ---
 
