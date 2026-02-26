@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SAHA-Care - Project Overview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <a class="nav-brand" href="#">SAHA-Care</a>
+      <ul class="nav-links">
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#architecture">Architecture</a></li>
+        <li><a href="#tech-stack">Tech Stack</a></li>
+        <li><a href="#implementation">Implementation</a></li>
+        <li><a href="#timeline">Timeline</a></li>
+        <li><a href="https://github.com/LeoDing-Error/saha-care" target="_blank">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- HERO -->
+    <section class="hero">
+      <h1>SAHA-Care</h1>
+      <p class="hero-sub">Community-based disease surveillance for conflict-affected regions.<br />Offline-first. Role-based. Open-source.</p>
+      <div class="hero-badges">
+        <span class="badge badge-orange">In Development</span>
+        <span class="badge">React PWA</span>
+        <span class="badge">Firebase</span>
+        <span class="badge">MIT License</span>
+      </div>
+      <div class="sprint-indicator" id="sprint-indicator"></div>
+    </section>
+
+    <!-- OVERVIEW -->
+    <section id="overview">
+      <h2>Overview</h2>
+      <p>
+        SAHA-Care is an <strong>offline-first, community-based disease surveillance (CBS)</strong> progressive web app
+        designed for infectious disease detection and reporting in conflict-affected, resource-constrained environments.
+        Its initial implementation context is the <strong>Gaza Strip</strong>, where existing health surveillance
+        infrastructure has collapsed under ongoing conflict and displacement.
+      </p>
+      <p>
+        Community health workers and displaced individuals can report standardized case definitions even during
+        connectivity blackouts. Reports are stored locally via Firestore's offline cache and automatically sync
+        when connectivity resumes. Verified data is aggregated into dashboards with maps, charts, and automated
+        outbreak alerts.
+      </p>
+      <p>
+        One app serves three roles: <strong>Volunteers</strong> submit reports, <strong>Supervisors</strong> verify
+        and approve, <strong>Officials</strong> monitor outbreaks via dashboards.
+      </p>
+
+      <h3>The Problem</h3>
+      <table>
+        <thead>
+          <tr><th>Challenge</th><th>Impact</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Infrastructure collapse</td><td>Surveillance systems go dark precisely when disease risk is highest</td></tr>
+          <tr><td>Mass displacement</td><td>Hard-to-reach populations are invisible to traditional systems</td></tr>
+          <tr><td>Connectivity blackouts</td><td>Internet-dependent apps fail in the field</td></tr>
+          <tr><td>Fragmented reporting</td><td>No standardized case definitions across humanitarian actors</td></tr>
+          <tr><td>Community distrust</td><td>Top-down systems exclude local knowledge and agency</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Core Features</h3>
+      <ul>
+        <li><strong>Offline-first data collection</strong> &mdash; Firestore offline cache + service worker. Reports sync on reconnect.</li>
+        <li><strong>Standardized case definitions</strong> &mdash; WHO-aligned symptom checklists for priority diseases.</li>
+        <li><strong>Role-based access</strong> &mdash; Volunteer (reporting), Supervisor (verification + maps), Official (dashboard + alerts).</li>
+        <li><strong>Supervisor verification</strong> &mdash; Review, verify/reject reports, view locations on map, approve volunteers.</li>
+        <li><strong>Dashboard &amp; maps</strong> &mdash; KPI cards, Recharts charts, Leaflet map with clustered markers.</li>
+        <li><strong>Automated alerts</strong> &mdash; Cloud Functions detect when case counts exceed thresholds per disease/region.</li>
+        <li><strong>Installable PWA</strong> &mdash; "Add to Home Screen" on Android Chrome, behaves like a native app.</li>
+      </ul>
+    </section>
+
+    <!-- ARCHITECTURE -->
+    <section id="architecture">
+      <h2>System Architecture</h2>
+      <p>
+        The system is a React PWA served via Firebase Hosting. All data flows through Firestore with automatic
+        offline caching. Three Cloud Functions handle server-side logic triggered by Firestore document writes.
+      </p>
+      <div class="diagram-container">
+        <pre class="mermaid">
+graph TD
+    subgraph Client ["Client (Browser)"]
+        PWA["React PWA&lt;br/&gt;(Vite + TypeScript)"]
+        SW["Service Worker&lt;br/&gt;(Vite PWA Plugin)"]
+        Cache["Firestore&lt;br/&gt;Offline Cache"]
+        UI["MUI + Leaflet + Recharts"]
+        Ctx["React Context&lt;br/&gt;(AuthContext)"]
+        Hooks["Custom Hooks&lt;br/&gt;(useReports, useAlerts)"]
+
+        PWA --- UI
+        PWA --- Ctx
+        PWA --- Hooks
+        PWA --- SW
+        PWA --- Cache
+    end
+
+    subgraph Views ["Role-Based Views"]
+        V["Volunteer&lt;br/&gt;Submit Reports"]
+        S["Supervisor&lt;br/&gt;Verify, Approve, Maps &amp; Charts"]
+        O["Official&lt;br/&gt;Dashboard, Maps &amp; Charts"]
+    end
+
+    subgraph Firebase ["Firebase"]
+        Hosting["Firebase Hosting&lt;br/&gt;(CDN + SSL)"]
+        Auth["Firebase Auth&lt;br/&gt;(Email/Password + Custom Claims)"]
+        Firestore[("Firestore DB")]
+
+        subgraph Functions ["Cloud Functions"]
+            F1["onUserApproval&lt;br/&gt;&lt;i&gt;users/uid onUpdate&lt;/i&gt;"]
+            F2["onReportWrite&lt;br/&gt;&lt;i&gt;reports/id onCreate&lt;/i&gt;"]
+            F3["aggregateCases&lt;br/&gt;&lt;i&gt;reports/id onWrite&lt;/i&gt;"]
+        end
+    end
+
+    subgraph Collections ["Firestore Collections"]
+        users["users"]
+        reports["reports"]
+        caseDefs["caseDefinitions"]
+        alerts["alerts"]
+        aggregates["aggregates"]
+    end
+
+    Hosting -->|serves| PWA
+    PWA -->|authenticates| Auth
+    Cache <-->|"auto-sync&lt;br/&gt;(online)"| Firestore
+
+    PWA --> Views
+
+    Firestore -->|triggers| F1
+    Firestore -->|triggers| F2
+    Firestore -->|triggers| F3
+
+    F1 -->|validates &amp; writes| users
+    F2 -->|creates| alerts
+    F3 -->|updates| aggregates
+
+    Firestore --- Collections
+        </pre>
+      </div>
+
+      <h3>Cloud Functions</h3>
+      <p>Server-side logic triggered by Firestore writes &mdash; no HTTP endpoints needed.</p>
+      <table>
+        <thead>
+          <tr><th>Function</th><th>Trigger</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>onUserApproval</code></td>
+            <td><code>users/{uid}</code> onUpdate</td>
+            <td>Validates role escalation, enforces region scoping</td>
+          </tr>
+          <tr>
+            <td><code>onReportWrite</code></td>
+            <td><code>reports/{id}</code> onCreate</td>
+            <td>Checks thresholds per disease/region, auto-creates alerts</td>
+          </tr>
+          <tr>
+            <td><code>aggregateCases</code></td>
+            <td><code>reports/{id}</code> onWrite</td>
+            <td>Maintains pre-computed rollups for dashboard performance</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Data Model</h3>
+      <div class="diagram-container">
+        <pre class="mermaid">
+erDiagram
+    users {
+        string uid PK
+        string email
+        string displayName
+        string role "volunteer | supervisor | official"
+        string status "pending | approved"
+        string supervisorId FK "references users.uid"
+        string region
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    reports {
+        string id PK
+        string disease FK "references caseDefinitions.disease"
+        array symptoms
+        float temp
+        float lat
+        float lng
+        string locationName
+        string status "pending | verified | rejected"
+        string reporterId FK "references users.uid"
+        string verifiedBy FK "references users.uid"
+        string region
+        timestamp createdAt
+        timestamp verifiedAt
+    }
+
+    caseDefinitions {
+        string id PK
+        string disease UK
+        json symptoms "symptom checklist"
+        array dangerSigns
+        string guidance
+        boolean active
+        int threshold "alert threshold per region"
+    }
+
+    alerts {
+        string id PK
+        string disease FK "references caseDefinitions.disease"
+        string region
+        int caseCount
+        int threshold
+        string severity "low | medium | high | critical"
+        string status "active | resolved"
+        timestamp createdAt
+        timestamp resolvedAt
+    }
+
+    aggregates {
+        string id PK "disease_region_period"
+        string disease FK "references caseDefinitions.disease"
+        string region
+        string period "day | week"
+        int caseCount
+        int verifiedCount
+        timestamp lastUpdated
+    }
+
+    users ||--o{ reports : "submits (reporterId)"
+    users ||--o{ reports : "verifies (verifiedBy)"
+    users ||--o{ users : "supervises (supervisorId)"
+    caseDefinitions ||--o{ reports : "defines disease"
+    caseDefinitions ||--o{ alerts : "triggers for disease"
+    caseDefinitions ||--o{ aggregates : "aggregated by disease"
+        </pre>
+      </div>
+    </section>
+
+    <!-- TECH STACK -->
+    <section id="tech-stack">
+      <h2>Tech Stack</h2>
+      <table>
+        <thead>
+          <tr><th>Layer</th><th>Technology</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Framework</td><td>React + Vite + TypeScript (PWA)</td></tr>
+          <tr><td>UI</td><td>Material UI (MUI)</td></tr>
+          <tr><td>Maps</td><td>Leaflet + OpenStreetMap</td></tr>
+          <tr><td>Charts</td><td>Recharts</td></tr>
+          <tr><td>State</td><td>React Context + Firestore <code>onSnapshot</code> listeners</td></tr>
+          <tr><td>Database</td><td>Firestore (NoSQL, offline sync, real-time, security rules)</td></tr>
+          <tr><td>Auth</td><td>Firebase Auth (email/password, custom claims for roles)</td></tr>
+          <tr><td>Server-side</td><td>Cloud Functions (Node.js/TypeScript) &mdash; 3 Firestore-triggered functions</td></tr>
+          <tr><td>Hosting</td><td>Firebase Hosting (CDN + SSL)</td></tr>
+          <tr><td>Offline</td><td>Firestore offline cache + Vite PWA plugin (service worker)</td></tr>
+          <tr><td>CI/CD</td><td>GitHub Actions &rarr; Firebase Hosting</td></tr>
+        </tbody>
+      </table>
+
+      <h3>User Roles</h3>
+      <table>
+        <thead>
+          <tr><th>Role</th><th>Access</th><th>Approval</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Volunteer</strong></td><td>Submit reports</td><td>Approved by supervisor</td></tr>
+          <tr><td><strong>Supervisor</strong></td><td>Review/verify reports, approve volunteers, maps, regional charts</td><td>Approved by official</td></tr>
+          <tr><td><strong>Official</strong></td><td>Dashboard, aggregated data, maps, charts, approve supervisors</td><td>Pre-provisioned</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- IMPLEMENTATION -->
+    <section id="implementation">
+      <h2>Implementation Plan</h2>
+      <p>
+        Solo developer using AI agents, class project (CS 584), ~7.5 weeks in 4 sprints (~13 days each).
+        Single offline-first PWA for disease surveillance in conflict zones &mdash; one app serves all roles.
+      </p>
+
+      <div class="sprint-cards">
+
+        <div class="sprint-card" data-sprint="1" data-start="2026-02-24" data-end="2026-03-08">
+          <div class="sprint-header">
+            <h3>Sprint 1 &mdash; Auth &amp; Offline Reporting</h3>
+            <span class="sprint-dates">Feb 24 &ndash; Mar 8</span>
+          </div>
+          <p class="sprint-goal">Goal: Volunteer can register, log in, and submit offline case reports.</p>
+          <ul>
+            <li>React + Vite + TypeScript project scaffold with PWA plugin</li>
+            <li>Firebase project setup (Firestore, Auth, Hosting)</li>
+            <li>Firestore schema + security rules</li>
+            <li>Auth: email/password, role selection, pending approval state, custom claims</li>
+            <li>Case report form (disease, symptoms, temp, location) with WHO-aligned case definitions</li>
+            <li>GPS auto-capture + manual location fallback</li>
+            <li>Offline persistence via Firestore cache + service worker</li>
+          </ul>
+        </div>
+
+        <div class="sprint-card" data-sprint="2" data-start="2026-03-09" data-end="2026-03-21">
+          <div class="sprint-header">
+            <h3>Sprint 2 &mdash; Verification &amp; Approval</h3>
+            <span class="sprint-dates">Mar 9 &ndash; Mar 21</span>
+          </div>
+          <p class="sprint-goal">Goal: Supervisors review and verify reports; approval hierarchy works.</p>
+          <ul>
+            <li>User approval flow (supervisors approve volunteers, officials approve supervisors)</li>
+            <li>Supervisor report review screen with map view (Leaflet)</li>
+            <li>Verification actions: verify / reject (status state machine)</li>
+            <li>Region-scoped views (supervisors see only their region)</li>
+            <li>In-app notification badges for report status changes</li>
+          </ul>
+        </div>
+
+        <div class="sprint-card" data-sprint="3" data-start="2026-03-22" data-end="2026-04-03">
+          <div class="sprint-header">
+            <h3>Sprint 3 &mdash; Dashboard &amp; Maps</h3>
+            <span class="sprint-dates">Mar 22 &ndash; Apr 3</span>
+          </div>
+          <p class="sprint-goal">Goal: Officials and supervisors monitor outbreaks via charts and maps.</p>
+          <ul>
+            <li>Official dashboard: KPI cards, Recharts charts (case counts by disease, trends over time)</li>
+            <li>Supervisor regional chart view</li>
+            <li>Leaflet map: report markers, clustering, color-coded by disease, click-to-drill-down</li>
+            <li>Filtering: disease, date range, region, verification status</li>
+            <li>Role-based scoping (official = all regions, supervisor = their region)</li>
+          </ul>
+        </div>
+
+        <div class="sprint-card" data-sprint="4" data-start="2026-04-04" data-end="2026-04-16">
+          <div class="sprint-header">
+            <h3>Sprint 4 &mdash; Alerts, Cloud Functions, Polish &amp; Demo</h3>
+            <span class="sprint-dates">Apr 4 &ndash; Apr 16</span>
+          </div>
+          <p class="sprint-goal">Goal: Server-side logic, alert system, security audit, demo-ready product.</p>
+          <ul>
+            <li>Cloud Functions setup: <code>functions/</code> directory, TypeScript config, deploy pipeline</li>
+            <li>Deploy <code>onUserApproval</code>: server-side approval validation</li>
+            <li>Deploy <code>onReportWrite</code>: threshold detection, auto-create alerts</li>
+            <li>Deploy <code>aggregateCases</code>: pre-computed rollups for dashboard</li>
+            <li>Alert threshold configuration + alerts surface on dashboard</li>
+            <li>Firestore security rules audit</li>
+            <li>UI polish: loading states, error handling, responsive design</li>
+            <li>Seed data for realistic demo + testing</li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TIMELINE -->
+    <section id="timeline">
+      <h2>Project Timeline</h2>
+      <p>Feb 24 &ndash; Apr 16, 2026 &middot; ~7.5 weeks / 4 sprints</p>
+
+      <div class="timeline">
+
+        <div class="timeline-item" data-sprint="1" data-start="2026-02-24" data-end="2026-03-08">
+          <div class="timeline-marker"></div>
+          <div class="timeline-content">
+            <div class="timeline-label">Sprint 1</div>
+            <div class="timeline-title">Auth &amp; Offline Reporting</div>
+            <div class="timeline-date">Feb 24 &ndash; Mar 8</div>
+          </div>
+        </div>
+
+        <div class="timeline-milestone" data-milestone="M1" data-date="2026-03-08">
+          <div class="timeline-marker milestone-marker"></div>
+          <div class="timeline-content">
+            <div class="timeline-label milestone-label">Milestone M1</div>
+            <div class="timeline-title">App MVP &mdash; Offline case reporting with auth</div>
+            <div class="timeline-date">Mar 8</div>
+          </div>
+        </div>
+
+        <div class="timeline-item" data-sprint="2" data-start="2026-03-09" data-end="2026-03-21">
+          <div class="timeline-marker"></div>
+          <div class="timeline-content">
+            <div class="timeline-label">Sprint 2</div>
+            <div class="timeline-title">Verification &amp; Approval</div>
+            <div class="timeline-date">Mar 9 &ndash; Mar 21</div>
+          </div>
+        </div>
+
+        <div class="timeline-milestone" data-milestone="M2" data-date="2026-03-21">
+          <div class="timeline-marker milestone-marker"></div>
+          <div class="timeline-content">
+            <div class="timeline-label milestone-label">Milestone M2</div>
+            <div class="timeline-title">Supervisor Flow &mdash; Full verification workflow with maps</div>
+            <div class="timeline-date">Mar 21</div>
+          </div>
+        </div>
+
+        <div class="timeline-item" data-sprint="3" data-start="2026-03-22" data-end="2026-04-03">
+          <div class="timeline-marker"></div>
+          <div class="timeline-content">
+            <div class="timeline-label">Sprint 3</div>
+            <div class="timeline-title">Dashboard &amp; Maps</div>
+            <div class="timeline-date">Mar 22 &ndash; Apr 3</div>
+          </div>
+        </div>
+
+        <div class="timeline-milestone" data-milestone="M3" data-date="2026-04-03">
+          <div class="timeline-marker milestone-marker"></div>
+          <div class="timeline-content">
+            <div class="timeline-label milestone-label">Milestone M3</div>
+            <div class="timeline-title">Dashboard Live &mdash; Charts, maps, filtering</div>
+            <div class="timeline-date">Apr 3</div>
+          </div>
+        </div>
+
+        <div class="timeline-item" data-sprint="4" data-start="2026-04-04" data-end="2026-04-16">
+          <div class="timeline-marker"></div>
+          <div class="timeline-content">
+            <div class="timeline-label">Sprint 4</div>
+            <div class="timeline-title">Alerts, Cloud Functions, Polish &amp; Demo</div>
+            <div class="timeline-date">Apr 4 &ndash; Apr 16</div>
+          </div>
+        </div>
+
+        <div class="timeline-milestone" data-milestone="M4" data-date="2026-04-16">
+          <div class="timeline-marker milestone-marker"></div>
+          <div class="timeline-content">
+            <div class="timeline-label milestone-label">Milestone M4</div>
+            <div class="timeline-title">Final Demo &mdash; Complete, tested, demo-ready product</div>
+            <div class="timeline-date">Apr 16</div>
+          </div>
+        </div>
+
+      </div>
+
+      <h3>Gantt Chart</h3>
+      <div class="diagram-container">
+        <pre class="mermaid">
+gantt
+    title Saha-Care 7.5-Week Plan
+    dateFormat YYYY-MM-DD
+    axisFormat %b %d
+
+    section Sprint 1
+    Auth &amp; Offline Reporting       :s1, 2026-02-24, 13d
+    milestone M1: App MVP          :milestone, m1, 2026-03-08, 0d
+
+    section Sprint 2
+    Verification &amp; Approval        :s2, after s1, 13d
+    milestone M2: Supervisor Flow  :milestone, m2, 2026-03-21, 0d
+
+    section Sprint 3
+    Dashboard &amp; Maps               :s3, after s2, 13d
+    milestone M3: Dashboard Live   :milestone, m3, 2026-04-03, 0d
+
+    section Sprint 4
+    Alerts, Functions, Polish      :s4, after s3, 13d
+    milestone M4: Final Demo       :milestone, m4, 2026-04-16, 0d
+        </pre>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>SAHA-Care &middot; CS 584 Software Engineering &middot; Emory University &middot; Spring 2026</p>
+    <p>
+      <a href="https://github.com/LeoDing-Error/saha-care" target="_blank">GitHub Repository</a>
+      &middot;
+      <a href="https://opensource.org/licenses/MIT" target="_blank">MIT License</a>
+    </p>
+  </footer>
+
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'default',
+      securityLevel: 'loose',
+      flowchart: { useMaxWidth: true, htmlLabels: true },
+      er: { useMaxWidth: true },
+      gantt: { useMaxWidth: true }
+    });
+  </script>
+  <script src="main.js"></script>
+
+</body>
+</html>
