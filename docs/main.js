@@ -1,24 +1,23 @@
 /**
  * SAHA-Care Project Page
  * - Auto-detects current sprint based on today's date
- * - Highlights current sprint in cards and timeline
+ * - Highlights current sprint card in the Implementation section
  * - Shows a status indicator in the hero section
  */
 
 (function () {
   'use strict';
 
-  const sprints = [
+  var sprints = [
     { num: 1, name: 'Sprint 1 — Auth & Offline Reporting',       start: '2026-02-24', end: '2026-03-08' },
     { num: 2, name: 'Sprint 2 — Verification & Approval',        start: '2026-03-09', end: '2026-03-21' },
     { num: 3, name: 'Sprint 3 — Dashboard & Maps',               start: '2026-03-22', end: '2026-04-03' },
     { num: 4, name: 'Sprint 4 — Alerts, Functions, Polish & Demo', start: '2026-04-04', end: '2026-04-16' },
   ];
 
-  const projectEnd = new Date('2026-04-16');
+  var projectEnd = new Date('2026-04-16');
 
   function parseDate(str) {
-    // Parse YYYY-MM-DD as local date (not UTC)
     var parts = str.split('-');
     return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
   }
@@ -38,15 +37,12 @@
         return { sprint: s, status: 'current' };
       }
     }
-    // Before project start
     if (today < parseDate(sprints[0].start)) {
       return { sprint: null, status: 'before' };
     }
-    // After project end
     if (today > projectEnd) {
       return { sprint: null, status: 'after' };
     }
-    // Shouldn't happen if sprints are contiguous, but fall through
     return { sprint: null, status: 'between' };
   }
 
@@ -72,10 +68,7 @@
 
     cards.forEach(function (card) {
       var sprintNum = parseInt(card.getAttribute('data-sprint'));
-      var endStr = card.getAttribute('data-end');
-      var end = parseDate(endStr);
-      var startStr = card.getAttribute('data-start');
-      var start = parseDate(startStr);
+      var end = parseDate(card.getAttribute('data-end'));
 
       if (result.status === 'current' && result.sprint && result.sprint.num === sprintNum) {
         card.classList.add('current');
@@ -85,40 +78,9 @@
     });
   }
 
-  function updateTimeline(result) {
-    var items = document.querySelectorAll('.timeline-item');
-    var milestones = document.querySelectorAll('.timeline-milestone');
-    var today = getToday();
-
-    items.forEach(function (item) {
-      var sprintNum = parseInt(item.getAttribute('data-sprint'));
-      var endStr = item.getAttribute('data-end');
-      var end = parseDate(endStr);
-
-      if (result.status === 'current' && result.sprint && result.sprint.num === sprintNum) {
-        item.classList.add('current');
-      } else if (today > end) {
-        item.classList.add('completed');
-      }
-    });
-
-    milestones.forEach(function (ms) {
-      var dateStr = ms.getAttribute('data-date');
-      var date = parseDate(dateStr);
-
-      if (today > date) {
-        ms.classList.add('completed');
-      } else if (today.getTime() === date.getTime()) {
-        ms.classList.add('current');
-      }
-    });
-  }
-
-  // Run on DOM ready
   document.addEventListener('DOMContentLoaded', function () {
     var result = detectCurrentSprint();
     updateHeroIndicator(result);
     updateSprintCards(result);
-    updateTimeline(result);
   });
 })();

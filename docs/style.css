@@ -318,115 +318,19 @@ tr:hover td {
   font-size: 0.88rem;
 }
 
-/* ── TIMELINE ── */
-.timeline {
-  position: relative;
-  margin: 1.5rem 0;
-  padding-left: 2rem;
-}
-
-.timeline::before {
-  content: '';
-  position: absolute;
-  left: 7px;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: #ddd;
-}
-
-.timeline-item,
-.timeline-milestone {
-  position: relative;
-  padding: 0.75rem 0 0.75rem 1.5rem;
-}
-
-.timeline-marker {
-  position: absolute;
-  left: -2rem;
-  top: 1rem;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #fff;
-  border: 2px solid #ccc;
-  z-index: 1;
-}
-
-.milestone-marker {
-  width: 20px;
-  height: 20px;
-  left: calc(-2rem - 2px);
-  background: #fff;
-  border: 3px solid #e67e22;
-  top: 0.85rem;
-}
-
-.timeline-label {
-  font-size: 0.7rem;
+/* ── SPRINT MILESTONE LABEL ── */
+.sprint-milestone {
+  display: inline-block;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #888;
-}
-
-.milestone-label {
+  letter-spacing: 0.04em;
   color: #e67e22;
-}
-
-.timeline-title {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin: 0.15rem 0;
-}
-
-.timeline-date {
-  font-size: 0.78rem;
-  color: #999;
-}
-
-/* Timeline current state */
-.timeline-item.current .timeline-marker {
-  border-color: #2d7d2d;
-  background: #2d7d2d;
-  box-shadow: 0 0 0 4px rgba(45, 125, 45, 0.15);
-}
-
-.timeline-item.current .timeline-label {
-  color: #2d7d2d;
-}
-
-.timeline-item.current .timeline-title {
-  color: #2d7d2d;
-}
-
-.timeline-item.completed .timeline-marker {
-  border-color: #999;
-  background: #999;
-}
-
-.timeline-item.completed .timeline-label,
-.timeline-item.completed .timeline-title,
-.timeline-item.completed .timeline-date {
-  color: #aaa;
-}
-
-.timeline-milestone.completed .milestone-marker {
-  border-color: #999;
-  background: #999;
-}
-
-.timeline-milestone.completed .milestone-label,
-.timeline-milestone.completed .timeline-title,
-.timeline-milestone.completed .timeline-date {
-  color: #aaa;
-}
-
-.timeline-milestone.current .milestone-marker {
-  border-color: #2d7d2d;
-  background: #2d7d2d;
-  box-shadow: 0 0 0 4px rgba(45, 125, 45, 0.15);
+  background: #fef5ec;
+  border: 1px solid #f5d5b0;
+  border-radius: 4px;
+  padding: 0.15rem 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 /* ── FOOTER ── */

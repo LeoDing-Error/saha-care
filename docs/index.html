@@ -19,7 +19,6 @@
         <li><a href="#architecture">Architecture</a></li>
         <li><a href="#tech-stack">Tech Stack</a></li>
         <li><a href="#implementation">Implementation</a></li>
-        <li><a href="#timeline">Timeline</a></li>
         <li><a href="https://github.com/LeoDing-Error/saha-care" target="_blank">GitHub</a></li>
       </ul>
     </div>
@@ -276,17 +275,7 @@ erDiagram
         </tbody>
       </table>
 
-      <h3>User Roles</h3>
-      <table>
-        <thead>
-          <tr><th>Role</th><th>Access</th><th>Approval</th></tr>
-        </thead>
-        <tbody>
-          <tr><td><strong>Volunteer</strong></td><td>Submit reports</td><td>Approved by supervisor</td></tr>
-          <tr><td><strong>Supervisor</strong></td><td>Review/verify reports, approve volunteers, maps, regional charts</td><td>Approved by official</td></tr>
-          <tr><td><strong>Official</strong></td><td>Dashboard, aggregated data, maps, charts, approve supervisors</td><td>Pre-provisioned</td></tr>
-        </tbody>
-      </table>
+
     </section>
 
     <!-- IMPLEMENTATION -->
@@ -305,6 +294,7 @@ erDiagram
             <span class="sprint-dates">Feb 24 &ndash; Mar 8</span>
           </div>
           <p class="sprint-goal">Goal: Volunteer can register, log in, and submit offline case reports.</p>
+          <div class="sprint-milestone">Milestone: App MVP</div>
           <ul>
             <li>React + Vite + TypeScript project scaffold with PWA plugin</li>
             <li>Firebase project setup (Firestore, Auth, Hosting)</li>
@@ -322,6 +312,7 @@ erDiagram
             <span class="sprint-dates">Mar 9 &ndash; Mar 21</span>
           </div>
           <p class="sprint-goal">Goal: Supervisors review and verify reports; approval hierarchy works.</p>
+          <div class="sprint-milestone">Milestone: Supervisor Flow</div>
           <ul>
             <li>User approval flow (supervisors approve volunteers, officials approve supervisors)</li>
             <li>Supervisor report review screen with map view (Leaflet)</li>
@@ -337,6 +328,7 @@ erDiagram
             <span class="sprint-dates">Mar 22 &ndash; Apr 3</span>
           </div>
           <p class="sprint-goal">Goal: Officials and supervisors monitor outbreaks via charts and maps.</p>
+          <div class="sprint-milestone">Milestone: Dashboard Live</div>
           <ul>
             <li>Official dashboard: KPI cards, Recharts charts (case counts by disease, trends over time)</li>
             <li>Supervisor regional chart view</li>
@@ -352,6 +344,7 @@ erDiagram
             <span class="sprint-dates">Apr 4 &ndash; Apr 16</span>
           </div>
           <p class="sprint-goal">Goal: Server-side logic, alert system, security audit, demo-ready product.</p>
+          <div class="sprint-milestone">Milestone: Final Demo</div>
           <ul>
             <li>Cloud Functions setup: <code>functions/</code> directory, TypeScript config, deploy pipeline</li>
             <li>Deploy <code>onUserApproval</code>: server-side approval validation</li>
@@ -367,113 +360,7 @@ erDiagram
       </div>
     </section>
 
-    <!-- TIMELINE -->
-    <section id="timeline">
-      <h2>Project Timeline</h2>
-      <p>Feb 24 &ndash; Apr 16, 2026 &middot; ~7.5 weeks / 4 sprints</p>
 
-      <div class="timeline">
-
-        <div class="timeline-item" data-sprint="1" data-start="2026-02-24" data-end="2026-03-08">
-          <div class="timeline-marker"></div>
-          <div class="timeline-content">
-            <div class="timeline-label">Sprint 1</div>
-            <div class="timeline-title">Auth &amp; Offline Reporting</div>
-            <div class="timeline-date">Feb 24 &ndash; Mar 8</div>
-          </div>
-        </div>
-
-        <div class="timeline-milestone" data-milestone="M1" data-date="2026-03-08">
-          <div class="timeline-marker milestone-marker"></div>
-          <div class="timeline-content">
-            <div class="timeline-label milestone-label">Milestone M1</div>
-            <div class="timeline-title">App MVP &mdash; Offline case reporting with auth</div>
-            <div class="timeline-date">Mar 8</div>
-          </div>
-        </div>
-
-        <div class="timeline-item" data-sprint="2" data-start="2026-03-09" data-end="2026-03-21">
-          <div class="timeline-marker"></div>
-          <div class="timeline-content">
-            <div class="timeline-label">Sprint 2</div>
-            <div class="timeline-title">Verification &amp; Approval</div>
-            <div class="timeline-date">Mar 9 &ndash; Mar 21</div>
-          </div>
-        </div>
-
-        <div class="timeline-milestone" data-milestone="M2" data-date="2026-03-21">
-          <div class="timeline-marker milestone-marker"></div>
-          <div class="timeline-content">
-            <div class="timeline-label milestone-label">Milestone M2</div>
-            <div class="timeline-title">Supervisor Flow &mdash; Full verification workflow with maps</div>
-            <div class="timeline-date">Mar 21</div>
-          </div>
-        </div>
-
-        <div class="timeline-item" data-sprint="3" data-start="2026-03-22" data-end="2026-04-03">
-          <div class="timeline-marker"></div>
-          <div class="timeline-content">
-            <div class="timeline-label">Sprint 3</div>
-            <div class="timeline-title">Dashboard &amp; Maps</div>
-            <div class="timeline-date">Mar 22 &ndash; Apr 3</div>
-          </div>
-        </div>
-
-        <div class="timeline-milestone" data-milestone="M3" data-date="2026-04-03">
-          <div class="timeline-marker milestone-marker"></div>
-          <div class="timeline-content">
-            <div class="timeline-label milestone-label">Milestone M3</div>
-            <div class="timeline-title">Dashboard Live &mdash; Charts, maps, filtering</div>
-            <div class="timeline-date">Apr 3</div>
-          </div>
-        </div>
-
-        <div class="timeline-item" data-sprint="4" data-start="2026-04-04" data-end="2026-04-16">
-          <div class="timeline-marker"></div>
-          <div class="timeline-content">
-            <div class="timeline-label">Sprint 4</div>
-            <div class="timeline-title">Alerts, Cloud Functions, Polish &amp; Demo</div>
-            <div class="timeline-date">Apr 4 &ndash; Apr 16</div>
-          </div>
-        </div>
-
-        <div class="timeline-milestone" data-milestone="M4" data-date="2026-04-16">
-          <div class="timeline-marker milestone-marker"></div>
-          <div class="timeline-content">
-            <div class="timeline-label milestone-label">Milestone M4</div>
-            <div class="timeline-title">Final Demo &mdash; Complete, tested, demo-ready product</div>
-            <div class="timeline-date">Apr 16</div>
-          </div>
-        </div>
-
-      </div>
-
-      <h3>Gantt Chart</h3>
-      <div class="diagram-container">
-        <pre class="mermaid">
-gantt
-    title Saha-Care 7.5-Week Plan
-    dateFormat YYYY-MM-DD
-    axisFormat %b %d
-
-    section Sprint 1
-    Auth and Offline Reporting       :s1, 2026-02-24, 13d
-    M1 App MVP                       :milestone, m1, 2026-03-08, 0d
-
-    section Sprint 2
-    Verification and Approval        :s2, after s1, 13d
-    M2 Supervisor Flow               :milestone, m2, 2026-03-21, 0d
-
-    section Sprint 3
-    Dashboard and Maps               :s3, after s2, 13d
-    M3 Dashboard Live                :milestone, m3, 2026-04-03, 0d
-
-    section Sprint 4
-    Alerts Functions and Polish      :s4, after s3, 13d
-    M4 Final Demo                    :milestone, m4, 2026-04-16, 0d
-        </pre>
-      </div>
-    </section>
 
   </main>
 
@@ -494,8 +381,7 @@ gantt
       theme: 'default',
       securityLevel: 'loose',
       flowchart: { useMaxWidth: true, htmlLabels: true },
-      er: { useMaxWidth: true },
-      gantt: { useMaxWidth: true }
+      er: { useMaxWidth: true }
     });
   </script>
   <script src="main.js"></script>
