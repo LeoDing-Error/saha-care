@@ -70,16 +70,24 @@ Server-side logic deployed as Firebase Cloud Functions (Node.js/TypeScript). Tri
 ```
 saha-care/
 ├── src/                      # React PWA source
-│   ├── components/           # Shared UI components
+│   ├── components/
+│   │   ├── common/           # Button, Card, StatusBadge, LoadingSpinner
+│   │   ├── forms/            # ReportForm, LoginForm, RegisterForm
+│   │   ├── maps/             # MapView, ReportMarker, ClusterLayer
+│   │   └── charts/           # CaseBarChart, TrendLineChart, KPICard
+│   ├── layouts/              # RoleLayout, AuthLayout (shared shells)
 │   ├── pages/
 │   │   ├── auth/             # Login, Register
 │   │   ├── volunteer/        # Report form, report list
 │   │   ├── supervisor/       # Verification, approval
-│   │   └── dashboard/        # Charts, maps, filtering
+│   │   └── official/         # Dashboard, alerts
 │   ├── services/             # Firebase config, auth, firestore helpers
 │   ├── contexts/             # React Context providers (AuthContext)
 │   ├── hooks/                # Custom hooks (useReports, useAlerts, etc.)
 │   ├── types/                # TypeScript interfaces
+│   ├── utils/                # Date formatting, location helpers, validators
+│   ├── constants/            # roles, diseases, statuses, thresholds
+│   ├── router/               # AppRouter, ProtectedRoute, RoleGuard
 │   ├── App.tsx
 │   └── main.tsx
 ├── functions/                # Cloud Functions
@@ -90,8 +98,15 @@ saha-care/
 │   │   └── index.ts
 │   ├── package.json
 │   └── tsconfig.json
+├── docs/                     # GitHub Pages Landing Site
+│   ├── index.html            # Landing page HTML
+│   ├── style.css             # Landing page styles
+│   ├── main.js               # Landing page script
+│   └── diagrams/             # Mermaid diagrams (architecture, ERD)
 ├── public/                   # PWA manifest, icons
+├── scripts/                  # Seed data scripts, emulator data import
 ├── firestore.rules
+├── firestore.indexes.json    # Composite indexes for queries
 ├── firebase.json
 └── vite.config.ts            # PWA plugin config
 ```
