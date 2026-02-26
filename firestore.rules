@@ -1,0 +1,111 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper functions ──
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isApproved() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == 'approved';
+    }
+
+    function hasRole(role) {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function getUserRegion() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.region;
+    }
+
+    // ── Users collection ──
+    match /users/{userId} {
+      // Anyone signed in can read their own profile
+      // Supervisors can read users in their region
+      // Officials can read all users
+      allow read: if isOwner(userId) ||
+        (hasRole('supervisor') && isApproved() && resource.data.region == getUserRegion()) ||
+        (hasRole('official') && isApproved());
+
+      // Users can create their own profile on registration
+      allow create: if isOwner(userId) &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.role in ['volunteer', 'supervisor'];
+
+      // Users can update their own non-sensitive fields
+      // Role/status changes are enforced by Cloud Functions
+      allow update: if isOwner(userId) &&
+        request.resource.data.role == resource.data.role &&
+        request.resource.data.status == resource.data.status;
+
+      // Supervisors can approve volunteers in their region
+      allow update: if hasRole('supervisor') && isApproved() &&
+        resource.data.role == 'volunteer' &&
+        resource.data.region == getUserRegion();
+
+      // Officials can approve supervisors
+      allow update: if hasRole('official') && isApproved() &&
+        resource.data.role == 'supervisor';
+    }
+
+    // ── Reports collection ──
+    match /reports/{reportId} {
+      // Volunteers can read their own reports
+      // Supervisors can read reports in their region
+      // Officials can read all reports
+      allow read: if (isSignedIn() && resource.data.reporterId == request.auth.uid) ||
+        (hasRole('supervisor') && isApproved() && resource.data.region == getUserRegion()) ||
+        (hasRole('official') && isApproved());
+
+      // Approved volunteers can create reports
+      allow create: if hasRole('volunteer') && isApproved() &&
+        request.resource.data.reporterId == request.auth.uid &&
+        request.resource.data.status == 'pending';
+
+      // Supervisors can verify/reject reports in their region
+      allow update: if hasRole('supervisor') && isApproved() &&
+        resource.data.region == getUserRegion() &&
+        request.resource.data.status in ['verified', 'rejected'];
+    }
+
+    // ── Case Definitions collection ──
+    match /caseDefinitions/{defId} {
+      // All signed-in users can read case definitions
+      allow read: if isSignedIn();
+
+      // Only officials can write case definitions
+      allow write: if hasRole('official') && isApproved();
+    }
+
+    // ── Alerts collection ──
+    match /alerts/{alertId} {
+      // Supervisors can read alerts in their region
+      // Officials can read all alerts
+      allow read: if (hasRole('supervisor') && isApproved() && resource.data.region == getUserRegion()) ||
+        (hasRole('official') && isApproved());
+
+      // Only Cloud Functions should write alerts (no client writes)
+      allow write: if false;
+    }
+
+    // ── Aggregates collection ──
+    match /aggregates/{aggId} {
+      // Supervisors can read aggregates for their region
+      // Officials can read all aggregates
+      allow read: if (hasRole('supervisor') && isApproved() && resource.data.region == getUserRegion()) ||
+        (hasRole('official') && isApproved());
+
+      // Only Cloud Functions should write aggregates
+      allow write: if false;
+    }
+  }
+}
