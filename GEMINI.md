@@ -101,7 +101,13 @@ saha-care/
 │   │   └── index.ts
 │   ├── package.json
 │   └── tsconfig.json
-├── docs/                     # GitHub Pages Landing Site
+├── docs/                     # Documentation + GitHub Pages Landing Site
+│   ├── Implementation.md     # Tech stack & implementation plan
+│   ├── ProjectSchedule.md    # Master schedule (links to sprint docs)
+│   ├── Sprint1-Foundation.md # Sprint 1 tasks & tests
+│   ├── Sprint2-Verification.md # Sprint 2 tasks & tests
+│   ├── Sprint3-Dashboard.md  # Sprint 3 tasks & tests
+│   ├── Sprint4-Security.md   # Sprint 4 tasks & tests
 │   ├── index.html            # Landing page HTML
 │   ├── style.css             # Landing page styles
 │   ├── main.js               # Landing page script
@@ -113,6 +119,12 @@ saha-care/
 ├── firebase.json
 └── vite.config.ts            
 ```
+
+## Documentation
+
+- **Implementation plan:** `docs/Implementation.md` — tech stack choices, architecture rationale, sprint roadmap overview
+- **Project schedule:** `docs/ProjectSchedule.md` — master timeline with milestones and links to sprint details
+- **Sprint details:** `docs/Sprint1-Foundation.md` through `docs/Sprint4-Security.md` — day-by-day tasks, tests, and definition of done per sprint
 
 ## Dev Environment
 
