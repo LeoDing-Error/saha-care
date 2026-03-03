@@ -156,7 +156,7 @@
 - [x] Volunteer can submit report offline and it syncs on reconnect
 - [x] Volunteer can see their submitted reports with status
 - [x] App shell loads when offline
-- [ ] Code committed to GitHub
+- [x] Code committed to GitHub
 - [x] Emulator-based dev workflow documented
 
 ---
