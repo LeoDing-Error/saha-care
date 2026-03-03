@@ -14,7 +14,7 @@ interface AuthContextType {
     refreshProfile: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>({
+export const AuthContext = createContext<AuthContextType>({
     firebaseUser: null,
     userProfile: null,
     loading: true,

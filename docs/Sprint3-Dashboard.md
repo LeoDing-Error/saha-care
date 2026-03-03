@@ -127,7 +127,7 @@
 
 - [ ] **T6.9** Sync all filters across charts and map
   - Date range, disease, status filters apply to all visualizations
-  - Consider using Zustand store for filter state
+  - Use React Context or local useState for filter state
 
 - [ ] **T6.10** Implement role-based data scoping
   - Officials see all regions (or their assigned regions)

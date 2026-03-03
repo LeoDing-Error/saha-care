@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
+import { getAuth, connectAuthEmulator } from 'firebase/auth';
+import { getFirestore, connectFirestoreEmulator, enableIndexedDbPersistence } from 'firebase/firestore';
 
 /**
  * Firebase configuration.
@@ -22,6 +22,18 @@ const app = initializeApp(firebaseConfig);
 // Initialize services
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+// Connect to emulators in development mode (only if USE_EMULATORS env var is set)
+// To use emulators, run: VITE_USE_EMULATORS=true npm run dev
+if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATORS === 'true' && window.location.hostname === 'localhost') {
+    // Only connect once - check if already connected
+    // @ts-expect-error - _delegate is internal but needed to check emulator state
+    if (!db._delegate?._settings?.host?.includes('localhost:8080')) {
+        connectFirestoreEmulator(db, 'localhost', 8080);
+        connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
+        console.log('Connected to Firebase emulators');
+    }
+}
 
 // Enable offline persistence for Firestore
 enableIndexedDbPersistence(db).catch((err) => {

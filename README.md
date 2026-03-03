@@ -118,6 +118,45 @@ See [`docs/erd.mmd`](docs/erd.mmd) for the full Mermaid ERD.
 
 ---
 
+## Local Development
+
+### Prerequisites
+
+- Node.js 18+
+- Firebase CLI (`npm install -g firebase-tools`)
+- Java 11+ (required for Firebase emulators)
+
+### Running with Emulators
+
+Start both the Vite dev server and Firebase emulators:
+
+```bash
+npm install              # Install dependencies (including concurrently)
+npm run dev:emulators    # Start Vite + Firebase emulators concurrently
+```
+
+Or run them separately:
+
+```bash
+npm run emulators        # Start Firebase emulators only
+npm run dev              # Start Vite dev server only (in another terminal)
+```
+
+### Emulator Ports
+
+| Service | Port |
+|---------|------|
+| Firestore | 8080 |
+| Auth | 9099 |
+| Hosting | 5000 |
+| Emulator UI | 4000 |
+
+Access the Emulator UI at [http://localhost:4000](http://localhost:4000) to view/manage emulator data.
+
+The app automatically connects to emulators when running on `localhost` in development mode.
+
+---
+
 ## Repository Structure
 
 ```
