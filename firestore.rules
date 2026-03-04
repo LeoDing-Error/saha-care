@@ -107,5 +107,14 @@ service cloud.firestore {
       // Only Cloud Functions should write aggregates
       allow write: if false;
     }
+
+    // ── Audit Logs collection ──
+    match /auditLogs/{logId} {
+      // Only officials can read audit logs
+      allow read: if hasRole('official') && isApproved();
+      
+      // Only Cloud Functions should write (no client writes)
+      allow write: if false;
+    }
   }
 }
