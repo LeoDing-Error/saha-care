@@ -6,6 +6,8 @@ import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
 import ReportFormPage from '../pages/volunteer/ReportFormPage';
 import ReportListPage from '../pages/volunteer/ReportListPage';
+import { SupervisorHomePage, PendingVolunteersPage } from '../pages/supervisor';
+import { OfficialHomePage, PendingSupervisorsPage } from '../pages/official';
 
 export default function AppRouter() {
     return (
@@ -40,22 +42,38 @@ export default function AppRouter() {
                     }
                 />
 
-                {/* Supervisor routes (placeholder) */}
+                {/* Supervisor routes */}
                 <Route
                     path="/supervisor"
                     element={
                         <RoleGuard allowedRoles={['supervisor']}>
-                            <div>Supervisor Dashboard — Coming in Sprint 2</div>
+                            <SupervisorHomePage />
+                        </RoleGuard>
+                    }
+                />
+                <Route
+                    path="/supervisor/pending-users"
+                    element={
+                        <RoleGuard allowedRoles={['supervisor']}>
+                            <PendingVolunteersPage />
                         </RoleGuard>
                     }
                 />
 
-                {/* Official routes (placeholder) */}
+                {/* Official routes */}
                 <Route
                     path="/official"
                     element={
                         <RoleGuard allowedRoles={['official']}>
-                            <div>Official Dashboard — Coming in Sprint 3</div>
+                            <OfficialHomePage />
+                        </RoleGuard>
+                    }
+                />
+                <Route
+                    path="/official/pending-users"
+                    element={
+                        <RoleGuard allowedRoles={['official']}>
+                            <PendingSupervisorsPage />
                         </RoleGuard>
                     }
                 />
