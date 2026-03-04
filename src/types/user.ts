@@ -25,4 +25,14 @@ export interface User {
     region: string;
     createdAt: Date;
     updatedAt: Date;
+    /** UID of the user who approved this account */
+    approvedBy?: string;
+    /** When the account was approved */
+    approvedAt?: Date;
+    /** UID of the user who rejected this account */
+    rejectedBy?: string;
+    /** When the account was rejected */
+    rejectedAt?: Date;
+    /** Reason for rejection (required on rejection) */
+    rejectionReason?: string;
 }
