@@ -65,6 +65,7 @@ export const mockUpdateProfile = vi.fn();
 export const mockGetDoc = vi.fn();
 export const mockSetDoc = vi.fn();
 export const mockAddDoc = vi.fn();
+export const mockUpdateDoc = vi.fn();
 export const mockOnSnapshot = vi.fn();
 export const mockServerTimestamp = vi.fn(() => new Date());
 
@@ -86,6 +87,7 @@ vi.mock('firebase/firestore', () => ({
   getDoc: (...args: unknown[]) => mockGetDoc(...args),
   setDoc: (...args: unknown[]) => mockSetDoc(...args),
   addDoc: (...args: unknown[]) => mockAddDoc(...args),
+  updateDoc: (...args: unknown[]) => mockUpdateDoc(...args),
   collection: vi.fn(() => ({})),
   query: vi.fn(() => ({})),
   where: vi.fn(() => ({})),
@@ -109,5 +111,6 @@ export const resetFirebaseMocks = () => {
   mockGetDoc.mockReset();
   mockSetDoc.mockReset();
   mockAddDoc.mockReset();
+  mockUpdateDoc.mockReset();
   mockOnSnapshot.mockReset();
 };
