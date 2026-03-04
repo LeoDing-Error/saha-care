@@ -20,6 +20,8 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import DashboardIcon from '@mui/icons-material/Dashboard';
+import PeopleIcon from '@mui/icons-material/People';
+import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import { useAuth } from '../contexts/AuthContext';
 import { signOut } from '../services/auth';
 import { ROLES } from '../constants';
@@ -51,10 +53,12 @@ export default function AppLayout() {
             case 'supervisor':
                 return [
                     { label: 'Dashboard', path: '/supervisor', icon: <DashboardIcon /> },
+                    { label: 'Pending Volunteers', path: '/supervisor/pending-users', icon: <PeopleIcon /> },
                 ];
             case 'official':
                 return [
                     { label: 'Dashboard', path: '/official', icon: <DashboardIcon /> },
+                    { label: 'Pending Supervisors', path: '/official/pending-users', icon: <SupervisorAccountIcon /> },
                 ];
             default:
                 return [];
