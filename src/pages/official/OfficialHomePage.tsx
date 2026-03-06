@@ -23,7 +23,7 @@ export default function OfficialHomePage() {
             undefined, // Officials see all regions
             setPendingCount
         );
-        
+
         return unsubscribe;
     }, []);
 
@@ -32,9 +32,9 @@ export default function OfficialHomePage() {
             <Typography variant="h5" fontWeight={600} sx={{ mb: 3 }}>
                 Official Dashboard
             </Typography>
-            
+
             <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                     <Card>
                         <CardActionArea onClick={() => navigate('/official/pending-users')}>
                             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -51,8 +51,8 @@ export default function OfficialHomePage() {
                         </CardActionArea>
                     </Card>
                 </Grid>
-                
-                <Grid item xs={12} sm={6}>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
                     <Card>
                         <CardActionArea disabled>
                             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, opacity: 0.5 }}>

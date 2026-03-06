@@ -59,6 +59,14 @@ export default function AppRouter() {
                         </RoleGuard>
                     }
                 />
+                <Route
+                    path="/supervisor/reports"
+                    element={
+                        <RoleGuard allowedRoles={['supervisor']}>
+                            <ReportListPage />
+                        </RoleGuard>
+                    }
+                />
 
                 {/* Official routes */}
                 <Route

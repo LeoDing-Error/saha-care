@@ -38,6 +38,10 @@ export function subscribeToPendingVolunteers(
             updatedAt: doc.data().updatedAt?.toDate() || new Date(),
         })) as User[];
         callback(users);
+    }, (error) => {
+        console.error('subscribeToPendingVolunteers error:', error);
+        // Clear loading state by returning empty array
+        callback([]);
     });
 }
 
@@ -63,6 +67,9 @@ export function subscribeToPendingSupervisors(
             updatedAt: doc.data().updatedAt?.toDate() || new Date(),
         })) as User[];
         callback(users);
+    }, (error) => {
+        console.error('subscribeToPendingSupervisors error:', error);
+        callback([]);
     });
 }
 
@@ -124,5 +131,8 @@ export function subscribeToPendingCount(
 
     return onSnapshot(q, (snapshot) => {
         callback(snapshot.size);
+    }, (error) => {
+        console.error('subscribeToPendingCount error:', error);
+        callback(0);
     });
 }

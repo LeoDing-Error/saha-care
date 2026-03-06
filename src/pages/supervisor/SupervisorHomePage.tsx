@@ -21,13 +21,13 @@ export default function SupervisorHomePage() {
 
     useEffect(() => {
         if (!userProfile) return;
-        
+
         const unsubscribe = subscribeToPendingCount(
             'volunteer',
             userProfile.region,
             setPendingCount
         );
-        
+
         return unsubscribe;
     }, [userProfile]);
 
@@ -36,9 +36,9 @@ export default function SupervisorHomePage() {
             <Typography variant="h5" fontWeight={600} sx={{ mb: 3 }}>
                 Supervisor Dashboard
             </Typography>
-            
+
             <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                     <Card>
                         <CardActionArea onClick={() => navigate('/supervisor/pending-users')}>
                             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -55,8 +55,8 @@ export default function SupervisorHomePage() {
                         </CardActionArea>
                     </Card>
                 </Grid>
-                
-                <Grid item xs={12} sm={6}>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
                     <Card>
                         <CardActionArea onClick={() => navigate('/supervisor/reports')}>
                             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>

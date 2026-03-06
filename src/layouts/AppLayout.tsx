@@ -174,6 +174,7 @@ export default function AppLayout() {
                     flexGrow: 1,
                     p: 3,
                     width: { sm: `calc(100% - ${DRAWER_WIDTH}px)` },
+                    ml: { sm: `${DRAWER_WIDTH}px` },
                     mt: '64px',
                 }}
             >

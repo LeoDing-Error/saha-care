@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import {
     Container,
     Paper,
@@ -14,12 +14,12 @@ import {
     Select,
     MenuItem,
 } from '@mui/material';
-import { signUp } from '../../services/auth';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import { signUp, signOut } from '../../services/auth';
 import { REGISTRATION_ROLES, ROLES, REGIONS } from '../../constants';
 import type { UserRole } from '../../types';
 
 export default function RegisterPage() {
-    const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -28,6 +28,7 @@ export default function RegisterPage() {
     const [region, setRegion] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [registered, setRegistered] = useState(false);
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
@@ -52,7 +53,9 @@ export default function RegisterPage() {
 
         try {
             await signUp(email, password, displayName, role, region);
-            navigate('/');
+            // Sign out so the pending user starts fresh at login
+            await signOut();
+            setRegistered(true);
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : 'Failed to register';
             setError(message);
@@ -61,6 +64,53 @@ export default function RegisterPage() {
         }
     };
 
+    // --- Success screen after registration ---
+    if (registered) {
+        return (
+            <Container maxWidth="xs">
+                <Box
+                    sx={{
+                        minHeight: '100vh',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        py: 4,
+                    }}
+                >
+                    <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
+                        <CheckCircleOutlineIcon
+                            color="success"
+                            sx={{ fontSize: 64, mb: 2 }}
+                        />
+                        <Typography variant="h5" component="h1" gutterBottom fontWeight={700}>
+                            Registration Successful
+                        </Typography>
+                        <Alert severity="info" sx={{ mt: 2, textAlign: 'left' }}>
+                            Your account has been created and is <strong>pending approval</strong> from a{' '}
+                            {role === 'volunteer' ? 'supervisor' : 'health official'} in your region.
+                            You will receive access once approved.
+                        </Alert>
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                            Region: {region} · Role: {ROLES[role]}
+                        </Typography>
+                        <Button
+                            id="register-go-to-login"
+                            variant="contained"
+                            fullWidth
+                            size="large"
+                            component={RouterLink}
+                            to="/login"
+                            sx={{ mt: 3 }}
+                        >
+                            Go to Sign In
+                        </Button>
+                    </Paper>
+                </Box>
+            </Container>
+        );
+    }
+
+    // --- Registration form ---
     return (
         <Container maxWidth="xs">
             <Box

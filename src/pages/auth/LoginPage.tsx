@@ -10,23 +10,66 @@ import {
     Alert,
     Link,
 } from '@mui/material';
-import { signIn } from '../../services/auth';
+import { signIn, getUserProfile, signOut } from '../../services/auth';
+import type { UserRole } from '../../types';
+
+const ROLE_HOME: Record<UserRole, string> = {
+    volunteer: '/volunteer',
+    supervisor: '/supervisor',
+    official: '/official',
+};
 
 export default function LoginPage() {
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [info, setInfo] = useState('');
+    const [warning, setWarning] = useState('');
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         setError('');
+        setInfo('');
+        setWarning('');
         setLoading(true);
 
         try {
-            await signIn(email, password);
-            navigate('/');
+            const user = await signIn(email, password);
+            const profile = await getUserProfile(user.uid);
+
+            if (!profile) {
+                setError('Account profile not found. Please contact support.');
+                await signOut();
+                setLoading(false);
+                return;
+            }
+
+            if (profile.status === 'pending') {
+                const approver = profile.role === 'volunteer' ? 'supervisor' : 'health official';
+                setInfo(
+                    `Your account is pending approval from a ${approver} in your region. ` +
+                    `You'll be able to access the app once approved.`
+                );
+                await signOut();
+                setLoading(false);
+                return;
+            }
+
+            if (profile.status === 'rejected') {
+                const reason = profile.rejectionReason;
+                setWarning(
+                    `Your account registration was not approved.` +
+                    (reason ? ` Reason: ${reason}` : '')
+                );
+                await signOut();
+                setLoading(false);
+                return;
+            }
+
+            // Approved — navigate to role home
+            navigate(ROLE_HOME[profile.role] || '/');
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : 'Failed to sign in';
             setError(message);
@@ -56,6 +99,16 @@ export default function LoginPage() {
                     {error && (
                         <Alert severity="error" sx={{ mb: 2 }}>
                             {error}
+                        </Alert>
+                    )}
+                    {info && (
+                        <Alert severity="info" sx={{ mb: 2 }}>
+                            {info}
+                        </Alert>
+                    )}
+                    {warning && (
+                        <Alert severity="warning" sx={{ mb: 2 }}>
+                            {warning}
                         </Alert>
                     )}
 
