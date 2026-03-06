@@ -12,12 +12,12 @@
 
 ### Tasks
 
-- [ ] **T3.1** Add GPS capture to report submission
+- [x] **T3.1** Add GPS capture to report submission
   - Use Geolocation API on submit
   - Store lat/lng in report document
   - Handle permission denied gracefully
 
-- [ ] **T3.2** Build manual location fallback
+- [x] **T3.2** Build manual location fallback
   - Text input for location name/description
   - Show when GPS fails or user declines
   - Store location.name alongside or instead of coords
@@ -153,6 +153,8 @@ subscribeToPendingCount(role: 'volunteer' | 'supervisor', region?: string, callb
   - Modify: `src/router/AppRouter.tsx`
   - Add supervisor routes with RoleGuard
   - Add official routes with RoleGuard
+
+- [ ] **T3.9.1** Increase 
 
 - [ ] **T3.10** Update AppLayout navigation
   - Modify: `src/layouts/AppLayout.tsx`
