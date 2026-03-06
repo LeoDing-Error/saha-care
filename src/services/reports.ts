@@ -1,6 +1,8 @@
 import {
     collection,
     addDoc,
+    doc,
+    updateDoc,
     query,
     where,
     orderBy,
@@ -79,5 +81,39 @@ export function subscribeToRegionReports(
             verifiedAt: doc.data().verifiedAt?.toDate(),
         })) as Report[];
         callback(reports);
+    });
+}
+
+/**
+ * Verify a pending report (supervisor action).
+ */
+export async function verifyReport(
+    reportId: string,
+    verifierId: string,
+    notes?: string
+): Promise<void> {
+    const reportRef = doc(db, REPORTS_COLLECTION, reportId);
+    await updateDoc(reportRef, {
+        status: 'verified',
+        verifiedBy: verifierId,
+        verificationNotes: notes || null,
+        verifiedAt: serverTimestamp(),
+    });
+}
+
+/**
+ * Reject a pending report (supervisor action).
+ */
+export async function rejectReport(
+    reportId: string,
+    rejecterId: string,
+    notes?: string
+): Promise<void> {
+    const reportRef = doc(db, REPORTS_COLLECTION, reportId);
+    await updateDoc(reportRef, {
+        status: 'rejected',
+        verifiedBy: rejecterId,
+        verificationNotes: notes || null,
+        verifiedAt: serverTimestamp(),
     });
 }

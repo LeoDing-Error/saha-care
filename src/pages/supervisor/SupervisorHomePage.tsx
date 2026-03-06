@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import PeopleIcon from '@mui/icons-material/People';
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import { useAuth } from '../../contexts/AuthContext';
 import { subscribeToPendingCount } from '../../services/users';
 
@@ -38,7 +39,7 @@ export default function SupervisorHomePage() {
             </Typography>
 
             <Grid container spacing={2}>
-                <Grid size={{ xs: 12, sm: 6 }}>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                     <Card>
                         <CardActionArea onClick={() => navigate('/supervisor/pending-users')}>
                             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -56,15 +57,31 @@ export default function SupervisorHomePage() {
                     </Card>
                 </Grid>
 
-                <Grid size={{ xs: 12, sm: 6 }}>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                     <Card>
                         <CardActionArea onClick={() => navigate('/supervisor/reports')}>
                             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                                 <AssignmentIcon fontSize="large" color="action" />
                                 <Box>
-                                    <Typography variant="h6">Pending Reports</Typography>
+                                    <Typography variant="h6">Review Reports</Typography>
                                     <Typography variant="body2" color="text.secondary">
                                         Verify submitted case reports
+                                    </Typography>
+                                </Box>
+                            </CardContent>
+                        </CardActionArea>
+                    </Card>
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                    <Card>
+                        <CardActionArea onClick={() => navigate('/supervisor/submit-report')}>
+                            <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <NoteAddIcon fontSize="large" color="action" />
+                                <Box>
+                                    <Typography variant="h6">Submit Report</Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Create a supervisory summary report
                                     </Typography>
                                 </Box>
                             </CardContent>

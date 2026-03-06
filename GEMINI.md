@@ -74,23 +74,25 @@ Server-side logic deployed as Firebase Cloud Functions (Node.js/TypeScript). Tri
 saha-care/
 ├── src/                      # React PWA source
 │   ├── components/
-│   │   ├── common/           
-│   │   ├── forms/            
-│   │   ├── maps/             
-│   │   └── charts/           
-│   ├── layouts/              
+│   │   ├── charts/           # (planned) CaseBarChart, TrendLineChart, KPICard
+│   │   ├── common/           # OfflineIndicator
+│   │   ├── forms/            # ReportForm (+ __tests__/)
+│   │   ├── maps/             # (planned) MapView, ReportMarker, ClusterLayer
+│   │   └── users/            # ApprovalConfirmDialog, PendingUsersList, RejectionDialog, UserApprovalCard, UserStatusChip (+ __tests__/)
+│   ├── constants/            # index, regions, roles
+│   ├── contexts/             # AuthContext (+ __tests__/)
+│   ├── hooks/                # useCaseDefinitions, useOfflineStatus
+│   ├── layouts/              # AppLayout
 │   ├── pages/
-│   │   ├── auth/             
-│   │   ├── volunteer/        
-│   │   ├── supervisor/       
-│   │   └── official/         
-│   ├── services/             
-│   ├── contexts/             
-│   ├── hooks/                
-│   ├── types/                
-│   ├── utils/                
-│   ├── constants/            
-│   ├── router/               
+│   │   ├── auth/             # LoginPage, RegisterPage
+│   │   ├── official/         # OfficialHomePage, PendingSupervisorsPage
+│   │   ├── supervisor/       # SupervisorHomePage, PendingVolunteersPage
+│   │   └── volunteer/        # ReportFormPage, ReportListPage
+│   ├── router/               # AppRouter, ProtectedRoute, RoleGuard (+ __tests__/)
+│   ├── services/             # firebase, auth, reports, users (+ __tests__/)
+│   ├── test/                 # Test setup + mocks (firebase mock)
+│   ├── types/                # user, report, alert, caseDefinition, index
+│   ├── utils/                # location
 │   ├── App.tsx
 │   └── main.tsx
 ├── functions/                # Cloud Functions
@@ -102,29 +104,35 @@ saha-care/
 │   ├── package.json
 │   └── tsconfig.json
 ├── docs/                     # Documentation + GitHub Pages Landing Site
-│   ├── Implementation.md     # Tech stack & implementation plan
-│   ├── ProjectSchedule.md    # Master schedule (links to sprint docs)
-│   ├── Sprint1-Foundation.md # Sprint 1 tasks & tests
-│   ├── Sprint2-Verification.md # Sprint 2 tasks & tests
-│   ├── Sprint3-Dashboard.md  # Sprint 3 tasks & tests
-│   ├── Sprint4-Security.md   # Sprint 4 tasks & tests
+│   ├── FIREBASE_SETUP.md     # Firebase setup guide
+│   ├── MANUAL_TESTS.md       # Manual testing procedures
+│   ├── firestore-schema.md   # Firestore schema reference
+│   ├── plans/                # Sprint & planning docs
+│   │   ├── master-plan.md
+│   │   ├── Sprint1-Foundation.md
+│   │   ├── Sprint2-Verification.md
+│   │   ├── Sprint3-Dashboard.md
+│   │   └── Sprint4-Security.md
+│   ├── diagrams/             # Mermaid diagrams (architecture.mmd, erd.mmd)
 │   ├── index.html            # Landing page HTML
 │   ├── style.css             # Landing page styles
-│   ├── main.js               # Landing page script
-│   └── diagrams/             # Mermaid diagrams (architecture, ERD)
-├── public/                   # PWA manifest, icons
-├── scripts/                  # Seed data scripts
+│   └── main.js               # Landing page script
+├── public/                   # PWA icons (favicon, apple-touch, pwa-192/512, mask-icon)
+├── scripts/                  # seedCaseDefinitions, seedCaseDefinitionsClient, generateIcons
 ├── firestore.rules
-├── firestore.indexes.json    
+├── firestore.indexes.json    # Composite indexes for queries
 ├── firebase.json
-└── vite.config.ts            
+├── vite.config.ts            # PWA plugin config
+└── vitest.config.ts          # Test config
 ```
 
 ## Documentation
 
-- **Implementation plan:** `docs/Implementation.md` — tech stack choices, architecture rationale, sprint roadmap overview
-- **Project schedule:** `docs/ProjectSchedule.md` — master timeline with milestones and links to sprint details
-- **Sprint details:** `docs/Sprint1-Foundation.md` through `docs/Sprint4-Security.md` — day-by-day tasks, tests, and definition of done per sprint
+- **Firebase setup:** `docs/FIREBASE_SETUP.md` — Firebase configuration and setup guide
+- **Manual tests:** `docs/MANUAL_TESTS.md` — manual testing procedures
+- **Firestore schema:** `docs/firestore-schema.md` — Firestore collection schema reference
+- **Master plan:** `docs/plans/master-plan.md` — overall project plan
+- **Sprint details:** `docs/plans/Sprint1-Foundation.md` through `docs/plans/Sprint4-Security.md` — day-by-day tasks, tests, and definition of done per sprint
 
 ## Dev Environment
 

@@ -54,6 +54,8 @@ export default function AppLayout() {
                 return [
                     { label: 'Dashboard', path: '/supervisor', icon: <DashboardIcon /> },
                     { label: 'Pending Volunteers', path: '/supervisor/pending-users', icon: <PeopleIcon /> },
+                    { label: 'Review Reports', path: '/supervisor/reports', icon: <AssignmentIcon /> },
+                    { label: 'Submit Report', path: '/supervisor/submit-report', icon: <AddCircleIcon /> },
                 ];
             case 'official':
                 return [
