@@ -8,8 +8,6 @@
 [![Backend: Firebase](https://img.shields.io/badge/Backend-Firebase-blue)](https://firebase.google.com/)
 
 > Main Project Page: *[SAHA-Care](https://leoding-error.github.io/saha-care/)*
->
-> Live Website: https://saha-care.web.app
 
 ---
 

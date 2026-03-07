@@ -9,9 +9,9 @@
   'use strict';
 
   var sprints = [
-    { num: 1, name: 'Sprint 1 — Auth & Offline Reporting',       start: '2026-02-24', end: '2026-03-08' },
-    { num: 2, name: 'Sprint 2 — Verification & Approval',        start: '2026-03-09', end: '2026-03-21' },
-    { num: 3, name: 'Sprint 3 — Dashboard & Maps',               start: '2026-03-22', end: '2026-04-03' },
+    { num: 1, name: 'Sprint 1 — Auth & Offline Reporting', start: '2026-02-21', end: '2026-02-25' },
+    { num: 2, name: 'Sprint 2 — Verification & Approval', start: '2026-02-26', end: '2026-03-14' },
+    { num: 3, name: 'Sprint 3 — Dashboard & Maps', start: '2026-03-15', end: '2026-04-03' },
     { num: 4, name: 'Sprint 4 — Alerts, Functions, Polish & Demo', start: '2026-04-04', end: '2026-04-16' },
   ];
 
