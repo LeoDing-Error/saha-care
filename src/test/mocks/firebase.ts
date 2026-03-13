@@ -25,25 +25,68 @@ export const mockPendingUserProfile = {
   status: 'pending' as const,
 };
 
-// Mock case definition
+// Mock case definition (question-based assessment)
 export const mockCaseDefinition = {
   id: 'acute-watery-diarrhea',
   disease: 'Acute Watery Diarrhea',
-  symptoms: [
-    { id: 'loose-stools', name: '3+ loose/watery stools in 24 hours', required: true },
-    { id: 'dehydration', name: 'Signs of dehydration', required: false },
+  definition: '3 or more loose or watery stools in a 24-hour period (no blood)',
+  questions: [
+    {
+      id: 'awd-q1',
+      text: 'Has the person had 3 or more loose/watery stools in the past 24 hours?',
+      category: 'core' as const,
+      required: true,
+      inputType: 'number' as const,
+      inputLabel: 'Number of stools per day',
+      inputUnit: 'stools/day',
+      yesNote: 'Count stools per day',
+      isDangerSign: false,
+      isImmediateReport: false,
+    },
+    {
+      id: 'awd-q2',
+      text: 'Is there blood in the stool?',
+      category: 'core' as const,
+      required: false,
+      inputType: 'none' as const,
+      yesNote: 'If YES → reclassify as Bloody Diarrhea',
+      isDangerSign: false,
+      isImmediateReport: false,
+      reclassifyTo: 'acute-bloody-diarrhea',
+    },
+    {
+      id: 'awd-q3',
+      text: 'Can the person drink normally?',
+      category: 'severity' as const,
+      required: false,
+      inputType: 'none' as const,
+      yesNote: 'If NO → DANGER SIGN',
+      isDangerSign: true,
+      isImmediateReport: false,
+    },
   ],
   dangerSigns: ['Severe dehydration', 'Unable to drink'],
   guidance: 'Provide ORS, refer if danger signs present.',
   active: true,
-  threshold: 10,
+  thresholds: [
+    { count: 5, windowHours: 24, severity: 'high' as const, description: '5+ cases in 24 hours' },
+  ],
+  prioritySurveillance: false,
 };
 
-// Mock report
+// Mock report (question-based answers)
 export const mockReport = {
   id: 'report-123',
-  disease: 'acute-watery-diarrhea',
-  symptoms: ['loose-stools'],
+  disease: 'Acute Watery Diarrhea',
+  answers: [
+    {
+      questionId: 'awd-q1',
+      questionText: 'Has the person had 3 or more loose/watery stools in the past 24 hours?',
+      answer: true,
+      numericValue: 5,
+    },
+  ],
+  symptoms: ['Has the person had 3 or more loose/watery stools in the past 24 hours?'],
   temp: 38.5,
   dangerSigns: [],
   location: { lat: 31.5, lng: 34.45, name: 'Gaza City' },
@@ -51,6 +94,8 @@ export const mockReport = {
   reporterId: 'test-uid-123',
   reporterName: 'Test User',
   region: 'north-gaza',
+  hasDangerSigns: false,
+  isImmediateReport: false,
   createdAt: new Date(),
 };
 

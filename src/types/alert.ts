@@ -23,10 +23,14 @@ export interface Alert {
     caseCount: number;
     /** Threshold that was exceeded */
     threshold: number;
-    /** Computed severity based on how far above threshold */
+    /** Time window of the threshold that was exceeded (in hours) */
+    windowHours: number;
+    /** Computed severity based on threshold rule */
     severity: AlertSeverity;
     /** Whether the alert is still active */
     status: AlertStatus;
+    /** Whether this was triggered by an immediate-report flag */
+    immediateAlert: boolean;
     createdAt: Date;
     resolvedAt?: Date;
 }

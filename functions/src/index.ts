@@ -11,3 +11,5 @@ setGlobalOptions({ maxInstances: 10 });
 
 // Export Cloud Functions
 export { onUserApproval } from './onUserApproval';
+export { onReportWrite } from './onReportWrite';
+export { aggregateCases } from './aggregateCases';

@@ -15,6 +15,19 @@ export interface ReportLocation {
 }
 
 /**
+ * A single answer to an assessment question.
+ * Stored in the report for detailed clinical review.
+ */
+export interface QuestionAnswer {
+    questionId: string;
+    /** The question text (denormalized for offline readability) */
+    questionText: string;
+    answer: boolean;
+    /** Numeric follow-up value if applicable */
+    numericValue?: number;
+}
+
+/**
  * Firestore report document.
  * Submitted by volunteers, verified by supervisors.
  */
@@ -22,7 +35,9 @@ export interface Report {
     id: string;
     /** Disease identifier — references caseDefinitions */
     disease: string;
-    /** Selected symptoms from the case definition checklist */
+    /** Structured answers to assessment questions */
+    answers: QuestionAnswer[];
+    /** Flat list of "Yes" answer question texts (derived, for display compatibility) */
     symptoms: string[];
     /** Patient temperature in °C */
     temp?: number;
@@ -42,6 +57,12 @@ export interface Report {
     verifiedBy?: string;
     /** Optional notes from the verifier */
     verificationNotes?: string;
+    /** Whether any danger sign was flagged (computed on submit) */
+    hasDangerSigns: boolean;
+    /** Whether this report was flagged for immediate alert */
+    isImmediateReport: boolean;
+    /** If reclassification was triggered, the original disease */
+    reclassifiedFrom?: string;
     createdAt: Date;
     verifiedAt?: Date;
 }

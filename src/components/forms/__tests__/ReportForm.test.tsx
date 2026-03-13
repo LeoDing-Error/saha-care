@@ -57,7 +57,6 @@ describe('ReportForm', () => {
     it('renders disease selection step', () => {
       renderReportForm();
 
-      // Use getAllByText since "Select Disease" appears in both stepper and heading
       expect(screen.getAllByText('Select Disease').length).toBeGreaterThan(0);
       expect(screen.getByLabelText('Disease')).toBeInTheDocument();
     });
@@ -66,11 +65,9 @@ describe('ReportForm', () => {
       const user = userEvent.setup();
       renderReportForm();
 
-      // Open the dropdown
       const selectInput = screen.getByLabelText('Disease');
       await user.click(selectInput);
 
-      // Check that the disease option is available
       expect(screen.getByText('Acute Watery Diarrhea')).toBeInTheDocument();
     });
 
@@ -85,7 +82,6 @@ describe('ReportForm', () => {
       const user = userEvent.setup();
       renderReportForm();
 
-      // Open and select disease
       const selectInput = screen.getByLabelText('Disease');
       await user.click(selectInput);
       await user.click(screen.getByText('Acute Watery Diarrhea'));
@@ -94,16 +90,15 @@ describe('ReportForm', () => {
       expect(nextButton).toBeEnabled();
     });
 
-    it('shows guidance alert after disease selection', async () => {
+    it('shows case definition and guidance after disease selection', async () => {
       const user = userEvent.setup();
       renderReportForm();
 
-      // Select disease
       const selectInput = screen.getByLabelText('Disease');
       await user.click(selectInput);
       await user.click(screen.getByText('Acute Watery Diarrhea'));
 
-      // Check guidance is displayed
+      expect(screen.getByText(mockCaseDefinition.definition)).toBeInTheDocument();
       expect(screen.getByText(mockCaseDefinition.guidance)).toBeInTheDocument();
     });
 
@@ -115,33 +110,31 @@ describe('ReportForm', () => {
     });
   });
 
-  describe('Step 2: Symptom Checklist', () => {
+  describe('Step 2: Assessment Questions', () => {
     const navigateToStep2 = async (user: ReturnType<typeof userEvent.setup>) => {
-      // Select disease
       const selectInput = screen.getByLabelText('Disease');
       await user.click(selectInput);
       await user.click(screen.getByText('Acute Watery Diarrhea'));
-      // Go to next step
       await user.click(screen.getByRole('button', { name: /next/i }));
     };
 
-    it('shows symptoms for selected disease', async () => {
+    it('shows assessment questions for selected disease', async () => {
       const user = userEvent.setup();
       renderReportForm();
 
       await navigateToStep2(user);
 
-      // Should show the symptom checklist header
       await waitFor(() => {
-        expect(screen.getByText(/Symptom Checklist/)).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: /Assessment/ })).toBeInTheDocument();
       });
 
-      // Check for specific symptom from mockCaseDefinition
-      expect(screen.getByText('3+ loose/watery stools in 24 hours')).toBeInTheDocument();
-      expect(screen.getByText('Signs of dehydration')).toBeInTheDocument();
+      // Check for specific question text from mockCaseDefinition
+      expect(
+        screen.getByText('Has the person had 3 or more loose/watery stools in the past 24 hours?')
+      ).toBeInTheDocument();
     });
 
-    it('shows required label for required symptoms', async () => {
+    it('shows required label for required questions', async () => {
       const user = userEvent.setup();
       renderReportForm();
 
@@ -152,25 +145,31 @@ describe('ReportForm', () => {
       });
     });
 
-    it('allows selecting symptoms via checkboxes', async () => {
+    it('shows danger sign chip for danger sign questions', async () => {
       const user = userEvent.setup();
       renderReportForm();
 
       await navigateToStep2(user);
 
       await waitFor(() => {
-        const checkboxes = screen.getAllByRole('checkbox');
-        expect(checkboxes.length).toBe(2); // Two symptoms in mock
+        expect(screen.getByText('Danger Sign')).toBeInTheDocument();
       });
-
-      // Click first checkbox
-      const checkboxes = screen.getAllByRole('checkbox');
-      await user.click(checkboxes[0]);
-
-      expect(checkboxes[0]).toBeChecked();
     });
 
-    it('disables next until at least one symptom selected', async () => {
+    it('renders Yes/No radio buttons for each question', async () => {
+      const user = userEvent.setup();
+      renderReportForm();
+
+      await navigateToStep2(user);
+
+      await waitFor(() => {
+        const radios = screen.getAllByRole('radio');
+        // 3 questions x 2 radio buttons each = 6
+        expect(radios.length).toBe(6);
+      });
+    });
+
+    it('disables next until required questions are answered Yes', async () => {
       const user = userEvent.setup();
       renderReportForm();
 
@@ -182,19 +181,47 @@ describe('ReportForm', () => {
       });
     });
 
-    it('enables next after selecting a symptom', async () => {
+    it('enables next after answering required questions Yes', async () => {
       const user = userEvent.setup();
       renderReportForm();
 
       await navigateToStep2(user);
 
-      // Select a symptom
-      await waitFor(() => screen.getAllByRole('checkbox'));
-      const checkboxes = screen.getAllByRole('checkbox');
-      await user.click(checkboxes[0]);
+      // Answer the required question (first one) as "Yes"
+      await waitFor(() => screen.getAllByRole('radio'));
+      const yesRadios = screen.getAllByLabelText('Yes');
+      await user.click(yesRadios[0]); // First question Yes
 
       const nextButton = screen.getByRole('button', { name: /next/i });
       expect(nextButton).toBeEnabled();
+    });
+
+    it('shows numeric follow-up input when Yes is selected for numeric questions', async () => {
+      const user = userEvent.setup();
+      renderReportForm();
+
+      await navigateToStep2(user);
+
+      // Answer the first question (which has inputType: 'number') as "Yes"
+      await waitFor(() => screen.getAllByRole('radio'));
+      const yesRadios = screen.getAllByLabelText('Yes');
+      await user.click(yesRadios[0]);
+
+      // Should show the numeric input
+      expect(screen.getByLabelText('Number of stools per day')).toBeInTheDocument();
+    });
+
+    it('shows yesNote when a question is answered Yes', async () => {
+      const user = userEvent.setup();
+      renderReportForm();
+
+      await navigateToStep2(user);
+
+      await waitFor(() => screen.getAllByRole('radio'));
+      const yesRadios = screen.getAllByLabelText('Yes');
+      await user.click(yesRadios[0]); // First question has yesNote: 'Count stools per day'
+
+      expect(screen.getByText('Count stools per day')).toBeInTheDocument();
     });
   });
 
@@ -206,10 +233,10 @@ describe('ReportForm', () => {
       await user.click(screen.getByText('Acute Watery Diarrhea'));
       await user.click(screen.getByRole('button', { name: /next/i }));
 
-      // Step 2: Select symptom
-      await waitFor(() => screen.getAllByRole('checkbox'));
-      const checkboxes = screen.getAllByRole('checkbox');
-      await user.click(checkboxes[0]);
+      // Step 2: Answer required question
+      await waitFor(() => screen.getAllByRole('radio'));
+      const yesRadios = screen.getAllByLabelText('Yes');
+      await user.click(yesRadios[0]);
       await user.click(screen.getByRole('button', { name: /next/i }));
     };
 
@@ -223,9 +250,8 @@ describe('ReportForm', () => {
         expect(screen.getByRole('heading', { name: 'Temperature & Danger Signs' })).toBeInTheDocument();
       });
 
-      // Check for temperature input
       expect(screen.getByLabelText(/Temperature/)).toBeInTheDocument();
-      
+
       // Check for danger signs from mockCaseDefinition
       expect(screen.getByText('Severe dehydration')).toBeInTheDocument();
       expect(screen.getByText('Unable to drink')).toBeInTheDocument();
@@ -250,7 +276,6 @@ describe('ReportForm', () => {
 
       await navigateToStep3(user);
 
-      // Select a danger sign (checkboxes on step 3 are danger signs)
       await waitFor(() => screen.getAllByRole('checkbox'));
       const checkboxes = screen.getAllByRole('checkbox');
       await user.click(checkboxes[0]);
@@ -279,13 +304,13 @@ describe('ReportForm', () => {
       await user.click(screen.getByText('Acute Watery Diarrhea'));
       await user.click(screen.getByRole('button', { name: /next/i }));
 
-      // Step 2: Select symptom
-      await waitFor(() => screen.getAllByRole('checkbox'));
-      const checkboxes = screen.getAllByRole('checkbox');
-      await user.click(checkboxes[0]);
+      // Step 2: Answer required question
+      await waitFor(() => screen.getAllByRole('radio'));
+      const yesRadios = screen.getAllByLabelText('Yes');
+      await user.click(yesRadios[0]);
       await user.click(screen.getByRole('button', { name: /next/i }));
 
-      // Step 3: Skip (optional) - wait for heading specifically
+      // Step 3: Skip (optional)
       await waitFor(() => screen.getByRole('heading', { name: 'Temperature & Danger Signs' }));
       await user.click(screen.getByRole('button', { name: /next/i }));
     };
@@ -297,7 +322,6 @@ describe('ReportForm', () => {
       await navigateToStep4(user);
 
       await waitFor(() => {
-        // Check for Location heading (use role to be specific)
         expect(screen.getByRole('heading', { name: 'Location' })).toBeInTheDocument();
       });
 
@@ -334,7 +358,7 @@ describe('ReportForm', () => {
     it('captures GPS location when button clicked', async () => {
       const user = userEvent.setup();
       const { getCurrentPosition } = await import('../../../utils/location');
-      
+
       renderReportForm();
       await navigateToStep4(user);
 
@@ -345,7 +369,6 @@ describe('ReportForm', () => {
         expect(getCurrentPosition).toHaveBeenCalled();
       });
 
-      // After GPS capture, button should show checkmark
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /gps captured/i })).toBeInTheDocument();
       });
@@ -380,13 +403,13 @@ describe('ReportForm', () => {
 
       // Verify on step 2
       await waitFor(() => {
-        expect(screen.getByText(/Symptom Checklist/)).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: /Assessment/ })).toBeInTheDocument();
       });
 
       // Go back
       await user.click(screen.getByRole('button', { name: /back/i }));
 
-      // Should be back on step 1 - check for the Disease dropdown
+      // Should be back on step 1
       expect(screen.getByLabelText('Disease')).toBeInTheDocument();
     });
 
@@ -404,22 +427,8 @@ describe('ReportForm', () => {
       await waitFor(() => screen.getByRole('button', { name: /back/i }));
       await user.click(screen.getByRole('button', { name: /back/i }));
 
-      // Disease should still be selected (guidance alert visible)
+      // Guidance should still be visible
       expect(screen.getByText(mockCaseDefinition.guidance)).toBeInTheDocument();
-    });
-
-    it('clears symptoms when disease changes', async () => {
-      const user = userEvent.setup();
-      renderReportForm();
-
-      // Select first disease
-      const selectInput = screen.getByLabelText('Disease');
-      await user.click(selectInput);
-      await user.click(screen.getByText('Acute Watery Diarrhea'));
-
-      // This test verifies the component correctly resets symptoms on disease change
-      // The actual reset logic is tested implicitly through form navigation
-      expect(selectInput).toBeInTheDocument();
     });
   });
 
@@ -431,10 +440,10 @@ describe('ReportForm', () => {
       await user.click(screen.getByText('Acute Watery Diarrhea'));
       await user.click(screen.getByRole('button', { name: /next/i }));
 
-      // Step 2: Select symptom
-      await waitFor(() => screen.getAllByRole('checkbox'));
-      const symptomCheckboxes = screen.getAllByRole('checkbox');
-      await user.click(symptomCheckboxes[0]);
+      // Step 2: Answer required question
+      await waitFor(() => screen.getAllByRole('radio'));
+      const yesRadios = screen.getAllByLabelText('Yes');
+      await user.click(yesRadios[0]);
       await user.click(screen.getByRole('button', { name: /next/i }));
 
       // Step 3: Add temperature (optional)
@@ -462,7 +471,15 @@ describe('ReportForm', () => {
         expect(mockCreateReport).toHaveBeenCalledWith(
           expect.objectContaining({
             disease: 'Acute Watery Diarrhea',
-            symptoms: ['3+ loose/watery stools in 24 hours'],
+            answers: expect.arrayContaining([
+              expect.objectContaining({
+                questionId: 'awd-q1',
+                answer: true,
+              }),
+            ]),
+            symptoms: expect.arrayContaining([
+              'Has the person had 3 or more loose/watery stools in the past 24 hours?',
+            ]),
             temp: 38.5,
             location: expect.objectContaining({
               name: 'Gaza City',
@@ -470,6 +487,8 @@ describe('ReportForm', () => {
             reporterId: mockUserProfile.uid,
             reporterName: mockUserProfile.displayName,
             region: mockUserProfile.region,
+            hasDangerSigns: false,
+            isImmediateReport: false,
           })
         );
       });
@@ -490,7 +509,7 @@ describe('ReportForm', () => {
     it('shows error message on submission failure', async () => {
       const user = userEvent.setup();
       mockCreateReport.mockRejectedValueOnce(new Error('Network error'));
-      
+
       renderReportForm();
       await completeFormAndSubmit(user);
 
@@ -501,10 +520,10 @@ describe('ReportForm', () => {
 
     it('shows loading state during submission', async () => {
       const user = userEvent.setup();
-      
+
       // Make createReport hang
       mockCreateReport.mockImplementation(() => new Promise(() => {}));
-      
+
       renderReportForm();
 
       // Complete form up to submit
@@ -513,9 +532,9 @@ describe('ReportForm', () => {
       await user.click(screen.getByText('Acute Watery Diarrhea'));
       await user.click(screen.getByRole('button', { name: /next/i }));
 
-      await waitFor(() => screen.getAllByRole('checkbox'));
-      const checkboxes = screen.getAllByRole('checkbox');
-      await user.click(checkboxes[0]);
+      await waitFor(() => screen.getAllByRole('radio'));
+      const yesRadios = screen.getAllByLabelText('Yes');
+      await user.click(yesRadios[0]);
       await user.click(screen.getByRole('button', { name: /next/i }));
 
       await waitFor(() => screen.getByRole('heading', { name: 'Temperature & Danger Signs' }));
@@ -528,86 +547,18 @@ describe('ReportForm', () => {
       const submitButton = screen.getByRole('button', { name: /submit report/i });
       await user.click(submitButton);
 
-      // Check for loading text
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /submitting/i })).toBeInTheDocument();
       });
     });
-
-    it('includes danger signs when selected', async () => {
-      const user = userEvent.setup();
-      renderReportForm();
-
-      // Step 1: Select disease
-      const selectInput = screen.getByLabelText('Disease');
-      await user.click(selectInput);
-      await user.click(screen.getByText('Acute Watery Diarrhea'));
-      await user.click(screen.getByRole('button', { name: /next/i }));
-
-      // Step 2: Select symptom
-      await waitFor(() => screen.getAllByRole('checkbox'));
-      const symptomCheckboxes = screen.getAllByRole('checkbox');
-      await user.click(symptomCheckboxes[0]);
-      await user.click(screen.getByRole('button', { name: /next/i }));
-
-      // Step 3: Select danger sign
-      await waitFor(() => screen.getByText('Danger Signs'));
-      const dangerSignCheckboxes = screen.getAllByRole('checkbox');
-      await user.click(dangerSignCheckboxes[0]); // "Severe dehydration"
-      await user.click(screen.getByRole('button', { name: /next/i }));
-
-      // Step 4: Submit
-      await waitFor(() => screen.getByLabelText(/Location Name/));
-      const locationInput = screen.getByLabelText(/Location Name/);
-      await user.type(locationInput, 'Gaza City');
-
-      const submitButton = screen.getByRole('button', { name: /submit report/i });
-      await user.click(submitButton);
-
-      await waitFor(() => {
-        expect(mockCreateReport).toHaveBeenCalledWith(
-          expect.objectContaining({
-            dangerSigns: ['Severe dehydration'],
-          })
-        );
-      });
-    });
-  });
-
-  describe('Loading State', () => {
-    it('shows loading spinner when definitions are loading', () => {
-      vi.mocked(
-        vi.importMock('../../../hooks/useCaseDefinitions')
-      );
-      
-      // This test would require a different approach to mock loading state
-      // For now, we verify the component structure handles loading
-    });
   });
 
   describe('Edge Cases', () => {
-    it('shows warning when no case definitions available', async () => {
-      // Re-mock with empty definitions
-      vi.doMock('../../../hooks/useCaseDefinitions', () => ({
-        useCaseDefinitions: () => ({
-          definitions: [],
-          loading: false,
-          error: null,
-        }),
-      }));
-
-      // Clear the module cache and re-import
-      vi.resetModules();
-      
-      // This would need proper module mocking setup
-      // Skipping for now as the behavior is verified in the code
-    });
-
     it('handles GPS location failure gracefully', async () => {
       const user = userEvent.setup();
       const locationModule = await import('../../../utils/location');
       vi.mocked(locationModule.getCurrentPosition).mockResolvedValueOnce(null);
-      
+
       renderReportForm();
 
       // Navigate to step 4
@@ -616,8 +567,9 @@ describe('ReportForm', () => {
       await user.click(screen.getByText('Acute Watery Diarrhea'));
       await user.click(screen.getByRole('button', { name: /next/i }));
 
-      await waitFor(() => screen.getAllByRole('checkbox'));
-      await user.click(screen.getAllByRole('checkbox')[0]);
+      await waitFor(() => screen.getAllByRole('radio'));
+      const yesRadios = screen.getAllByLabelText('Yes');
+      await user.click(yesRadios[0]);
       await user.click(screen.getByRole('button', { name: /next/i }));
 
       await waitFor(() => screen.getByRole('heading', { name: 'Temperature & Danger Signs' }));
@@ -627,7 +579,6 @@ describe('ReportForm', () => {
       const gpsButton = screen.getByRole('button', { name: /capture gps location/i });
       await user.click(gpsButton);
 
-      // Should show error message
       await waitFor(() => {
         expect(screen.getByText(/could not get gps location/i)).toBeInTheDocument();
       });

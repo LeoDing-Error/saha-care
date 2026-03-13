@@ -11,7 +11,7 @@ import {
     type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Report, ReportLocation } from '../types';
+import type { Report, ReportLocation, QuestionAnswer } from '../types';
 
 const REPORTS_COLLECTION = 'reports';
 
@@ -20,6 +20,7 @@ const REPORTS_COLLECTION = 'reports';
  */
 export async function createReport(data: {
     disease: string;
+    answers: QuestionAnswer[];
     symptoms: string[];
     temp?: number;
     dangerSigns?: string[];
@@ -27,6 +28,9 @@ export async function createReport(data: {
     reporterId: string;
     reporterName: string;
     region: string;
+    hasDangerSigns: boolean;
+    isImmediateReport: boolean;
+    reclassifiedFrom?: string;
 }): Promise<string> {
     const docRef = await addDoc(collection(db, REPORTS_COLLECTION), {
         ...data,

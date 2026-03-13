@@ -18,15 +18,24 @@ import {
     Paper,
     Chip,
     CircularProgress,
+    Radio,
+    RadioGroup,
+    InputAdornment,
 } from '@mui/material';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { useCaseDefinitions } from '../../hooks/useCaseDefinitions';
 import { createReport } from '../../services/reports';
 import { getCurrentPosition } from '../../utils/location';
 import { useAuth } from '../../contexts/AuthContext';
-import type { CaseDefinition, ReportLocation } from '../../types';
+import type { CaseDefinition, AssessmentQuestion, ReportLocation, QuestionAnswer } from '../../types';
 
-const STEPS = ['Select Disease', 'Symptoms', 'Temperature & Danger Signs', 'Location & Submit'];
+const STEPS = ['Select Disease', 'Assessment Questions', 'Temperature & Danger Signs', 'Location & Submit'];
+
+interface AnswerState {
+    answer: boolean | null;
+    numericValue?: number;
+}
 
 export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
     const { userProfile } = useAuth();
@@ -34,7 +43,7 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
 
     const [activeStep, setActiveStep] = useState(0);
     const [selectedDisease, setSelectedDisease] = useState<CaseDefinition | null>(null);
-    const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
+    const [answers, setAnswers] = useState<Record<string, AnswerState>>({});
     const [temperature, setTemperature] = useState('');
     const [selectedDangerSigns, setSelectedDangerSigns] = useState<string[]>([]);
     const [location, setLocation] = useState<ReportLocation | null>(null);
@@ -42,22 +51,41 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
     const [gpsLoading, setGpsLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
+    const [reclassifiedFrom, setReclassifiedFrom] = useState<string | null>(null);
 
     const handleDiseaseSelect = (diseaseId: string) => {
         const def = definitions.find((d) => d.id === diseaseId);
         if (def) {
             setSelectedDisease(def);
-            setSelectedSymptoms([]);
+            setAnswers({});
             setSelectedDangerSigns([]);
+            setReclassifiedFrom(null);
         }
     };
 
-    const handleSymptomToggle = (symptomName: string) => {
-        setSelectedSymptoms((prev) =>
-            prev.includes(symptomName)
-                ? prev.filter((s) => s !== symptomName)
-                : [...prev, symptomName]
-        );
+    const handleAnswerChange = (questionId: string, value: boolean) => {
+        setAnswers((prev) => ({
+            ...prev,
+            [questionId]: { ...prev[questionId], answer: value },
+        }));
+    };
+
+    const handleNumericChange = (questionId: string, value: number) => {
+        setAnswers((prev) => ({
+            ...prev,
+            [questionId]: { ...prev[questionId], numericValue: isNaN(value) ? undefined : value },
+        }));
+    };
+
+    const handleReclassify = (newDiseaseId: string) => {
+        const newDef = definitions.find((d) => d.id === newDiseaseId);
+        if (newDef && selectedDisease) {
+            setReclassifiedFrom(selectedDisease.disease);
+            setSelectedDisease(newDef);
+            setAnswers({});
+            setSelectedDangerSigns([]);
+            setActiveStep(0);
+        }
     };
 
     const handleDangerSignToggle = (sign: string) => {
@@ -89,19 +117,48 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
             return;
         }
 
+        // Build structured answers
+        const questionAnswers: QuestionAnswer[] = selectedDisease.questions
+            .filter((q) => answers[q.id]?.answer !== null && answers[q.id]?.answer !== undefined)
+            .map((q) => ({
+                questionId: q.id,
+                questionText: q.text,
+                answer: answers[q.id].answer!,
+                numericValue: answers[q.id].numericValue,
+            }));
+
+        // Derive flat symptoms list (question texts where answer is "Yes")
+        const symptoms = questionAnswers
+            .filter((a) => a.answer)
+            .map((a) => a.questionText);
+
+        // Compute flags
+        const hasDangerSigns = selectedDangerSigns.length > 0 ||
+            selectedDisease.questions.some(
+                (q) => q.isDangerSign && answers[q.id]?.answer === true
+            );
+
+        const isImmediateReport = selectedDisease.questions.some(
+            (q) => q.isImmediateReport && answers[q.id]?.answer === true
+        );
+
         setSubmitting(true);
         setError('');
 
         try {
             await createReport({
                 disease: selectedDisease.disease,
-                symptoms: selectedSymptoms,
+                answers: questionAnswers,
+                symptoms,
                 temp: temperature ? parseFloat(temperature) : undefined,
                 dangerSigns: selectedDangerSigns.length > 0 ? selectedDangerSigns : undefined,
                 location: reportLocation,
                 reporterId: userProfile.uid,
                 reporterName: userProfile.displayName,
                 region: userProfile.region,
+                hasDangerSigns,
+                isImmediateReport,
+                reclassifiedFrom: reclassifiedFrom || undefined,
             });
             onSuccess?.();
         } catch (err: unknown) {
@@ -116,8 +173,12 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
         switch (activeStep) {
             case 0:
                 return selectedDisease !== null;
-            case 1:
-                return selectedSymptoms.length > 0;
+            case 1: {
+                if (!selectedDisease) return false;
+                // All required questions must be answered "Yes"
+                const requiredQuestions = selectedDisease.questions.filter((q) => q.required);
+                return requiredQuestions.every((q) => answers[q.id]?.answer === true);
+            }
             case 2:
                 return true; // temperature and danger signs are optional
             case 3:
@@ -126,6 +187,16 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
                 return false;
         }
     };
+
+    // Check if any answered question triggers an immediate report
+    const hasImmediateFlags = selectedDisease?.questions.some(
+        (q) => q.isImmediateReport && answers[q.id]?.answer === true
+    ) ?? false;
+
+    // Check if any answered question triggers a danger sign
+    const hasDangerFlags = selectedDisease?.questions.some(
+        (q) => q.isDangerSign && answers[q.id]?.answer === true
+    ) ?? false;
 
     if (defsLoading) {
         return (
@@ -148,6 +219,12 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
             {error && (
                 <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
                     {error}
+                </Alert>
+            )}
+
+            {reclassifiedFrom && (
+                <Alert severity="info" sx={{ mb: 2 }}>
+                    Reclassified from: {reclassifiedFrom}
                 </Alert>
             )}
 
@@ -174,46 +251,139 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
                                 {definitions.map((def) => (
                                     <MenuItem key={def.id} value={def.id}>
                                         {def.disease}
+                                        {def.prioritySurveillance && ' *'}
                                     </MenuItem>
                                 ))}
                             </Select>
                         </FormControl>
                     )}
                     {selectedDisease && (
-                        <Alert severity="info" sx={{ mt: 2 }}>
-                            {selectedDisease.guidance}
-                        </Alert>
+                        <>
+                            <Alert severity="info" sx={{ mt: 2 }}>
+                                <Typography variant="subtitle2" gutterBottom>
+                                    Case Definition
+                                </Typography>
+                                {selectedDisease.definition}
+                            </Alert>
+                            <Alert severity="success" sx={{ mt: 1 }} icon={false}>
+                                <Typography variant="subtitle2" gutterBottom>
+                                    Clinical Guidance
+                                </Typography>
+                                <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
+                                    {selectedDisease.guidance}
+                                </Typography>
+                            </Alert>
+                        </>
                     )}
                 </Box>
             )}
 
-            {/* Step 2: Symptoms */}
+            {/* Step 2: Assessment Questions */}
             {activeStep === 1 && selectedDisease && (
                 <Box>
                     <Typography variant="h6" gutterBottom>
-                        Symptom Checklist — {selectedDisease.disease}
+                        Assessment — {selectedDisease.disease}
                     </Typography>
-                    <FormGroup>
-                        {selectedDisease.symptoms.map((symptom) => (
-                            <FormControlLabel
-                                key={symptom.id}
-                                control={
-                                    <Checkbox
-                                        checked={selectedSymptoms.includes(symptom.name)}
-                                        onChange={() => handleSymptomToggle(symptom.name)}
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        Answer each question Yes or No based on clinical observation.
+                    </Typography>
+
+                    {selectedDisease.questions.map((question: AssessmentQuestion) => (
+                        <Paper
+                            key={question.id}
+                            variant="outlined"
+                            sx={{
+                                mb: 2,
+                                p: 2,
+                                borderColor: answers[question.id]?.answer === true && question.isDangerSign
+                                    ? 'error.main'
+                                    : answers[question.id]?.answer === true && question.isImmediateReport
+                                        ? 'warning.main'
+                                        : 'divider',
+                                borderWidth: (answers[question.id]?.answer === true && (question.isDangerSign || question.isImmediateReport)) ? 2 : 1,
+                            }}
+                        >
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, flexWrap: 'wrap' }}>
+                                <Typography variant="body1" sx={{ flex: 1 }}>
+                                    {question.text}
+                                </Typography>
+                                {question.required && (
+                                    <Chip label="Required" size="small" color="warning" />
+                                )}
+                                {question.isDangerSign && (
+                                    <Chip
+                                        icon={<WarningAmberIcon />}
+                                        label="Danger Sign"
+                                        size="small"
+                                        color="error"
                                     />
-                                }
-                                label={
-                                    <Box>
-                                        {symptom.name}
-                                        {symptom.required && (
-                                            <Chip label="Required" size="small" color="warning" sx={{ ml: 1 }} />
-                                        )}
-                                    </Box>
-                                }
-                            />
-                        ))}
-                    </FormGroup>
+                                )}
+                            </Box>
+
+                            <RadioGroup
+                                row
+                                value={answers[question.id]?.answer === true ? 'yes' : answers[question.id]?.answer === false ? 'no' : ''}
+                                onChange={(e) => handleAnswerChange(question.id, e.target.value === 'yes')}
+                            >
+                                <FormControlLabel value="yes" control={<Radio />} label="Yes" />
+                                <FormControlLabel value="no" control={<Radio />} label="No" />
+                            </RadioGroup>
+
+                            {/* Follow-up numeric input */}
+                            {answers[question.id]?.answer === true && question.inputType === 'number' && (
+                                <TextField
+                                    label={question.inputLabel}
+                                    type="number"
+                                    size="small"
+                                    sx={{ mt: 1 }}
+                                    InputProps={{
+                                        endAdornment: question.inputUnit ? (
+                                            <InputAdornment position="end">{question.inputUnit}</InputAdornment>
+                                        ) : undefined,
+                                    }}
+                                    value={answers[question.id]?.numericValue ?? ''}
+                                    onChange={(e) => handleNumericChange(question.id, parseFloat(e.target.value))}
+                                />
+                            )}
+
+                            {/* Yes note */}
+                            {answers[question.id]?.answer === true && question.yesNote && (
+                                <Alert
+                                    severity={question.isDangerSign ? 'error' : question.isImmediateReport ? 'warning' : 'info'}
+                                    sx={{ mt: 1 }}
+                                >
+                                    {question.yesNote}
+                                </Alert>
+                            )}
+
+                            {/* Reclassification prompt */}
+                            {answers[question.id]?.answer === true && question.reclassifyTo && (
+                                <Alert severity="warning" sx={{ mt: 1 }}>
+                                    This answer suggests reclassification to a different disease.
+                                    <Button
+                                        size="small"
+                                        color="warning"
+                                        sx={{ ml: 1 }}
+                                        onClick={() => handleReclassify(question.reclassifyTo!)}
+                                    >
+                                        Switch Disease
+                                    </Button>
+                                </Alert>
+                            )}
+                        </Paper>
+                    ))}
+
+                    {hasImmediateFlags && (
+                        <Alert severity="error" sx={{ mt: 2 }}>
+                            This case requires IMMEDIATE reporting. Please complete the form and submit as soon as possible.
+                        </Alert>
+                    )}
+
+                    {hasDangerFlags && (
+                        <Alert severity="warning" sx={{ mt: 2 }}>
+                            Danger signs detected from assessment. Ensure the patient is referred for immediate care.
+                        </Alert>
+                    )}
                 </Box>
             )}
 
@@ -225,7 +395,7 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
                     </Typography>
                     <TextField
                         id="report-temperature"
-                        label="Temperature (°C)"
+                        label="Temperature (\u00B0C)"
                         type="number"
                         fullWidth
                         value={temperature}
@@ -236,6 +406,9 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
                     />
                     <Typography variant="subtitle1" gutterBottom fontWeight={600}>
                         Danger Signs
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        Check any danger signs observed in the patient.
                     </Typography>
                     <FormGroup>
                         {selectedDisease.dangerSigns.map((sign) => (
@@ -275,7 +448,7 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
                         fullWidth
                         sx={{ mb: 2 }}
                     >
-                        {gpsLoading ? 'Getting Location…' : location ? 'GPS Captured ✓' : 'Capture GPS Location'}
+                        {gpsLoading ? 'Getting Location\u2026' : location ? 'GPS Captured \u2713' : 'Capture GPS Location'}
                     </Button>
                     {location && (
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -288,7 +461,7 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
                         fullWidth
                         value={locationName}
                         onChange={(e) => setLocationName(e.target.value)}
-                        helperText={location ? 'Optional — GPS already captured' : 'Required if GPS unavailable'}
+                        helperText={location ? 'Optional \u2014 GPS already captured' : 'Required if GPS unavailable'}
                         sx={{ mb: 3 }}
                     />
                 </Box>
@@ -318,7 +491,7 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
                         disabled={!canProceed() || submitting}
                         onClick={handleSubmit}
                     >
-                        {submitting ? 'Submitting…' : 'Submit Report'}
+                        {submitting ? 'Submitting\u2026' : 'Submit Report'}
                     </Button>
                 )}
             </Box>
