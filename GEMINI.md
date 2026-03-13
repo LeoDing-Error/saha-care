@@ -118,7 +118,7 @@ saha-care/
 │   ├── style.css             # Landing page styles
 │   └── main.js               # Landing page script
 ├── public/                   # PWA icons (favicon, apple-touch, pwa-192/512, mask-icon)
-├── scripts/                  # seedCaseDefinitions, seedCaseDefinitionsClient, generateIcons
+├── scripts/                  # seedCaseDefinitions, generateIcons
 ├── firestore.rules
 ├── firestore.indexes.json    # Composite indexes for queries
 ├── firebase.json
