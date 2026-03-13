@@ -12,6 +12,7 @@ import {
 import PeopleIcon from '@mui/icons-material/People';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
+import BarChartIcon from '@mui/icons-material/BarChart';
 import { useAuth } from '../../contexts/AuthContext';
 import { subscribeToPendingCount } from '../../services/users';
 
@@ -82,6 +83,22 @@ export default function SupervisorHomePage() {
                                     <Typography variant="h6">Submit Report</Typography>
                                     <Typography variant="body2" color="text.secondary">
                                         Create a supervisory summary report
+                                    </Typography>
+                                </Box>
+                            </CardContent>
+                        </CardActionArea>
+                    </Card>
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                    <Card>
+                        <CardActionArea onClick={() => navigate('/supervisor/dashboard')}>
+                            <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <BarChartIcon fontSize="large" color="action" />
+                                <Box>
+                                    <Typography variant="h6">Regional Analytics</Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        View charts and maps for your region
                                     </Typography>
                                 </Box>
                             </CardContent>

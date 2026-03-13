@@ -1,7 +1,7 @@
 # Sprint 2 — Location & Verification
 
-**Dates:** Mar 10 – Mar 23, 2026  
-**Goal:** Supervisors can approve users and verify reports.  
+**Dates:** Mar 10 – Mar 23, 2026
+**Goal:** Supervisors can approve users and verify reports.
 **Milestone:** M2 (Mar 23) — Supervisor Flow (no messaging)
 
 **Prerequisite:** M1 complete (auth + offline reporting working)
@@ -22,7 +22,7 @@
   - Show when GPS fails or user declines
   - Store location.name alongside or instead of coords
 
-- [ ] **T3.3** Display location on report detail
+- [x] **T3.3** Display location on report detail
   - Show coordinates or location name
   - Optional: small static map preview (can defer to Sprint 3)
 
@@ -123,15 +123,15 @@ subscribeToPendingCount(role: 'volunteer' | 'supervisor', region?: string, callb
 
 ### User Approval Tasks
 
-- [ ] **T3.4** Update User type with approval fields
+- [x] **T3.4** Update User type with approval fields
   - Modify: `src/types/user.ts`
   - Add: approvedBy, approvedAt, rejectedBy, rejectedAt, rejectionReason
 
-- [ ] **T3.5** Create users service
+- [x] **T3.5** Create users service
   - Create: `src/services/users.ts`
   - Functions: subscribeToPendingVolunteers, subscribeToPendingSupervisors, approveUser, rejectUser, subscribeToPendingCount
 
-- [ ] **T3.6** Create user approval components
+- [x] **T3.6** Create user approval components
   - Create: `src/components/users/UserStatusChip.tsx`
   - Create: `src/components/users/ApprovalConfirmDialog.tsx`
   - Create: `src/components/users/RejectionDialog.tsx`
@@ -139,29 +139,27 @@ subscribeToPendingCount(role: 'volunteer' | 'supervisor', region?: string, callb
   - Create: `src/components/users/PendingUsersList.tsx`
   - Create: `src/components/users/index.ts`
 
-- [ ] **T3.7** Build supervisor pages
+- [x] **T3.7** Build supervisor pages
   - Create: `src/pages/supervisor/SupervisorHomePage.tsx`
   - Create: `src/pages/supervisor/PendingVolunteersPage.tsx`
   - Create: `src/pages/supervisor/index.ts`
 
-- [ ] **T3.8** Build official pages
+- [x] **T3.8** Build official pages
   - Create: `src/pages/official/OfficialHomePage.tsx`
   - Create: `src/pages/official/PendingSupervisorsPage.tsx`
   - Create: `src/pages/official/index.ts`
 
-- [ ] **T3.9** Update router with new routes
+- [x] **T3.9** Update router with new routes
   - Modify: `src/router/AppRouter.tsx`
   - Add supervisor routes with RoleGuard
   - Add official routes with RoleGuard
 
-- [ ] **T3.9.1** Increase 
-
-- [ ] **T3.10** Update AppLayout navigation
+- [x] **T3.10** Update AppLayout navigation
   - Modify: `src/layouts/AppLayout.tsx`
   - Add supervisor nav items (Home, Pending Volunteers)
   - Add official nav items (Home, Pending Supervisors)
 
-- [ ] **T3.11** Update security rules for approval workflow
+- [x] **T3.11** Update security rules for approval workflow
   - Supervisors can update volunteer status in their region
   - Officials can update supervisor status
   - Users cannot approve themselves
@@ -192,7 +190,7 @@ interface AuditLog {
 }
 ```
 
-- [ ] **T3.12** Implement onUserApproval Cloud Function
+- [x] **T3.12** Implement onUserApproval Cloud Function
   - Create/Modify: `functions/src/onUserApproval.ts`
   - Update: `functions/src/index.ts` to export function
 
@@ -226,21 +224,21 @@ Add composite indexes for pending user queries to `firestore.indexes.json`:
 }
 ```
 
-- [ ] **T3.13** Add Firestore indexes for pending user queries
+- [x] **T3.13** Add Firestore indexes for pending user queries
   - Modify: `firestore.indexes.json`
 
 ### Tests (Week 3)
 
-- [ ] **Test W3.1** Report submission captures GPS coordinates
-- [ ] **Test W3.2** Manual location input works when GPS unavailable
-- [ ] **Test W3.3** Location displays on report detail view
-- [ ] **Test W3.4** Supervisor sees only pending volunteers in their region
-- [ ] **Test W3.5** Supervisor can approve volunteer → status changes to 'approved'
-- [ ] **Test W3.6** Supervisor can reject volunteer → status changes to 'rejected'
-- [ ] **Test W3.7** Approved volunteer can now access full app
-- [ ] **Test W3.8** Official sees pending supervisors
-- [ ] **Test W3.9** Official can approve/reject supervisors
-- [ ] **Test W3.10** Security rule test: volunteer cannot approve other users
+- [x] **Test W3.1** Report submission captures GPS coordinates
+- [x] **Test W3.2** Manual location input works when GPS unavailable
+- [x] **Test W3.3** Location displays on report detail view
+- [x] **Test W3.4** Supervisor sees only pending volunteers in their region
+- [x] **Test W3.5** Supervisor can approve volunteer → status changes to 'approved'
+- [x] **Test W3.6** Supervisor can reject volunteer → status changes to 'rejected'
+- [x] **Test W3.7** Approved volunteer can now access full app
+- [x] **Test W3.8** Official sees pending supervisors
+- [x] **Test W3.9** Official can approve/reject supervisors
+- [x] **Test W3.10** Security rule test: volunteer cannot approve other users
 
 ---
 
@@ -248,86 +246,86 @@ Add composite indexes for pending user queries to `firestore.indexes.json`:
 
 ### Tasks
 
-- [ ] **T4.1** Build pending reports list (supervisor view)
+- [x] **T4.1** Build pending reports list (supervisor view)
   - Query reports where `status === 'pending'`
   - Filter by supervisor's region
   - Show disease, date, reporter, location summary
   - Sort by date (newest first or oldest first—decide)
 
-- [ ] **T4.2** Build report detail view (supervisor)
+- [x] **T4.2** Build report detail view (supervisor)
   - Full report data display
   - All symptoms checked
   - Temperature, patient demographics
   - Location with map pin (if coords available)
   - Reporter info (limited—email or ID, not full PII)
 
-- [ ] **T4.3** Implement report status state machine
+- [x] **T4.3** Implement report status state machine
   - States: `pending` → `verified` | `rejected`
   - Add `verifiedBy`, `verifiedAt` fields on verification
   - Add `rejectionReason` field on rejection
 
-- [ ] **T4.4** Build verification action buttons
+- [x] **T4.4** Build verification action buttons
   - Verify button → prompt for optional notes, update status
   - Reject button → require rejection reason, update status
   - Confirmation modal before action
 
-- [ ] **T4.5** Update report list UI with status filters
+- [x] **T4.5** Update report list UI with status filters
   - Tabs or dropdown: All, Pending, Verified, Rejected
   - Default to Pending for supervisor workflow
 
-- [ ] **T4.6** Show verification status to volunteer
+- [x] **T4.6** Show verification status to volunteer
   - Update volunteer's report list to show verified/rejected badges
   - Optional: show verifier notes or rejection reason
 
-- [ ] **T4.7** Build supervisor's verified reports view
+- [x] **T4.7** Build supervisor's verified reports view
   - Historical list of reports they've verified
   - Useful for their own tracking
 
-- [ ] **T4.8** Update security rules for verification
+- [x] **T4.8** Update security rules for verification
   - Only supervisors can update report status
   - Supervisors can only verify reports in their region
   - Volunteers cannot modify reports after submission
 
-- [ ] **T4.9** Handle offline verification
+- [x] **T4.9** Handle offline verification
   - Verification actions should queue offline
   - Test verify while offline → reconnect → sync
 
-- [ ] **T4.10** Add loading and error states
+- [x] **T4.10** Add loading and error states
   - Skeleton loaders for lists
   - Error boundaries for failed queries
   - Retry buttons where appropriate
 
 ### Tests (Week 4)
 
-- [ ] **Test W4.1** Supervisor sees pending reports from their region
-- [ ] **Test W4.2** Supervisor can open report detail view
-- [ ] **Test W4.3** Supervisor can verify report → status updates to 'verified'
-- [ ] **Test W4.4** Verified report shows verifiedBy and verifiedAt
-- [ ] **Test W4.5** Supervisor can reject report with reason
-- [ ] **Test W4.6** Rejected report shows rejection reason
-- [ ] **Test W4.7** Volunteer sees updated status on their report
-- [ ] **Test W4.8** Status filter works (pending/verified/rejected tabs)
-- [ ] **Test W4.9** **Offline verification test**
+- [x] **Test W4.1** Supervisor sees pending reports from their region
+- [x] **Test W4.2** Supervisor can open report detail view
+- [x] **Test W4.3** Supervisor can verify report → status updates to 'verified'
+- [x] **Test W4.4** Verified report shows verifiedBy and verifiedAt
+- [x] **Test W4.5** Supervisor can reject report with reason
+- [x] **Test W4.6** Rejected report shows rejection reason
+- [x] **Test W4.7** Volunteer sees updated status on their report
+- [x] **Test W4.8** Status filter works (pending/verified/rejected tabs)
+- [x] **Test W4.9** **Offline verification test**
   - Go offline
   - Verify a report
   - Reconnect
   - Confirm status synced to Firestore
-- [ ] **Test W4.10** Security rule test: volunteer cannot change report status
-- [ ] **Test W4.11** Security rule test: supervisor cannot verify reports outside their region
+- [x] **Test W4.10** Security rule test: volunteer cannot change report status
+- [x] **Test W4.11** Security rule test: supervisor cannot verify reports outside their region
 
 ---
 
 ## Definition of Done (M2)
 
-- [ ] Reports capture GPS location or manual fallback
-- [ ] Supervisors see pending volunteers and can approve/reject
-- [ ] Officials see pending supervisors and can approve/reject
-- [ ] Supervisors see pending reports from their region
-- [ ] Supervisors can verify or reject reports with notes/reason
-- [ ] Volunteers see verification status on their reports
-- [ ] Verification works offline and syncs on reconnect
-- [ ] Security rules enforce role-based access
-- [ ] All user approval and report verification flows tested
+- [x] Reports capture GPS location or manual fallback
+- [x] Supervisors see pending volunteers and can approve/reject
+- [x] Officials see pending supervisors and can approve/reject
+- [x] Supervisors see pending reports from their region
+- [x] Supervisors can verify or reject reports with notes/reason
+- [x] Volunteers see verification status on their reports
+- [x] Verification works offline and syncs on reconnect
+- [x] Security rules enforce role-based access
+- [x] All user approval and report verification flows tested
 
 ---
 

@@ -54,13 +54,13 @@ export default function OfficialHomePage() {
 
                 <Grid size={{ xs: 12, sm: 6 }}>
                     <Card>
-                        <CardActionArea disabled>
-                            <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, opacity: 0.5 }}>
+                        <CardActionArea onClick={() => navigate('/official/dashboard')}>
+                            <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                                 <DashboardIcon fontSize="large" color="action" />
                                 <Box>
                                     <Typography variant="h6">Analytics Dashboard</Typography>
                                     <Typography variant="body2" color="text.secondary">
-                                        Coming in Sprint 3
+                                        View charts, maps, and surveillance data
                                     </Typography>
                                 </Box>
                             </CardContent>

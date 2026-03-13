@@ -22,6 +22,7 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
 import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
+import BarChartIcon from '@mui/icons-material/BarChart';
 import { useAuth } from '../contexts/AuthContext';
 import { signOut } from '../services/auth';
 import { ROLES } from '../constants';
@@ -56,11 +57,13 @@ export default function AppLayout() {
                     { label: 'Pending Volunteers', path: '/supervisor/pending-users', icon: <PeopleIcon /> },
                     { label: 'Review Reports', path: '/supervisor/reports', icon: <AssignmentIcon /> },
                     { label: 'Submit Report', path: '/supervisor/submit-report', icon: <AddCircleIcon /> },
+                    { label: 'Analytics', path: '/supervisor/dashboard', icon: <BarChartIcon /> },
                 ];
             case 'official':
                 return [
                     { label: 'Dashboard', path: '/official', icon: <DashboardIcon /> },
                     { label: 'Pending Supervisors', path: '/official/pending-users', icon: <SupervisorAccountIcon /> },
+                    { label: 'Analytics', path: '/official/dashboard', icon: <BarChartIcon /> },
                 ];
             default:
                 return [];

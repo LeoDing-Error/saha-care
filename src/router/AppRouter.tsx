@@ -6,8 +6,8 @@ import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
 import ReportFormPage from '../pages/volunteer/ReportFormPage';
 import ReportListPage from '../pages/volunteer/ReportListPage';
-import { SupervisorHomePage, PendingVolunteersPage, ReviewReportsPage } from '../pages/supervisor';
-import { OfficialHomePage, PendingSupervisorsPage } from '../pages/official';
+import { SupervisorHomePage, PendingVolunteersPage, ReviewReportsPage, SupervisorDashboardPage } from '../pages/supervisor';
+import { OfficialHomePage, PendingSupervisorsPage, DashboardPage } from '../pages/official';
 
 export default function AppRouter() {
     return (
@@ -75,6 +75,14 @@ export default function AppRouter() {
                         </RoleGuard>
                     }
                 />
+                <Route
+                    path="/supervisor/dashboard"
+                    element={
+                        <RoleGuard allowedRoles={['supervisor']}>
+                            <SupervisorDashboardPage />
+                        </RoleGuard>
+                    }
+                />
 
                 {/* Official routes */}
                 <Route
@@ -90,6 +98,14 @@ export default function AppRouter() {
                     element={
                         <RoleGuard allowedRoles={['official']}>
                             <PendingSupervisorsPage />
+                        </RoleGuard>
+                    }
+                />
+                <Route
+                    path="/official/dashboard"
+                    element={
+                        <RoleGuard allowedRoles={['official']}>
+                            <DashboardPage />
                         </RoleGuard>
                     }
                 />
