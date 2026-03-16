@@ -109,7 +109,7 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
         if (!selectedDisease || !userProfile) return;
 
         const reportLocation: ReportLocation = location
-            ? { ...location, name: locationName || undefined }
+            ? { ...location, ...(locationName ? { name: locationName } : {}) }
             : { lat: 0, lng: 0, name: locationName };
 
         if (!reportLocation.lat && !reportLocation.name) {
@@ -120,12 +120,17 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
         // Build structured answers
         const questionAnswers: QuestionAnswer[] = selectedDisease.questions
             .filter((q) => answers[q.id]?.answer !== null && answers[q.id]?.answer !== undefined)
-            .map((q) => ({
-                questionId: q.id,
-                questionText: q.text,
-                answer: answers[q.id].answer!,
-                numericValue: answers[q.id].numericValue,
-            }));
+            .map((q) => {
+                const qa: QuestionAnswer = {
+                    questionId: q.id,
+                    questionText: q.text,
+                    answer: answers[q.id].answer!,
+                };
+                if (answers[q.id].numericValue !== undefined) {
+                    qa.numericValue = answers[q.id].numericValue;
+                }
+                return qa;
+            });
 
         // Derive flat symptoms list (question texts where answer is "Yes")
         const symptoms = questionAnswers

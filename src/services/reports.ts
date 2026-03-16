@@ -32,8 +32,12 @@ export async function createReport(data: {
     isImmediateReport: boolean;
     reclassifiedFrom?: string;
 }): Promise<string> {
+    // Strip undefined values — Firestore rejects them
+    const cleanData = Object.fromEntries(
+        Object.entries(data).filter(([, v]) => v !== undefined)
+    );
     const docRef = await addDoc(collection(db, REPORTS_COLLECTION), {
-        ...data,
+        ...cleanData,
         status: 'pending',
         createdAt: serverTimestamp(),
     });
