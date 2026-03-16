@@ -56,30 +56,6 @@ function createSvg(size: number): string {
 }
 
 /**
- * Creates a maskable icon SVG with safe zone padding
- */
-function createMaskableSvg(size: number): string {
-    const padding = Math.round(size * 0.1); // 10% padding for safe zone
-    const innerSize = size - padding * 2;
-    const fontSize = Math.round(innerSize * 0.4);
-    const textY = size * 0.58;
-
-    return `
-<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-    <rect width="${size}" height="${size}" fill="${PRIMARY_COLOR}"/>
-    <text 
-        x="50%" 
-        y="${textY}" 
-        text-anchor="middle" 
-        font-family="Arial, sans-serif" 
-        font-weight="bold" 
-        font-size="${fontSize}px" 
-        fill="${TEXT_COLOR}"
-    >SC</text>
-</svg>`.trim();
-}
-
-/**
  * Creates a monochrome mask icon SVG for Safari
  */
 function createMaskIconSvg(): string {
