@@ -169,7 +169,7 @@ describe('ReportForm', () => {
       });
     });
 
-    it('disables next until required questions are answered Yes', async () => {
+    it('disables next until required questions are answered', async () => {
       const user = userEvent.setup();
       renderReportForm();
 
@@ -181,7 +181,7 @@ describe('ReportForm', () => {
       });
     });
 
-    it('enables next after answering required questions Yes', async () => {
+    it('enables next after answering required questions', async () => {
       const user = userEvent.setup();
       renderReportForm();
 

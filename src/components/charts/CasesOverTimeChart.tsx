@@ -6,33 +6,50 @@ import ChartWrapper from './ChartWrapper';
 import type { AggregatePeriod } from '../../types';
 
 export default function CasesOverTimeChart() {
-    const { filteredAggregates, loading, filters, setFilters } = useDashboard();
+    const { filteredAggregates, filteredReports, loading, filters, setFilters } = useDashboard();
 
     const chartData = useMemo(() => {
-        // Group aggregates by date key (extracted from doc ID)
         const byDate = new Map<string, { date: string; caseCount: number; verifiedCount: number }>();
 
-        for (const agg of filteredAggregates) {
-            // Doc ID format: {disease-slug}_{region-slug}_{period}_{date-key}
-            const parts = agg.id.split('_');
-            const dateKey = parts[parts.length - 1];
-            if (!dateKey) continue;
+        // Use aggregates if available, otherwise compute from reports
+        if (filteredAggregates.length > 0) {
+            for (const agg of filteredAggregates) {
+                // Doc ID format: {disease-slug}_{region-slug}_{period}_{date-key}
+                const parts = agg.id.split('_');
+                const dateKey = parts[parts.length - 1];
+                if (!dateKey) continue;
 
-            const existing = byDate.get(dateKey);
-            if (existing) {
-                existing.caseCount += agg.caseCount;
-                existing.verifiedCount += agg.verifiedCount;
-            } else {
-                byDate.set(dateKey, {
-                    date: dateKey,
-                    caseCount: agg.caseCount,
-                    verifiedCount: agg.verifiedCount,
-                });
+                const existing = byDate.get(dateKey);
+                if (existing) {
+                    existing.caseCount += agg.caseCount;
+                    existing.verifiedCount += agg.verifiedCount;
+                } else {
+                    byDate.set(dateKey, {
+                        date: dateKey,
+                        caseCount: agg.caseCount,
+                        verifiedCount: agg.verifiedCount,
+                    });
+                }
+            }
+        } else {
+            for (const report of filteredReports) {
+                const dateKey = report.createdAt.toISOString().split('T')[0];
+                const existing = byDate.get(dateKey);
+                if (existing) {
+                    existing.caseCount += 1;
+                    if (report.status === 'verified') existing.verifiedCount += 1;
+                } else {
+                    byDate.set(dateKey, {
+                        date: dateKey,
+                        caseCount: 1,
+                        verifiedCount: report.status === 'verified' ? 1 : 0,
+                    });
+                }
             }
         }
 
         return Array.from(byDate.values()).sort((a, b) => a.date.localeCompare(b.date));
-    }, [filteredAggregates]);
+    }, [filteredAggregates, filteredReports]);
 
     const handleGranularity = (_: React.MouseEvent<HTMLElement>, value: AggregatePeriod | null) => {
         if (value) {

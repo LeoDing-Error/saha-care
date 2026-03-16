@@ -1,14 +1,37 @@
-import { Typography, Box, Grid } from '@mui/material';
+import { Typography, Box, Grid, IconButton, Tooltip, Chip } from '@mui/material';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import { DashboardProvider } from '../../contexts/DashboardContext';
+import { useDashboard } from '../../hooks/useDashboard';
 import { KPICards, CasesByDiseaseChart, CasesOverTimeChart, CasesByStatusChart, AlertsPanel, DashboardFilters } from '../../components/charts';
 import { ReportMap } from '../../components/maps';
 
 function DashboardContent() {
+    const { refresh, loading, lastUpdated } = useDashboard();
+
     return (
         <Box>
-            <Typography variant="h5" fontWeight={600} sx={{ mb: 3 }}>
-                Analytics Dashboard
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                <Typography variant="h5" fontWeight={600}>
+                    Analytics Dashboard
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Chip
+                        icon={<FiberManualRecordIcon sx={{ fontSize: 10 }} />}
+                        label={lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString()}` : 'Connecting...'}
+                        size="small"
+                        color="success"
+                        variant="outlined"
+                    />
+                    <Tooltip title="Refresh data">
+                        <span>
+                            <IconButton onClick={refresh} disabled={loading} size="small">
+                                <RefreshIcon sx={{ animation: loading ? 'spin 1s linear infinite' : 'none', '@keyframes spin': { from: { transform: 'rotate(0deg)' }, to: { transform: 'rotate(360deg)' } } }} />
+                            </IconButton>
+                        </span>
+                    </Tooltip>
+                </Box>
+            </Box>
 
             <DashboardFilters />
             <KPICards />

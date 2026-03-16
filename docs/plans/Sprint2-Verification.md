@@ -353,7 +353,6 @@ Add composite indexes for pending user queries to `firestore.indexes.json`:
 
 ## Deferred to Future
 
-- [ ] In-app messaging between volunteer and supervisor
 - [ ] Push notifications for status changes
 - [ ] "Request clarification" status (simplified to just verify/reject for now)
 

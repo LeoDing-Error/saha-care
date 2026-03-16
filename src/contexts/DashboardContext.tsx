@@ -33,18 +33,20 @@ interface DashboardContextType {
     filteredAggregates: Aggregate[];
     loading: boolean;
     kpis: KPIs;
+    lastUpdated: Date | null;
+    refresh: () => void;
 }
 
 function getDefaultFilters(): DashboardFilters {
     const end = new Date();
     end.setHours(23, 59, 59, 999);
     const start = new Date();
-    start.setDate(start.getDate() - 7);
+    start.setDate(start.getDate() - 30);
     start.setHours(0, 0, 0, 0);
 
     return {
         dateRange: { start, end },
-        datePreset: '7d',
+        datePreset: '30d',
         disease: 'all',
         region: 'all',
         status: 'all',
@@ -86,6 +88,13 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     const [alerts, setAlerts] = useState<Alert[]>([]);
     const [reports, setReports] = useState<Report[]>([]);
     const [loading, setLoading] = useState(true);
+    const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+    const [refreshKey, setRefreshKey] = useState(0);
+
+    const refresh = useCallback(() => {
+        setLoading(true);
+        setRefreshKey((k) => k + 1);
+    }, []);
 
     // Determine effective region for Firestore queries
     const queryRegion = useMemo(() => {
@@ -115,17 +124,19 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         const unsubscribe = subscribeToAggregates(filters.period, queryRegion, (data) => {
             setAggregates(data);
+            setLastUpdated(new Date());
         });
         return unsubscribe;
-    }, [filters.period, queryRegion]);
+    }, [filters.period, queryRegion, refreshKey]);
 
     // Subscribe to alerts
     useEffect(() => {
         const unsubscribe = subscribeToAlerts(queryRegion, (data) => {
             setAlerts(data);
+            setLastUpdated(new Date());
         });
         return unsubscribe;
-    }, [queryRegion]);
+    }, [queryRegion, refreshKey]);
 
     // Subscribe to reports
     useEffect(() => {
@@ -133,15 +144,20 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         const unsubscribe = subscribeToDashboardReports(queryRegion, (data) => {
             setReports(data);
             setLoading(false);
+            setLastUpdated(new Date());
         });
         return unsubscribe;
-    }, [queryRegion]);
+    }, [queryRegion, refreshKey]);
 
     // Client-side filtered reports
     const filteredReports = useMemo(() => {
         return reports.filter((report) => {
-            const reportDate = report.createdAt;
-            if (reportDate < filters.dateRange.start || reportDate > filters.dateRange.end) return false;
+            // Safely convert createdAt to a timestamp for comparison
+            const reportTime = report.createdAt instanceof Date
+                ? report.createdAt.getTime()
+                : new Date(report.createdAt).getTime();
+            if (isNaN(reportTime)) return true; // Include reports with invalid dates rather than hiding them
+            if (reportTime < filters.dateRange.start.getTime() || reportTime > filters.dateRange.end.getTime()) return false;
             if (filters.disease !== 'all' && report.disease !== filters.disease) return false;
             if (filters.status !== 'all' && report.status !== filters.status) return false;
             return true;
@@ -193,6 +209,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             filteredAggregates,
             loading,
             kpis,
+            lastUpdated,
+            refresh,
         }}>
             {children}
         </DashboardContext.Provider>

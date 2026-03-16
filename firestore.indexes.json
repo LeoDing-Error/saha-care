@@ -23,6 +23,20 @@
             "queryScope": "COLLECTION",
             "fields": [
                 {
+                    "fieldPath": "region",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "createdAt",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "reports",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
                     "fieldPath": "reporterId",
                     "order": "ASCENDING"
                 },
@@ -176,6 +190,20 @@
                 },
                 {
                     "fieldPath": "period",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "aggregates",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "period",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "region",
                     "order": "ASCENDING"
                 }
             ]

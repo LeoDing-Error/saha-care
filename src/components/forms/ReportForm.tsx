@@ -175,9 +175,9 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
                 return selectedDisease !== null;
             case 1: {
                 if (!selectedDisease) return false;
-                // All required questions must be answered "Yes"
+                // All required questions must be answered (Yes or No)
                 const requiredQuestions = selectedDisease.questions.filter((q) => q.required);
-                return requiredQuestions.every((q) => answers[q.id]?.answer === true);
+                return requiredQuestions.every((q) => answers[q.id]?.answer !== null && answers[q.id]?.answer !== undefined);
             }
             case 2:
                 return true; // temperature and danger signs are optional
