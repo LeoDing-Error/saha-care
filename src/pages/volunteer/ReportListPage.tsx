@@ -93,6 +93,11 @@ export default function ReportListPage() {
                                             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                                                 {report.location?.name || `${report.location?.lat?.toFixed(4)}, ${report.location?.lng?.toFixed(4)}`}
                                             </Typography>
+                                            {report.personsCount > 1 && (
+                                                <Typography variant="body2" color="text.secondary">
+                                                    Persons affected: {report.personsCount}
+                                                </Typography>
+                                            )}
                                         </Box>
                                         <Chip
                                             label={report.status}

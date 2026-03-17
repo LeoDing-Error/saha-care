@@ -102,6 +102,19 @@ describe('ReportForm', () => {
       expect(screen.getByText(mockCaseDefinition.guidance)).toBeInTheDocument();
     });
 
+    it('shows persons count field with default value of 1 after disease selection', async () => {
+      const user = userEvent.setup();
+      renderReportForm();
+
+      const selectInput = screen.getByLabelText('Disease');
+      await user.click(selectInput);
+      await user.click(screen.getByText('Acute Watery Diarrhea'));
+
+      const personsInput = screen.getByLabelText('Number of Persons Affected');
+      expect(personsInput).toBeInTheDocument();
+      expect(personsInput).toHaveValue(1);
+    });
+
     it('disables back button on first step', () => {
       renderReportForm();
 
@@ -489,6 +502,7 @@ describe('ReportForm', () => {
             region: mockUserProfile.region,
             hasDangerSigns: false,
             isImmediateReport: false,
+            personsCount: 1,
           })
         );
       });

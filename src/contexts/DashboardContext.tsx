@@ -20,6 +20,7 @@ interface KPIs {
     activeDiseases: number;
     reportsToday: number;
     activeAlerts: number;
+    totalPersons: number;
 }
 
 interface DashboardContextType {
@@ -194,6 +195,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             activeDiseases: new Set(filteredReports.map((r) => r.disease)).size,
             reportsToday: filteredReports.filter((r) => r.createdAt >= today).length,
             activeAlerts: alerts.length,
+            totalPersons: filteredReports.reduce((sum, r) => sum + (r.personsCount || 1), 0),
         };
     }, [filteredReports, alerts]);
 

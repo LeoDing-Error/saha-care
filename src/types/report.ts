@@ -61,6 +61,8 @@ export interface Report {
     hasDangerSigns: boolean;
     /** Whether this report was flagged for immediate alert */
     isImmediateReport: boolean;
+    /** Number of persons affected in this report (minimum 1) */
+    personsCount: number;
     /** If reclassification was triggered, the original disease */
     reclassifiedFrom?: string;
     createdAt: Date;

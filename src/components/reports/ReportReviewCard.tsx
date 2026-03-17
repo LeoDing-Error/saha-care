@@ -65,6 +65,11 @@ export default function ReportReviewCard({
                         size="small"
                     />
                 </Box>
+                {report.personsCount > 1 && (
+                    <Typography variant="body2" sx={{ mt: 1 }}>
+                        Persons affected: {report.personsCount}
+                    </Typography>
+                )}
                 {report.temp && (
                     <Typography variant="body2" sx={{ mt: 1 }}>
                         Temperature: {report.temp}°C

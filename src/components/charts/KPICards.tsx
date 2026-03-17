@@ -5,6 +5,7 @@ import PendingIcon from '@mui/icons-material/Pending';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import TodayIcon from '@mui/icons-material/Today';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import PeopleIcon from '@mui/icons-material/People';
 import { useDashboard } from '../../hooks/useDashboard';
 
 interface KPICardProps {
@@ -46,6 +47,7 @@ export default function KPICards() {
         { label: 'Pending', value: kpis.pendingCount, icon: <PendingIcon fontSize="large" />, color: '#ed6c02' },
         { label: 'Active Diseases', value: kpis.activeDiseases, icon: <BugReportIcon fontSize="large" />, color: '#9c27b0' },
         { label: 'Reports Today', value: kpis.reportsToday, icon: <TodayIcon fontSize="large" />, color: '#0288d1' },
+        { label: 'Persons Affected', value: kpis.totalPersons, icon: <PeopleIcon fontSize="large" />, color: '#00695c' },
         { label: 'Active Alerts', value: kpis.activeAlerts, icon: <WarningAmberIcon fontSize="large" />, color: kpis.activeAlerts > 0 ? '#d32f2f' : '#757575' },
     ];
 

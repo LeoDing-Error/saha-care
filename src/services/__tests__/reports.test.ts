@@ -34,6 +34,7 @@ describe('Reports Service', () => {
         region: 'north-gaza',
         hasDangerSigns: false,
         isImmediateReport: false,
+        personsCount: 1,
       };
 
       const result = await createReport(reportData);
@@ -58,6 +59,7 @@ describe('Reports Service', () => {
         region: 'north-gaza',
         hasDangerSigns: false,
         isImmediateReport: true,
+        personsCount: 3,
       };
 
       await createReport(reportData);
@@ -73,6 +75,7 @@ describe('Reports Service', () => {
       expect(savedReport.reporterName).toBe('Test User');
       expect(savedReport.region).toBe('north-gaza');
       expect(savedReport.isImmediateReport).toBe(true);
+      expect(savedReport.personsCount).toBe(3);
     });
 
     it('includes optional fields when provided', async () => {
@@ -92,6 +95,7 @@ describe('Reports Service', () => {
         region: 'south-gaza',
         hasDangerSigns: true,
         isImmediateReport: false,
+        personsCount: 2,
         reclassifiedFrom: 'Some other disease',
       };
 
@@ -122,6 +126,7 @@ describe('Reports Service', () => {
         region: 'north-gaza',
         hasDangerSigns: false,
         isImmediateReport: true,
+        personsCount: 1,
       };
 
       await createReport(reportData);
@@ -147,6 +152,7 @@ describe('Reports Service', () => {
         region: 'north-gaza',
         hasDangerSigns: false,
         isImmediateReport: false,
+        personsCount: 1,
       };
 
       await expect(createReport(reportData)).rejects.toThrow('Firestore error');

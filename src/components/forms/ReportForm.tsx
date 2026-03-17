@@ -51,6 +51,7 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
     const [gpsLoading, setGpsLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
+    const [personsCount, setPersonsCount] = useState(1);
     const [reclassifiedFrom, setReclassifiedFrom] = useState<string | null>(null);
 
     const handleDiseaseSelect = (diseaseId: string) => {
@@ -59,6 +60,7 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
             setSelectedDisease(def);
             setAnswers({});
             setSelectedDangerSigns([]);
+            setPersonsCount(1);
             setReclassifiedFrom(null);
         }
     };
@@ -163,6 +165,7 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
                 region: userProfile.region,
                 hasDangerSigns,
                 isImmediateReport,
+                personsCount,
                 reclassifiedFrom: reclassifiedFrom || undefined,
             });
             onSuccess?.();
@@ -278,6 +281,17 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
                                     {selectedDisease.guidance}
                                 </Typography>
                             </Alert>
+                            <TextField
+                                id="persons-count"
+                                label="Number of Persons Affected"
+                                type="number"
+                                fullWidth
+                                value={personsCount}
+                                onChange={(e) => setPersonsCount(Math.max(1, parseInt(e.target.value) || 1))}
+                                inputProps={{ min: 1 }}
+                                sx={{ mt: 2 }}
+                                helperText="How many people are affected in this report (minimum 1)"
+                            />
                         </>
                     )}
                 </Box>

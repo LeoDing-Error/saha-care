@@ -48,5 +48,7 @@ export interface Aggregate {
     period: AggregatePeriod;
     caseCount: number;
     verifiedCount: number;
+    /** Total persons affected across all reports in this aggregate */
+    personsCount: number;
     lastUpdated: Date;
 }

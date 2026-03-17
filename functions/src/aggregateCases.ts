@@ -43,7 +43,8 @@ export const aggregateCases = onDocumentWritten(
         // Ignore deletions
         if (!after) return;
 
-        const { disease, region, status } = after;
+        const { disease, region, status, personsCount: rawPersonsCount } = after;
+        const personsCount = typeof rawPersonsCount === 'number' && rawPersonsCount >= 1 ? rawPersonsCount : 1;
         const reportId = event.params.reportId;
 
         const now = new Date();
@@ -79,6 +80,7 @@ export const aggregateCases = onDocumentWritten(
                     period: 'day',
                     caseCount: FieldValue.increment(1),
                     verifiedCount: FieldValue.increment(isVerified ? 1 : 0),
+                    personsCount: FieldValue.increment(personsCount),
                 },
                 { merge: true }
             );
@@ -89,6 +91,7 @@ export const aggregateCases = onDocumentWritten(
                     period: 'week',
                     caseCount: FieldValue.increment(1),
                     verifiedCount: FieldValue.increment(isVerified ? 1 : 0),
+                    personsCount: FieldValue.increment(personsCount),
                 },
                 { merge: true }
             );
