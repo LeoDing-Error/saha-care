@@ -12,6 +12,7 @@
         "dev:emulators": "concurrently \"npm run emulators\" \"npm run dev\"",
         "generate:icons": "npx tsx scripts/generateIcons.ts",
         "seed:cases": "npx tsx scripts/seedCaseDefinitions.ts",
+        "seed:reports": "npx tsx scripts/seedReports.ts",
         "test": "vitest",
         "test:run": "vitest run",
         "test:coverage": "vitest run --coverage"
