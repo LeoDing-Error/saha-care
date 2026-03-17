@@ -3,7 +3,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import { DashboardProvider } from '../../contexts/DashboardContext';
 import { useDashboard } from '../../hooks/useDashboard';
-import { KPICards, CasesByDiseaseChart, CasesOverTimeChart, CasesByStatusChart, AlertsPanel, DashboardFilters } from '../../components/charts';
+import { KPICards, CasesByDiseaseChart, CasesOverTimeChart, AlertsPanel, DashboardFilters } from '../../components/charts';
 import { ReportMap } from '../../components/maps';
 
 function DashboardContent() {
@@ -46,10 +46,7 @@ function DashboardContent() {
                 <Grid size={{ xs: 12 }}>
                     <CasesOverTimeChart />
                 </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                    <CasesByStatusChart />
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
+                <Grid size={{ xs: 12 }}>
                     <ReportMap />
                 </Grid>
             </Grid>
