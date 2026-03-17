@@ -1,10 +1,9 @@
 import { MapContainer, TileLayer } from 'react-leaflet';
-import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useDashboard } from '../../hooks/useDashboard';
-import DiseaseMarker from './DiseaseMarker';
-import MapLegend from './MapLegend';
+import HeatmapLayer from './HeatmapLayer';
+import HeatmapLegend from './HeatmapLegend';
 import ChartWrapper from '../charts/ChartWrapper';
 
 // Fix Leaflet default marker icon paths for bundlers
@@ -29,12 +28,9 @@ export default function ReportMap() {
         (r) => r.location && r.location.lat && r.location.lng
     );
 
-    // Get distinct diseases for the legend
-    const diseases = [...new Set(reportsWithLocation.map((r) => r.disease))].sort();
-
     return (
         <ChartWrapper
-            title="Report Map"
+            title="Disease Heatmap"
             loading={loading}
             isEmpty={reportsWithLocation.length === 0}
             height={400}
@@ -49,13 +45,9 @@ export default function ReportMap() {
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     />
-                    <MarkerClusterGroup chunkedLoading>
-                        {reportsWithLocation.map((report) => (
-                            <DiseaseMarker key={report.id} report={report} />
-                        ))}
-                    </MarkerClusterGroup>
+                    <HeatmapLayer reports={reportsWithLocation} />
                 </MapContainer>
-                {diseases.length > 0 && <MapLegend diseases={diseases} />}
+                <HeatmapLegend />
             </div>
         </ChartWrapper>
     );

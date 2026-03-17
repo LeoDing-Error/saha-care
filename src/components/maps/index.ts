@@ -1,3 +1,3 @@
 export { default as ReportMap } from './ReportMap';
-export { default as DiseaseMarker } from './DiseaseMarker';
-export { default as MapLegend } from './MapLegend';
+export { default as HeatmapLayer } from './HeatmapLayer';
+export { default as HeatmapLegend } from './HeatmapLegend';

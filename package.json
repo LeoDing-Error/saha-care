@@ -23,6 +23,7 @@
         "@mui/material": "^7.3.8",
         "firebase": "^12.9.0",
         "leaflet": "^1.9.4",
+        "leaflet.heat": "^0.2.0",
         "react": "^19.2.4",
         "react-dom": "^19.2.4",
         "react-leaflet": "^5.0.0",
