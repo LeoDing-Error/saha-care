@@ -14,7 +14,7 @@ export const mockUserProfile = {
   displayName: 'Test User',
   role: 'volunteer' as const,
   status: 'approved' as const,
-  region: 'north-gaza',
+  region: 'North Gaza',
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -93,7 +93,7 @@ export const mockReport = {
   status: 'pending' as const,
   reporterId: 'test-uid-123',
   reporterName: 'Test User',
-  region: 'north-gaza',
+  region: 'North Gaza',
   hasDangerSigns: false,
   isImmediateReport: false,
   createdAt: new Date(),

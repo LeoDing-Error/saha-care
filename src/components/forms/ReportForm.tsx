@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     Stepper,
     Step,
@@ -26,8 +26,12 @@ import MyLocationIcon from '@mui/icons-material/MyLocation';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { useCaseDefinitions } from '../../hooks/useCaseDefinitions';
 import { createReport } from '../../services/reports';
-import { getCurrentPosition } from '../../utils/location';
+import { getCurrentPosition, checkGeolocationPermission, getGeoErrorMessage } from '../../utils/location';
 import { useAuth } from '../../contexts/AuthContext';
+import GeolocationPrompt from '../common/GeolocationPrompt';
+import LocationPickerMap from '../maps/LocationPickerMap';
+import { REGIONS } from '../../constants/regions';
+import { detectRegionFromCoordinates } from '../../utils/regionDetection';
 import type { CaseDefinition, AssessmentQuestion, ReportLocation, QuestionAnswer } from '../../types';
 
 const STEPS = ['Select Disease', 'Assessment Questions', 'Temperature & Danger Signs', 'Location & Submit'];
@@ -53,6 +57,14 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
     const [error, setError] = useState('');
     const [personsCount, setPersonsCount] = useState(1);
     const [reclassifiedFrom, setReclassifiedFrom] = useState<string | null>(null);
+    const [selectedRegion, setSelectedRegion] = useState(userProfile?.region || '');
+    const [geoPermission, setGeoPermission] = useState<'granted' | 'prompt' | 'denied' | 'unsupported'>('prompt');
+
+    useEffect(() => {
+        if (activeStep === 3) {
+            checkGeolocationPermission().then(setGeoPermission);
+        }
+    }, [activeStep]);
 
     const handleDiseaseSelect = (diseaseId: string) => {
         const def = definitions.find((d) => d.id === diseaseId);
@@ -98,11 +110,19 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
 
     const handleGPS = async () => {
         setGpsLoading(true);
-        const pos = await getCurrentPosition();
-        if (pos) {
-            setLocation(pos);
+        const result = await getCurrentPosition();
+        if (result.location) {
+            setLocation(result.location);
+            const detectedRegion = detectRegionFromCoordinates(result.location.lat, result.location.lng);
+            if (detectedRegion) setSelectedRegion(detectedRegion);
+            if (result.error === undefined) {
+                setGeoPermission('granted');
+            }
         } else {
-            setError('Could not get GPS location. Please enter location manually.');
+            setError(getGeoErrorMessage(result.error));
+            if (result.error === 'permission-denied') {
+                setGeoPermission('denied');
+            }
         }
         setGpsLoading(false);
     };
@@ -162,7 +182,7 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
                 location: reportLocation,
                 reporterId: userProfile.uid,
                 reporterName: userProfile.displayName,
-                region: userProfile.region,
+                region: selectedRegion || userProfile.region,
                 hasDangerSigns,
                 isImmediateReport,
                 personsCount,
@@ -458,6 +478,7 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
                     <Typography variant="h6" gutterBottom>
                         Location
                     </Typography>
+                    <GeolocationPrompt permissionState={geoPermission} />
                     <Button
                         id="gps-capture-btn"
                         variant="outlined"
@@ -481,8 +502,38 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
                         value={locationName}
                         onChange={(e) => setLocationName(e.target.value)}
                         helperText={location ? 'Optional \u2014 GPS already captured' : 'Required if GPS unavailable'}
-                        sx={{ mb: 3 }}
+                        sx={{ mb: 2 }}
                     />
+
+                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                        Or tap the map to select a location:
+                    </Typography>
+                    <LocationPickerMap
+                        initialPosition={location ? { lat: location.lat, lng: location.lng } : undefined}
+                        onLocationSelect={(loc) => {
+                            setLocation(loc);
+                            const detectedRegion = detectRegionFromCoordinates(loc.lat, loc.lng);
+                            if (detectedRegion) setSelectedRegion(detectedRegion);
+                        }}
+                    />
+
+                    <FormControl fullWidth sx={{ mt: 2 }}>
+                        <InputLabel id="region-select-label">Region</InputLabel>
+                        <Select
+                            id="region-select"
+                            labelId="region-select-label"
+                            label="Region"
+                            value={selectedRegion}
+                            onChange={(e) => setSelectedRegion(e.target.value)}
+                        >
+                            {REGIONS.map((r) => (
+                                <MenuItem key={r} value={r}>{r}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                        Auto-selected from your profile. Change if the report location is in a different region.
+                    </Typography>
                 </Box>
             )}
 

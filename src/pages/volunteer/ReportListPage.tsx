@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Typography,
@@ -15,6 +15,10 @@ import {
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import { subscribeToMyReports } from '../../services/reports';
 import { useAuth } from '../../contexts/AuthContext';
+import UrgencyBadge from '../../components/common/UrgencyBadge';
+import ReportSortControls from '../../components/common/ReportSortControls';
+import { sortReports } from '../../utils/urgency';
+import type { ReportSortField, SortDirection } from '../../utils/urgency';
 import type { Report } from '../../types';
 
 const STATUS_COLORS: Record<string, 'default' | 'success' | 'error' | 'warning'> = {
@@ -28,6 +32,12 @@ export default function ReportListPage() {
     const navigate = useNavigate();
     const [reports, setReports] = useState<Report[]>([]);
     const [loading, setLoading] = useState(true);
+    const [sortField, setSortField] = useState<ReportSortField>(
+        () => (sessionStorage.getItem('reportSortField') as ReportSortField) || 'urgency'
+    );
+    const [sortDirection, setSortDirection] = useState<SortDirection>(
+        () => (sessionStorage.getItem('reportSortDirection') as SortDirection) || 'desc'
+    );
 
     useEffect(() => {
         if (!userProfile) return;
@@ -39,6 +49,21 @@ export default function ReportListPage() {
 
         return unsubscribe;
     }, [userProfile]);
+
+    useEffect(() => {
+        sessionStorage.setItem('reportSortField', sortField);
+        sessionStorage.setItem('reportSortDirection', sortDirection);
+    }, [sortField, sortDirection]);
+
+    const sortedReports = useMemo(
+        () => sortReports(reports, sortField, sortDirection),
+        [reports, sortField, sortDirection]
+    );
+
+    const handleSortChange = (field: ReportSortField, direction: SortDirection) => {
+        setSortField(field);
+        setSortDirection(direction);
+    };
 
     if (loading) {
         return (
@@ -69,59 +94,69 @@ export default function ReportListPage() {
                     You haven't submitted any reports yet. Click "New Report" to get started.
                 </Alert>
             ) : (
-                <List disablePadding>
-                    {reports.map((report) => (
-                        <ListItem key={report.id} disablePadding sx={{ mb: 2 }}>
-                            <Card sx={{ width: '100%' }}>
-                                <CardContent>
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                        <Box>
-                                            <Typography variant="h6" fontWeight={600}>
-                                                {report.disease}
-                                            </Typography>
-                                            <Typography variant="body2" color="text.secondary">
-                                                {report.createdAt instanceof Date
-                                                    ? report.createdAt.toLocaleDateString('en-US', {
-                                                        year: 'numeric',
-                                                        month: 'short',
-                                                        day: 'numeric',
-                                                        hour: '2-digit',
-                                                        minute: '2-digit',
-                                                    })
-                                                    : 'Pending sync…'}
-                                            </Typography>
-                                            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                                                {report.location?.name || `${report.location?.lat?.toFixed(4)}, ${report.location?.lng?.toFixed(4)}`}
-                                            </Typography>
-                                            {report.personsCount > 1 && (
-                                                <Typography variant="body2" color="text.secondary">
-                                                    Persons affected: {report.personsCount}
+                <>
+                    <ReportSortControls
+                        sortField={sortField}
+                        sortDirection={sortDirection}
+                        onSortChange={handleSortChange}
+                    />
+                    <List disablePadding>
+                        {sortedReports.map((report) => (
+                            <ListItem key={report.id} disablePadding sx={{ mb: 2 }}>
+                                <Card sx={{ width: '100%' }}>
+                                    <CardContent>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                            <Box>
+                                                <Typography variant="h6" fontWeight={600}>
+                                                    {report.disease}
                                                 </Typography>
-                                            )}
+                                                <Typography variant="body2" color="text.secondary">
+                                                    {report.createdAt instanceof Date
+                                                        ? report.createdAt.toLocaleDateString('en-US', {
+                                                            year: 'numeric',
+                                                            month: 'short',
+                                                            day: 'numeric',
+                                                            hour: '2-digit',
+                                                            minute: '2-digit',
+                                                        })
+                                                        : 'Pending sync\u2026'}
+                                                </Typography>
+                                                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                                    {report.location?.name || `${report.location?.lat?.toFixed(4)}, ${report.location?.lng?.toFixed(4)}`}
+                                                </Typography>
+                                                {report.personsCount > 1 && (
+                                                    <Typography variant="body2" color="text.secondary">
+                                                        Persons affected: {report.personsCount}
+                                                    </Typography>
+                                                )}
+                                            </Box>
+                                            <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
+                                                <UrgencyBadge report={report} />
+                                                <Chip
+                                                    label={report.status}
+                                                    color={STATUS_COLORS[report.status] || 'default'}
+                                                    size="small"
+                                                />
+                                            </Box>
                                         </Box>
-                                        <Chip
-                                            label={report.status}
-                                            color={STATUS_COLORS[report.status] || 'default'}
-                                            size="small"
-                                        />
-                                    </Box>
-                                    {report.symptoms.length > 0 && (
-                                        <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                            {report.symptoms.map((s) => (
-                                                <Chip key={s} label={s} size="small" variant="outlined" />
-                                            ))}
-                                        </Box>
-                                    )}
-                                    {report.verificationNotes && (
-                                        <Alert severity={report.status === 'rejected' ? 'error' : 'success'} sx={{ mt: 1 }}>
-                                            {report.verificationNotes}
-                                        </Alert>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        </ListItem>
-                    ))}
-                </List>
+                                        {report.symptoms.length > 0 && (
+                                            <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                                {report.symptoms.map((s) => (
+                                                    <Chip key={s} label={s} size="small" variant="outlined" />
+                                                ))}
+                                            </Box>
+                                        )}
+                                        {report.verificationNotes && (
+                                            <Alert severity={report.status === 'rejected' ? 'error' : 'success'} sx={{ mt: 1 }}>
+                                                {report.verificationNotes}
+                                            </Alert>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            </ListItem>
+                        ))}
+                    </List>
+                </>
             )}
         </Box>
     );

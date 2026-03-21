@@ -31,9 +31,20 @@ vi.mock('../../../hooks/useCaseDefinitions', () => ({
 // Mock location utils
 vi.mock('../../../utils/location', () => ({
   getCurrentPosition: vi.fn().mockResolvedValue({
-    lat: 31.5,
-    lng: 34.45,
+    location: { lat: 31.5, lng: 34.45 },
   }),
+  checkGeolocationPermission: vi.fn().mockResolvedValue('prompt'),
+  getGeoErrorMessage: vi.fn().mockReturnValue('Could not get GPS location. Please enter location manually.'),
+}));
+
+// Mock region detection
+vi.mock('../../../utils/regionDetection', () => ({
+  detectRegionFromCoordinates: vi.fn().mockReturnValue('Gaza City'),
+}));
+
+// Mock LocationPickerMap (avoid Leaflet in jsdom)
+vi.mock('../../maps/LocationPickerMap', () => ({
+  default: () => <div data-testid="location-picker-map">LocationPickerMap</div>,
 }));
 
 // Mock createReport
@@ -571,7 +582,10 @@ describe('ReportForm', () => {
     it('handles GPS location failure gracefully', async () => {
       const user = userEvent.setup();
       const locationModule = await import('../../../utils/location');
-      vi.mocked(locationModule.getCurrentPosition).mockResolvedValueOnce(null);
+      vi.mocked(locationModule.getCurrentPosition).mockResolvedValueOnce({
+        location: null,
+        error: 'position-unavailable',
+      });
 
       renderReportForm();
 

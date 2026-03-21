@@ -1,25 +1,11 @@
 import { MapContainer, TileLayer } from 'react-leaflet';
-import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import './leafletSetup';
+import { GAZA_CENTER, GAZA_ZOOM } from './leafletSetup';
 import { useDashboard } from '../../hooks/useDashboard';
 import HeatmapLayer from './HeatmapLayer';
 import HeatmapLegend from './HeatmapLegend';
 import ChartWrapper from '../charts/ChartWrapper';
-
-// Fix Leaflet default marker icon paths for bundlers
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-
-L.Icon.Default.mergeOptions({
-    iconRetinaUrl: markerIcon2x,
-    iconUrl: markerIcon,
-    shadowUrl: markerShadow,
-});
-
-// Gaza Strip center coordinates
-const GAZA_CENTER: L.LatLngExpression = [31.45, 34.40];
-const GAZA_ZOOM = 10;
 
 export default function ReportMap() {
     const { filteredReports, loading } = useDashboard();

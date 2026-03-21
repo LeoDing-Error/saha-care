@@ -5,6 +5,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { subscribeToRegionReports } from '../../services/reports';
 import { RegionReportsList } from '../../components/reports';
+import ReportSortControls from '../../components/common/ReportSortControls';
+import { sortReports } from '../../utils/urgency';
+import type { ReportSortField, SortDirection } from '../../utils/urgency';
 import type { Report, ReportStatus } from '../../types';
 
 type StatusFilter = 'all' | ReportStatus;
@@ -15,6 +18,12 @@ export default function ReviewReportsPage() {
     const [reports, setReports] = useState<Report[]>([]);
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('pending');
+    const [sortField, setSortField] = useState<ReportSortField>(
+        () => (sessionStorage.getItem('reviewSortField') as ReportSortField) || 'urgency'
+    );
+    const [sortDirection, setSortDirection] = useState<SortDirection>(
+        () => (sessionStorage.getItem('reviewSortDirection') as SortDirection) || 'desc'
+    );
 
     useEffect(() => {
         if (!userProfile) return;
@@ -27,10 +36,20 @@ export default function ReviewReportsPage() {
         return unsubscribe;
     }, [userProfile]);
 
+    useEffect(() => {
+        sessionStorage.setItem('reviewSortField', sortField);
+        sessionStorage.setItem('reviewSortDirection', sortDirection);
+    }, [sortField, sortDirection]);
+
     const filteredReports = useMemo(() => {
         if (statusFilter === 'all') return reports;
         return reports.filter((r) => r.status === statusFilter);
     }, [reports, statusFilter]);
+
+    const sortedReports = useMemo(
+        () => sortReports(filteredReports, sortField, sortDirection),
+        [filteredReports, sortField, sortDirection]
+    );
 
     const countByStatus = useMemo(() => {
         const counts = { all: reports.length, pending: 0, verified: 0, rejected: 0 };
@@ -39,6 +58,11 @@ export default function ReviewReportsPage() {
         }
         return counts;
     }, [reports]);
+
+    const handleSortChange = (field: ReportSortField, direction: SortDirection) => {
+        setSortField(field);
+        setSortDirection(direction);
+    };
 
     if (!userProfile) return null;
 
@@ -70,8 +94,14 @@ export default function ReviewReportsPage() {
                 <Tab label={`Rejected (${countByStatus.rejected})`} value="rejected" />
             </Tabs>
 
+            <ReportSortControls
+                sortField={sortField}
+                sortDirection={sortDirection}
+                onSortChange={handleSortChange}
+            />
+
             <RegionReportsList
-                reports={filteredReports}
+                reports={sortedReports}
                 loading={loading}
                 supervisorId={userProfile.uid}
             />

@@ -66,8 +66,8 @@ service cloud.firestore {
         (hasRole('supervisor') && isApproved() && resource.data.region == getUserRegion()) ||
         (hasRole('official') && isApproved());
 
-      // Approved volunteers can create reports
-      allow create: if hasRole('volunteer') && isApproved() &&
+      // Approved volunteers and supervisors can create reports
+      allow create: if (hasRole('volunteer') || hasRole('supervisor')) && isApproved() &&
         request.resource.data.reporterId == request.auth.uid &&
         request.resource.data.status == 'pending';
 

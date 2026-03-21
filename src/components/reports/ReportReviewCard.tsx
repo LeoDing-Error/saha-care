@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import UrgencyBadge from '../common/UrgencyBadge';
 import type { Report } from '../../types';
 
 const STATUS_COLORS: Record<string, 'default' | 'success' | 'error' | 'warning'> = {
@@ -59,11 +60,14 @@ export default function ReportReviewCard({
                             {report.location?.name || `${report.location?.lat?.toFixed(4)}, ${report.location?.lng?.toFixed(4)}`}
                         </Typography>
                     </Box>
-                    <Chip
-                        label={report.status}
-                        color={STATUS_COLORS[report.status] || 'default'}
-                        size="small"
-                    />
+                    <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
+                        <UrgencyBadge report={report} />
+                        <Chip
+                            label={report.status}
+                            color={STATUS_COLORS[report.status] || 'default'}
+                            size="small"
+                        />
+                    </Box>
                 </Box>
                 {report.personsCount > 1 && (
                     <Typography variant="body2" sx={{ mt: 1 }}>

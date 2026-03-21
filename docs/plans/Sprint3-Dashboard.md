@@ -178,6 +178,43 @@
 
 ---
 
+## Additional Features (Partner Requests)
+
+### Report Sorting & Filtering
+
+- [x] **T-Extra.1** Sort case reports by urgency
+  - Add urgency/severity field or derive from disease danger signs
+  - Sort reports list with most urgent cases first
+  - Visual indicator for high-urgency reports (color, icon, or badge)
+
+- [x] **T-Extra.2** Sortable report list view
+  - Add sort controls when viewing reports (by date, urgency, disease, status)
+  - Persist sort preference during session
+
+### Map-Based Report Submission
+
+- [x] **T-Extra.3** Click-to-report on map *(stretch goal)*
+  - Volunteers can click/tap a map location to start a new report
+  - Clicked coordinates auto-populate the report form's location field
+  - Confirm location with a draggable pin before submitting
+
+### Region Selection in Report Form
+
+- [x] **T-Extra.4** Add region checkmark/selector to report submission
+  - Add region dropdown or checkbox to ReportForm
+  - Auto-select region based on GPS coordinates if available
+  - Allow manual override if GPS is unavailable
+
+### Permissions & GPS Fix
+
+- [x] **T-Extra.5** Fix "missing or insufficient permissions" error
+  - Probable cause: GPS/geolocation permission not being requested or handled properly
+  - Add proper geolocation permission request flow with user-friendly prompts
+  - Handle permission denied gracefully (allow manual location entry as fallback)
+  - Review Firestore security rules for any permission gaps
+
+---
+
 ## Deferred to Future
 
 - [ ] Heatmap layer as alternative to markers
