@@ -67,7 +67,13 @@ export async function signOut(): Promise<void> {
 export async function getUserProfile(uid: string) {
     const snap = await getDoc(doc(db, 'users', uid));
     if (!snap.exists()) return null;
-    return { ...snap.data(), uid: snap.id } as import('../types').User;
+    const data = snap.data();
+    return {
+        ...data,
+        uid: snap.id,
+        createdAt: data.createdAt?.toDate() || new Date(),
+        updatedAt: data.updatedAt?.toDate() || new Date(),
+    } as import('../types').User;
 }
 
 /**
@@ -83,7 +89,13 @@ export function subscribeToUserProfile(
             callback(null);
             return;
         }
-        callback({ ...snap.data(), uid: snap.id } as import('../types').User);
+        const data = snap.data();
+        callback({
+            ...data,
+            uid: snap.id,
+            createdAt: data.createdAt?.toDate() || new Date(),
+            updatedAt: data.updatedAt?.toDate() || new Date(),
+        } as import('../types').User);
     }, (err) => {
         console.error('Error subscribing to user profile:', err);
         callback(null);
