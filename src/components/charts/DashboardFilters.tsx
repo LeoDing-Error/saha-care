@@ -1,17 +1,14 @@
 import { useMemo } from 'react';
-import {
-    Box,
-    ToggleButton,
-    ToggleButtonGroup,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
-    TextField,
-} from '@mui/material';
 import { useAuth } from '../../contexts/AuthContext';
 import { useDashboard } from '../../hooks/useDashboard';
 import { REGIONS } from '../../constants/regions';
+
+const DATE_PRESETS = [
+    { value: 'today', label: 'Today' },
+    { value: '7d', label: '7 Days' },
+    { value: '30d', label: '30 Days' },
+    { value: 'custom', label: 'Custom' },
+] as const;
 
 export default function DashboardFilters() {
     const { userProfile } = useAuth();
@@ -25,98 +22,96 @@ export default function DashboardFilters() {
     }, [reports]);
 
     return (
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3, alignItems: 'center' }}>
+        <div className="flex flex-wrap gap-3 mb-6 items-center">
             {/* Date preset toggle */}
-            <ToggleButtonGroup
-                value={filters.datePreset}
-                exclusive
-                onChange={(_, value) => {
-                    if (value) setFilters({ datePreset: value });
-                }}
-                size="small"
-            >
-                <ToggleButton value="today">Today</ToggleButton>
-                <ToggleButton value="7d">7 Days</ToggleButton>
-                <ToggleButton value="30d">30 Days</ToggleButton>
-                <ToggleButton value="custom">Custom</ToggleButton>
-            </ToggleButtonGroup>
+            <div className="flex rounded border border-gray-300 overflow-hidden text-sm">
+                {DATE_PRESETS.map((preset, i) => (
+                    <button
+                        key={preset.value}
+                        type="button"
+                        onClick={() => setFilters({ datePreset: preset.value })}
+                        className={[
+                            'px-3 py-1.5',
+                            i > 0 ? 'border-l border-gray-300' : '',
+                            filters.datePreset === preset.value
+                                ? 'bg-teal-600 text-white'
+                                : 'bg-white text-gray-700 hover:bg-gray-50',
+                        ].join(' ')}
+                    >
+                        {preset.label}
+                    </button>
+                ))}
+            </div>
 
             {/* Custom date range inputs */}
             {filters.datePreset === 'custom' && (
                 <>
-                    <TextField
-                        type="date"
-                        label="From"
-                        size="small"
-                        value={filters.dateRange.start.toISOString().split('T')[0]}
-                        onChange={(e) => {
-                            const start = new Date(e.target.value);
-                            start.setHours(0, 0, 0, 0);
-                            setFilters({ dateRange: { ...filters.dateRange, start } });
-                        }}
-                        slotProps={{ inputLabel: { shrink: true } }}
-                    />
-                    <TextField
-                        type="date"
-                        label="To"
-                        size="small"
-                        value={filters.dateRange.end.toISOString().split('T')[0]}
-                        onChange={(e) => {
-                            const end = new Date(e.target.value);
-                            end.setHours(23, 59, 59, 999);
-                            setFilters({ dateRange: { ...filters.dateRange, end } });
-                        }}
-                        slotProps={{ inputLabel: { shrink: true } }}
-                    />
+                    <div className="flex flex-col gap-0.5">
+                        <label className="text-xs text-gray-500">From</label>
+                        <input
+                            type="date"
+                            className="text-sm border border-gray-300 rounded px-2 py-1"
+                            value={filters.dateRange.start.toISOString().split('T')[0]}
+                            onChange={(e) => {
+                                const start = new Date(e.target.value);
+                                start.setHours(0, 0, 0, 0);
+                                setFilters({ dateRange: { ...filters.dateRange, start } });
+                            }}
+                        />
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                        <label className="text-xs text-gray-500">To</label>
+                        <input
+                            type="date"
+                            className="text-sm border border-gray-300 rounded px-2 py-1"
+                            value={filters.dateRange.end.toISOString().split('T')[0]}
+                            onChange={(e) => {
+                                const end = new Date(e.target.value);
+                                end.setHours(23, 59, 59, 999);
+                                setFilters({ dateRange: { ...filters.dateRange, end } });
+                            }}
+                        />
+                    </div>
                 </>
             )}
 
             {/* Disease filter */}
-            <FormControl size="small" sx={{ minWidth: 150 }}>
-                <InputLabel>Disease</InputLabel>
-                <Select
-                    value={filters.disease}
-                    label="Disease"
-                    onChange={(e) => setFilters({ disease: e.target.value })}
-                >
-                    <MenuItem value="all">All Diseases</MenuItem>
-                    {diseases.map((d) => (
-                        <MenuItem key={d} value={d}>{d}</MenuItem>
-                    ))}
-                </Select>
-            </FormControl>
+            <select
+                className="text-sm border border-gray-300 rounded px-2 py-1.5 min-w-[150px]"
+                value={filters.disease}
+                onChange={(e) => setFilters({ disease: e.target.value })}
+            >
+                <option value="all">All Diseases</option>
+                {diseases.map((d) => (
+                    <option key={d} value={d}>{d}</option>
+                ))}
+            </select>
 
             {/* Region filter — officials only */}
             {isOfficial && (
-                <FormControl size="small" sx={{ minWidth: 150 }}>
-                    <InputLabel>Region</InputLabel>
-                    <Select
-                        value={filters.region}
-                        label="Region"
-                        onChange={(e) => setFilters({ region: e.target.value })}
-                    >
-                        <MenuItem value="all">All Regions</MenuItem>
-                        {REGIONS.map((r) => (
-                            <MenuItem key={r} value={r}>{r}</MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
+                <select
+                    className="text-sm border border-gray-300 rounded px-2 py-1.5 min-w-[150px]"
+                    value={filters.region}
+                    onChange={(e) => setFilters({ region: e.target.value })}
+                >
+                    <option value="all">All Regions</option>
+                    {REGIONS.map((r) => (
+                        <option key={r} value={r}>{r}</option>
+                    ))}
+                </select>
             )}
 
             {/* Status filter */}
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-                <InputLabel>Status</InputLabel>
-                <Select
-                    value={filters.status}
-                    label="Status"
-                    onChange={(e) => setFilters({ status: e.target.value as typeof filters.status })}
-                >
-                    <MenuItem value="all">All</MenuItem>
-                    <MenuItem value="pending">Pending</MenuItem>
-                    <MenuItem value="verified">Verified</MenuItem>
-                    <MenuItem value="rejected">Rejected</MenuItem>
-                </Select>
-            </FormControl>
-        </Box>
+            <select
+                className="text-sm border border-gray-300 rounded px-2 py-1.5 min-w-[120px]"
+                value={filters.status}
+                onChange={(e) => setFilters({ status: e.target.value as typeof filters.status })}
+            >
+                <option value="all">All</option>
+                <option value="pending">Pending</option>
+                <option value="verified">Verified</option>
+                <option value="rejected">Rejected</option>
+            </select>
+        </div>
     );
 }

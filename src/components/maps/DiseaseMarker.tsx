@@ -1,5 +1,4 @@
 import { CircleMarker, Popup } from 'react-leaflet';
-import { Typography, Chip, Box } from '@mui/material';
 import type { Report } from '../../types';
 
 // Consistent color palette for diseases
@@ -26,10 +25,10 @@ export function getDiseaseColor(disease: string): string {
     return DEFAULT_COLORS[Math.abs(hash) % DEFAULT_COLORS.length];
 }
 
-const STATUS_CHIP_COLOR: Record<string, 'warning' | 'success' | 'error'> = {
-    pending: 'warning',
-    verified: 'success',
-    rejected: 'error',
+const STATUS_BADGE_CLASS: Record<string, string> = {
+    pending: 'bg-amber-100 text-amber-800 border border-amber-300',
+    verified: 'bg-green-100 text-green-800 border border-green-300',
+    rejected: 'bg-red-100 text-red-800 border border-red-300',
 };
 
 interface DiseaseMarkerProps {
@@ -46,25 +45,18 @@ export default function DiseaseMarker({ report }: DiseaseMarkerProps) {
             pathOptions={{ color, fillColor: color, fillOpacity: 0.7, weight: 2 }}
         >
             <Popup>
-                <Box sx={{ minWidth: 160 }}>
-                    <Typography variant="subtitle2" fontWeight={600}>
-                        {report.disease}
-                    </Typography>
-                    <Typography variant="caption" display="block" color="text.secondary">
-                        {report.createdAt.toLocaleDateString()}
-                    </Typography>
-                    <Chip
-                        label={report.status}
-                        size="small"
-                        color={STATUS_CHIP_COLOR[report.status] || 'default'}
-                        sx={{ mt: 0.5 }}
-                    />
+                <div className="min-w-[160px]">
+                    <p className="text-sm font-semibold">{report.disease}</p>
+                    <p className="text-xs text-gray-500 block">{report.createdAt.toLocaleDateString()}</p>
+                    <span
+                        className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_BADGE_CLASS[report.status] || 'bg-gray-100 text-gray-700 border border-gray-300'}`}
+                    >
+                        {report.status}
+                    </span>
                     {report.location.name && (
-                        <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
-                            {report.location.name}
-                        </Typography>
+                        <p className="text-xs block mt-1">{report.location.name}</p>
                     )}
-                </Box>
+                </div>
             </Popup>
         </CircleMarker>
     );

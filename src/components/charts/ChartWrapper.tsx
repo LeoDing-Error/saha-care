@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import { Card, CardContent, Typography, Skeleton, Alert, Box } from '@mui/material';
 
 interface ChartWrapperProps {
     title: string;
@@ -21,32 +20,34 @@ export default function ChartWrapper({
     isEmpty = false,
 }: ChartWrapperProps) {
     return (
-        <Card sx={{ height: '100%' }}>
-            <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                    <Box>
-                        <Typography variant="h6" fontWeight={600}>
-                            {title}
-                        </Typography>
+        <div className="bg-white rounded-lg shadow border h-full">
+            <div className="p-4">
+                <div className="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 className="text-base font-semibold">{title}</h3>
                         {subtitle && (
-                            <Typography variant="body2" color="text.secondary">
-                                {subtitle}
-                            </Typography>
+                            <p className="text-sm text-gray-500">{subtitle}</p>
                         )}
-                    </Box>
+                    </div>
                     {action}
-                </Box>
+                </div>
 
                 {loading ? (
-                    <Skeleton variant="rectangular" height={height} sx={{ borderRadius: 1 }} />
+                    <div
+                        className="rounded bg-gray-200 animate-pulse"
+                        style={{ height }}
+                    />
                 ) : isEmpty ? (
-                    <Alert severity="info" sx={{ mt: 2 }}>
+                    <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700">
+                        <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        </svg>
                         No data available for the selected filters.
-                    </Alert>
+                    </div>
                 ) : (
                     children
                 )}
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     );
 }

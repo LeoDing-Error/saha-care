@@ -1,160 +1,169 @@
-import { useState, type FormEvent } from 'react';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
-import {
-    Container,
-    Paper,
-    Typography,
-    TextField,
-    Button,
-    Box,
-    Alert,
-    Link,
-} from '@mui/material';
-import { signIn, getUserProfile, signOut } from '../../services/auth';
-import type { UserRole } from '../../types';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Building2, User, Mail, Lock, Eye, EyeOff, ArrowRight, HelpCircle, Globe, Shield } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
+import { Card, CardContent } from '../../components/ui/card';
 
-const ROLE_HOME: Record<UserRole, string> = {
-    volunteer: '/volunteer',
-    supervisor: '/supervisor',
-    official: '/official',
-};
+export function LoginPage() {
+  const navigate = useNavigate();
+  const [userType, setUserType] = useState<'clinical' | 'field'>('clinical');
+  const [showPin, setShowPin] = useState(false);
+  const [email, setEmail] = useState('');
+  const [pin, setPin] = useState('');
 
-export default function LoginPage() {
-    const navigate = useNavigate();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [info, setInfo] = useState('');
-    const [warning, setWarning] = useState('');
-    const [loading, setLoading] = useState(false);
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Mock login - in real app would validate credentials
+    console.log('Login:', { email, pin, userType });
+    navigate('/');
+  };
 
-    const handleSubmit = async (e: FormEvent) => {
-        e.preventDefault();
-        setError('');
-        setInfo('');
-        setWarning('');
-        setLoading(true);
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Logo and Title */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-2xl shadow-sm mb-4">
+            <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center">
+              <Building2 className="w-7 h-7 text-white" />
+            </div>
+          </div>
+          <h1 className="text-3xl text-gray-900 mb-2">SAHA-Care</h1>
+          <p className="text-gray-600">Humanitarian Health Network Access</p>
+        </div>
 
-        try {
-            const user = await signIn(email, password);
-            const profile = await getUserProfile(user.uid);
+        {/* Login Form */}
+        <Card className="shadow-md">
+          <CardContent className="pt-6 pb-8 px-8">
+            <form onSubmit={handleLogin} className="space-y-6">
+              {/* Health Worker Access Toggle */}
+              <div>
+                <Label className="text-xs uppercase tracking-wide text-gray-500 mb-3 block">
+                  Health Worker Access
+                </Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setUserType('clinical')}
+                    className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
+                      userType === 'clinical'
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                    }`}
+                  >
+                    <Building2 className="w-4 h-4" />
+                    <span className="font-medium text-sm">Clinical</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setUserType('field')}
+                    className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
+                      userType === 'field'
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                    }`}
+                  >
+                    <User className="w-4 h-4" />
+                    <span className="font-medium text-sm">Field Staff</span>
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  {userType === 'clinical' ? 'Health Care Users' : 'Volunteers'}
+                </p>
+              </div>
 
-            if (!profile) {
-                setError('Account profile not found. Please contact support.');
-                await signOut();
-                setLoading(false);
-                return;
-            }
+              {/* Email Address */}
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="name@organization.org"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
 
-            if (profile.status === 'pending') {
-                const approver = profile.role === 'volunteer' ? 'supervisor' : 'health official';
-                setInfo(
-                    `Your account is pending approval from a ${approver} in your region. ` +
-                    `You'll be able to access the app once approved.`
-                );
-                await signOut();
-                setLoading(false);
-                return;
-            }
+              {/* Security PIN */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="pin">Security PIN</Label>
+                  <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-700">
+                    Forgot?
+                  </Link>
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Input
+                    id="pin"
+                    type={showPin ? 'text' : 'password'}
+                    placeholder="••••"
+                    value={pin}
+                    onChange={(e) => setPin(e.target.value)}
+                    className="pl-10 pr-10"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPin(!showPin)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPin ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
 
-            if (profile.status === 'rejected') {
-                const reason = profile.rejectionReason;
-                setWarning(
-                    `Your account registration was not approved.` +
-                    (reason ? ` Reason: ${reason}` : '')
-                );
-                await signOut();
-                setLoading(false);
-                return;
-            }
+              {/* Login Button */}
+              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
+                Login
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
 
-            // Approved — navigate to role home
-            navigate(ROLE_HOME[profile.role] || '/');
-        } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : 'Failed to sign in';
-            setError(message);
-        } finally {
-            setLoading(false);
-        }
-    };
+              {/* Register Link */}
+              <p className="text-center text-sm text-gray-600">
+                Not part of the network yet?{' '}
+                <Link to="/signup" className="text-blue-600 hover:text-blue-700 font-medium">
+                  Register with Email
+                </Link>
+              </p>
+            </form>
+          </CardContent>
+        </Card>
 
-    return (
-        <Container maxWidth="xs">
-            <Box
-                sx={{
-                    minHeight: '100vh',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                }}
-            >
-                <Paper elevation={3} sx={{ p: 4 }}>
-                    <Typography variant="h4" component="h1" gutterBottom align="center" fontWeight={700}>
-                        SAHA-Care
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 3 }}>
-                        Sign in to continue
-                    </Typography>
+        {/* Footer Links */}
+        <div className="mt-6 flex items-center justify-center gap-6 text-sm">
+          <button className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900">
+            <HelpCircle className="w-4 h-4" />
+            Help Center
+          </button>
+          <button className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900">
+            <Globe className="w-4 h-4" />
+            Organization Site
+          </button>
+        </div>
 
-                    {error && (
-                        <Alert severity="error" sx={{ mb: 2 }}>
-                            {error}
-                        </Alert>
-                    )}
-                    {info && (
-                        <Alert severity="info" sx={{ mb: 2 }}>
-                            {info}
-                        </Alert>
-                    )}
-                    {warning && (
-                        <Alert severity="warning" sx={{ mb: 2 }}>
-                            {warning}
-                        </Alert>
-                    )}
-
-                    <Box component="form" onSubmit={handleSubmit}>
-                        <TextField
-                            id="login-email"
-                            label="Email"
-                            type="email"
-                            fullWidth
-                            required
-                            autoComplete="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            sx={{ mb: 2 }}
-                        />
-                        <TextField
-                            id="login-password"
-                            label="Password"
-                            type="password"
-                            fullWidth
-                            required
-                            autoComplete="current-password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            sx={{ mb: 3 }}
-                        />
-                        <Button
-                            id="login-submit"
-                            type="submit"
-                            variant="contained"
-                            fullWidth
-                            size="large"
-                            disabled={loading}
-                        >
-                            {loading ? 'Signing in…' : 'Sign In'}
-                        </Button>
-                    </Box>
-
-                    <Typography variant="body2" align="center" sx={{ mt: 2 }}>
-                        Don't have an account?{' '}
-                        <Link component={RouterLink} to="/register">
-                            Register
-                        </Link>
-                    </Typography>
-                </Paper>
-            </Box>
-        </Container>
-    );
+        {/* Security Notice */}
+        <div className="mt-6">
+          <p className="text-xs text-center text-gray-500 leading-relaxed">
+            SECURE PORTAL FOR AUTHORIZED SAHA-CARE HEALTH PROVIDERS<br />
+            AND HUMANITARIAN WORKERS ONLY. UNAUTHORIZED ACCESS IS<br />
+            STRICTLY PROHIBITED.
+          </p>
+          <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-600">
+            <Shield className="w-4 h-4 text-teal-600" />
+            <span className="font-medium">Encrypted Connection</span>
+            <span className="text-gray-400">•</span>
+            <span>Active Humanitarian Node</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

@@ -1,8 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
-import { Box, Button, Typography } from '@mui/material';
-import MyLocationIcon from '@mui/icons-material/MyLocation';
-import CheckIcon from '@mui/icons-material/Check';
+import { MapPin, Check } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import './leafletSetup';
 import { GAZA_CENTER, GAZA_ZOOM } from './leafletSetup';
@@ -69,32 +67,30 @@ export default function LocationPickerMap({ initialPosition, onLocationSelect }:
     }, [markerPos]);
 
     return (
-        <Box>
-            <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
-                <Button
-                    size="small"
-                    variant="outlined"
-                    startIcon={<MyLocationIcon />}
+        <div>
+            <div className="flex gap-2 mb-2">
+                <button
+                    type="button"
                     onClick={handleGPS}
                     disabled={gpsLoading}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
+                    <MapPin className="w-4 h-4" />
                     {gpsLoading ? 'Getting GPS\u2026' : 'Use Current GPS'}
-                </Button>
+                </button>
                 {markerPos && (
-                    <Button
-                        size="small"
-                        variant="contained"
-                        startIcon={<CheckIcon />}
+                    <button
+                        type="button"
                         onClick={handleConfirm}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-teal-600 text-white rounded hover:bg-teal-700"
                     >
+                        <Check className="w-4 h-4" />
                         Confirm Location
-                    </Button>
+                    </button>
                 )}
-            </Box>
+            </div>
             {error && (
-                <Typography variant="body2" color="error" sx={{ mb: 1 }}>
-                    {error}
-                </Typography>
+                <p className="text-sm text-red-600 mb-2">{error}</p>
             )}
             <MapContainer
                 center={center}
@@ -116,10 +112,10 @@ export default function LocationPickerMap({ initialPosition, onLocationSelect }:
                 )}
             </MapContainer>
             {markerPos && (
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                <p className="text-sm text-gray-500 mt-1">
                     Selected: {markerPos.lat.toFixed(6)}, {markerPos.lng.toFixed(6)}
-                </Typography>
+                </p>
             )}
-        </Box>
+        </div>
     );
 }
