@@ -46,6 +46,8 @@ export interface Aggregate {
     disease: string;
     region: string;
     period: AggregatePeriod;
+    /** Explicit date key for this bucket (e.g., "2026-03-12") */
+    dateKey: string;
     caseCount: number;
     verifiedCount: number;
     /** Total persons affected across all reports in this aggregate */

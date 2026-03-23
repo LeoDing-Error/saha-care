@@ -13,6 +13,13 @@ import {
 vi.mock('../../services/auth', () => ({
   onAuthChange: (callback: (user: unknown) => void) => mockOnAuthStateChanged({}, callback),
   getUserProfile: (uid: string) => mockGetDoc(uid),
+  subscribeToUserProfile: (uid: string, callback: (profile: unknown) => void) => {
+    mockGetDoc(uid).then(
+      (profile: unknown) => callback(profile),
+      () => callback(null)
+    );
+    return () => {};
+  },
 }));
 
 // Test component that uses the auth context

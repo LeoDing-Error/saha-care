@@ -14,9 +14,8 @@ export default function CasesOverTimeChart() {
         // Use aggregates if available, otherwise compute from reports
         if (filteredAggregates.length > 0) {
             for (const agg of filteredAggregates) {
-                // Doc ID format: {disease-slug}_{region-slug}_{period}_{date-key}
-                const parts = agg.id.split('_');
-                const dateKey = parts[parts.length - 1];
+                // Prefer explicit dateKey field; fall back to parsing doc ID
+                const dateKey = agg.dateKey || agg.id.split('_').pop();
                 if (!dateKey) continue;
 
                 const existing = byDate.get(dateKey);

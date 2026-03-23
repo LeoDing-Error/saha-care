@@ -25,6 +25,7 @@ async function createAlertIfNeeded(
     disease: string,
     region: string,
     caseCount: number,
+    thresholdCount: number,
     windowHours: number,
     severity: string,
     immediateAlert: boolean
@@ -58,7 +59,7 @@ async function createAlertIfNeeded(
             disease,
             region,
             caseCount,
-            threshold: caseCount,
+            threshold: thresholdCount,
             windowHours,
             severity,
             status: 'active',
@@ -88,7 +89,7 @@ export const onReportWrite = onDocumentCreated(
         // 1. Handle immediate report flags (e.g., bloody diarrhea, measles rash)
         if (isImmediateReport) {
             logger.info('Immediate report flag detected', { reportId, disease });
-            await createAlertIfNeeded(disease, region, 1, 168, 'critical', true);
+            await createAlertIfNeeded(disease, region, 1, 1, 168, 'critical', true);
         }
 
         // 2. Look up case definition for threshold rules
@@ -112,11 +113,12 @@ export const onReportWrite = onDocumentCreated(
             const cutoffDate = new Date(Date.now() - threshold.windowHours * 60 * 60 * 1000);
             const cutoffTimestamp = Timestamp.fromDate(cutoffDate);
 
-            // Count reports in the time window for this disease+region
+            // Count non-rejected reports in the time window for this disease+region
             const reportsInWindow = await db
                 .collection('reports')
                 .where('disease', '==', disease)
                 .where('region', '==', region)
+                .where('status', 'in', ['pending', 'verified'])
                 .where('createdAt', '>=', cutoffTimestamp)
                 .get();
 
@@ -136,6 +138,7 @@ export const onReportWrite = onDocumentCreated(
                     disease,
                     region,
                     caseCount,
+                    threshold.count,
                     threshold.windowHours,
                     threshold.severity,
                     false

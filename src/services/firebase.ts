@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
-import { getFirestore, connectFirestoreEmulator, enableIndexedDbPersistence } from 'firebase/firestore';
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, connectFirestoreEmulator } from 'firebase/firestore';
 
 /**
  * Firebase configuration.
@@ -21,7 +21,11 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize services
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+
+// Initialize Firestore with persistent local cache (replaces deprecated enableIndexedDbPersistence)
+export const db = initializeFirestore(app, {
+    localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+});
 
 // Connect to emulators in development mode (only if USE_EMULATORS env var is set)
 // To use emulators, run: VITE_USE_EMULATORS=true npm run dev
@@ -34,16 +38,5 @@ if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATORS === 'true' && wind
         console.log('Connected to Firebase emulators');
     }
 }
-
-// Enable offline persistence for Firestore
-enableIndexedDbPersistence(db).catch((err) => {
-    if (err.code === 'failed-precondition') {
-        // Multiple tabs open — persistence can only be enabled in one tab at a time
-        console.warn('Firestore persistence failed: multiple tabs open');
-    } else if (err.code === 'unimplemented') {
-        // The current browser does not support persistence
-        console.warn('Firestore persistence not supported in this browser');
-    }
-});
 
 export default app;

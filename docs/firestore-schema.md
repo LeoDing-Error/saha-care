@@ -13,6 +13,7 @@ This document describes the Firestore collections used by SAHA-Care.
 | `caseDefinitions` | WHO-aligned disease definitions | Officials only | All authenticated users |
 | `alerts` | Outbreak alerts | Cloud Functions only | Supervisors, Officials |
 | `aggregates` | Pre-computed dashboard data | Cloud Functions only | Supervisors, Officials |
+| `auditLogs` | Approval/rejection audit trail | Cloud Functions only | Officials |
 
 ---
 
@@ -29,6 +30,11 @@ interface User {
   status: 'pending' | 'approved' | 'rejected';
   supervisorId?: string;    // UID of assigned supervisor (volunteers only)
   region: string;           // Geographic region
+  approvedBy?: string;      // UID of the user who approved this account
+  approvedAt?: Timestamp;   // When the account was approved
+  rejectedBy?: string;      // UID of the user who rejected this account
+  rejectedAt?: Timestamp;   // When the account was rejected
+  rejectionReason?: string; // Reason for rejection (required on rejection)
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -36,7 +42,10 @@ interface User {
 
 **Document ID:** User's Firebase Auth UID
 
-**Indexes:** None required (queries by region use security rules)
+**Indexes:**
+- `region` + `role` + `status`
+- `role` + `status` + `createdAt`
+- `role` + `status` + `region` + `createdAt`
 
 ---
 
@@ -47,8 +56,9 @@ Disease case reports submitted by volunteers.
 ```typescript
 interface Report {
   id: string;               // Auto-generated document ID
-  disease: string;          // References caseDefinitions.id
-  symptoms: string[];       // Selected symptom IDs from case definition
+  disease: string;          // References caseDefinitions.disease
+  answers: QuestionAnswer[]; // Structured answers to assessment questions
+  symptoms: string[];       // Flat list of "Yes" answer texts (for display)
   temp?: number;            // Patient temperature in Celsius
   dangerSigns?: string[];   // Observed danger signs
   location: {
@@ -62,8 +72,19 @@ interface Report {
   region: string;           // Region where report was filed
   verifiedBy?: string;      // UID of verifying supervisor
   verificationNotes?: string;
+  hasDangerSigns: boolean;  // Whether any danger sign was flagged
+  isImmediateReport: boolean; // Whether flagged for immediate alert
+  personsCount: number;     // Number of persons affected (minimum 1)
+  reclassifiedFrom?: string; // Original disease if reclassification occurred
   createdAt: Timestamp;
   verifiedAt?: Timestamp;
+}
+
+interface QuestionAnswer {
+  questionId: string;
+  questionText: string;     // Denormalized for offline readability
+  answer: boolean;
+  numericValue?: number;    // Numeric follow-up value if applicable
 }
 ```
 
@@ -71,8 +92,10 @@ interface Report {
 
 **Indexes:**
 - `region` + `status` + `createdAt` (supervisor pending reports query)
+- `region` + `createdAt` (dashboard reports by region)
 - `reporterId` + `createdAt` (volunteer's own reports)
-- `disease` + `region` + `createdAt` (dashboard filtering)
+- `region` + `disease` + `createdAt` (dashboard filtering)
+- `disease` + `region` + `status` + `createdAt` (threshold queries)
 
 ---
 
@@ -84,15 +107,34 @@ WHO-aligned case definitions for reportable diseases.
 interface CaseDefinition {
   id: string;               // URL-safe slug (e.g., "acute-watery-diarrhea")
   disease: string;          // Display name
-  symptoms: Array<{
-    id: string;
-    name: string;
-    required: boolean;      // Required for suspected case
-  }>;
+  definition: string;       // Short clinical definition
+  questions: AssessmentQuestion[]; // Structured assessment questions
   dangerSigns: string[];    // Red flags requiring referral
   guidance: string;         // Clinical guidance for CHWs
   active: boolean;          // Whether currently in use
-  threshold: number;        // Alert threshold (cases per region)
+  thresholds: AlertThreshold[]; // Alert thresholds with time windows
+  prioritySurveillance: boolean; // Whether this is a priority target
+}
+
+interface AssessmentQuestion {
+  id: string;
+  text: string;             // Yes/No question text
+  category: 'core' | 'associated' | 'severity' | 'history';
+  required: boolean;        // Required for suspected case
+  inputType: 'none' | 'number';
+  inputLabel?: string;
+  inputUnit?: string;
+  yesNote?: string;         // Note shown on "Yes" answer
+  isDangerSign: boolean;
+  isImmediateReport: boolean;
+  reclassifyTo?: string;    // Disease ID to reclassify to on "Yes"
+}
+
+interface AlertThreshold {
+  count: number;            // Cases that trigger alert
+  windowHours: number;      // Time window (24 = day, 168 = week)
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  description: string;
 }
 ```
 
@@ -113,8 +155,10 @@ interface Alert {
   region: string;           // Affected region
   caseCount: number;        // Current case count
   threshold: number;        // Threshold that was exceeded
+  windowHours: number;      // Time window of the threshold (in hours)
   severity: 'low' | 'medium' | 'high' | 'critical';
   status: 'active' | 'resolved';
+  immediateAlert: boolean;  // Whether triggered by immediate-report flag
   createdAt: Timestamp;
   resolvedAt?: Timestamp;
 }
@@ -123,8 +167,10 @@ interface Alert {
 **Document ID:** Auto-generated
 
 **Indexes:**
-- `status` + `createdAt` (active alerts query)
-- `region` + `status` (regional alerts)
+- `status` + `createdAt` (active alerts, all regions)
+- `status` + `severity` + `createdAt`
+- `region` + `status` + `createdAt` (regional alerts)
+- `disease` + `region` + `status` (dedup check)
 
 **Note:** Created exclusively by the `onReportWrite` Cloud Function.
 
@@ -136,12 +182,14 @@ Pre-computed rollups for dashboard performance.
 
 ```typescript
 interface Aggregate {
-  id: string;               // Composite: `{disease}_{region}_{period}_{date}`
+  id: string;               // Composite: `{disease-slug}_{region-slug}_{period}_{date}`
   disease: string;
   region: string;
   period: 'day' | 'week';
+  dateKey: string;          // Explicit date key (e.g., "2026-03-12")
   caseCount: number;
   verifiedCount: number;
+  personsCount: number;     // Total persons affected
   lastUpdated: Timestamp;
 }
 ```
@@ -149,10 +197,31 @@ interface Aggregate {
 **Document ID:** Composite key for upsert operations
 
 **Indexes:**
-- `disease` + `period` + `lastUpdated`
-- `region` + `period` + `lastUpdated`
+- `disease` + `region` + `period`
+- `period` + `region`
 
-**Note:** Maintained exclusively by the `aggregateCases` Cloud Function.
+**Note:** Maintained exclusively by the `aggregateCases` Cloud Function. Uses report's `createdAt` for time bucketing (not function execution time).
+
+---
+
+## `auditLogs`
+
+Audit trail for user approval and rejection actions. Created by the `onUserApproval` Cloud Function.
+
+```typescript
+interface AuditLog {
+  id: string;
+  action: string;           // e.g., "approve_user", "reject_user"
+  targetUid: string;        // UID of affected user
+  performedBy: string;      // UID of the approver/rejector
+  details: Record<string, unknown>; // Additional context
+  createdAt: Timestamp;
+}
+```
+
+**Document ID:** Auto-generated
+
+**Note:** No TTL/cleanup policy currently configured.
 
 ---
 
@@ -167,15 +236,17 @@ See `firestore.rules` for full implementation.
 | `caseDefinitions` | Read: all authenticated. Write: officials only. |
 | `alerts` | Read: supervisors/officials. Write: Cloud Functions only (no client writes). |
 | `aggregates` | Read: supervisors/officials. Write: Cloud Functions only. |
+| `auditLogs` | Read: officials only. Write: Cloud Functions only. |
 
 ---
 
 ## Offline Behavior
 
-Firestore offline persistence is enabled via `enableIndexedDbPersistence()`. This means:
+Firestore offline persistence is enabled via `initializeFirestore` with `persistentLocalCache` and `persistentMultipleTabManager`. This means:
 
 1. **Reads:** Cached data served when offline
 2. **Writes:** Queued locally, synced on reconnect
 3. **Listeners:** `onSnapshot` fires with cached data, updates on sync
+4. **Multi-tab:** Persistence works across multiple browser tabs
 
-Reports submitted offline will have `createdAt` set to client time and sync when connectivity returns.
+Reports submitted offline will have `createdAt` set to client time and sync when connectivity returns. Aggregates use the report's `createdAt` for time bucketing, ensuring offline-submitted reports are bucketed correctly.
