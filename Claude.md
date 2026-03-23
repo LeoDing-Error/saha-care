@@ -71,22 +71,23 @@ Server-side logic deployed as Firebase Cloud Functions (Node.js/TypeScript). Tri
 saha-care/
 ├── src/                      # React PWA source
 │   ├── components/
-│   │   ├── charts/           # (planned) CaseBarChart, TrendLineChart, KPICard
+│   │   ├── charts/           # AlertsPanel, CasesByDiseaseChart, CasesOverTimeChart, ChartWrapper, DashboardFilters, KPICards
 │   │   ├── common/           # OfflineIndicator
 │   │   ├── forms/            # ReportForm (+ __tests__/)
-│   │   ├── maps/             # (planned) MapView, ReportMarker, ClusterLayer
+│   │   ├── maps/             # ReportMap, DiseaseMarker, HeatmapLayer, HeatmapLegend, MapLegend
+│   │   ├── reports/          # RegionReportsList, ReportReviewCard, VerificationDialog
 │   │   └── users/            # ApprovalConfirmDialog, PendingUsersList, RejectionDialog, UserApprovalCard, UserStatusChip (+ __tests__/)
 │   ├── constants/            # index, regions, roles
-│   ├── contexts/             # AuthContext (+ __tests__/)
-│   ├── hooks/                # useCaseDefinitions, useOfflineStatus
+│   ├── contexts/             # AuthContext, DashboardContext (+ __tests__/)
+│   ├── hooks/                # useCaseDefinitions, useDashboard, useOfflineStatus
 │   ├── layouts/              # AppLayout
 │   ├── pages/
 │   │   ├── auth/             # LoginPage, RegisterPage
-│   │   ├── official/         # OfficialHomePage, PendingSupervisorsPage
-│   │   ├── supervisor/       # SupervisorHomePage, PendingVolunteersPage
+│   │   ├── official/         # OfficialHomePage, DashboardPage, PendingSupervisorsPage
+│   │   ├── supervisor/       # SupervisorHomePage, SupervisorDashboardPage, ReviewReportsPage, PendingVolunteersPage
 │   │   └── volunteer/        # ReportFormPage, ReportListPage
 │   ├── router/               # AppRouter, ProtectedRoute, RoleGuard (+ __tests__/)
-│   ├── services/             # firebase, auth, reports, users (+ __tests__/)
+│   ├── services/             # firebase, auth, reports, users, dashboard (+ __tests__/)
 │   ├── test/                 # Test setup + mocks (firebase mock)
 │   ├── types/                # user, report, alert, caseDefinition, index
 │   ├── utils/                # location
@@ -115,7 +116,7 @@ saha-care/
 │   ├── style.css             # Landing page styles
 │   └── main.js               # Landing page script
 ├── public/                   # PWA icons (favicon, apple-touch, pwa-192/512, mask-icon)
-├── scripts/                  # seedCaseDefinitions, generateIcons
+├── scripts/                  # seedCaseDefinitions, seedReports, generateIcons
 ├── firestore.rules
 ├── firestore.indexes.json    # Composite indexes for queries
 ├── firebase.json
