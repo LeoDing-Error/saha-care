@@ -56,6 +56,8 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [personsCount, setPersonsCount] = useState(1);
+    const [ageYears, setAgeYears] = useState('');
+    const [ageMonths, setAgeMonths] = useState('');
     const [reclassifiedFrom, setReclassifiedFrom] = useState<string | null>(null);
     const [selectedRegion, setSelectedRegion] = useState(userProfile?.region || '');
     const [geoPermission, setGeoPermission] = useState<'granted' | 'prompt' | 'denied' | 'unsupported'>('prompt');
@@ -73,6 +75,8 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
             setAnswers({});
             setSelectedDangerSigns([]);
             setPersonsCount(1);
+            setAgeYears('');
+            setAgeMonths('');
             setReclassifiedFrom(null);
         }
     };
@@ -169,6 +173,10 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
             (q) => q.isImmediateReport && answers[q.id]?.answer === true
         );
 
+        const patientAgeMonths = (ageYears || ageMonths)
+            ? (parseInt(ageYears) || 0) * 12 + (parseInt(ageMonths) || 0)
+            : undefined;
+
         setSubmitting(true);
         setError('');
 
@@ -186,6 +194,7 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
                 hasDangerSigns,
                 isImmediateReport,
                 personsCount,
+                patientAgeMonths,
                 reclassifiedFrom: reclassifiedFrom || undefined,
             });
             onSuccess?.();
@@ -312,6 +321,26 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
                                 sx={{ mt: 2 }}
                                 helperText="How many people are affected in this report (minimum 1)"
                             />
+                            <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+                                <TextField
+                                    label="Patient Age (Years)"
+                                    type="number"
+                                    value={ageYears}
+                                    onChange={(e) => setAgeYears(e.target.value)}
+                                    inputProps={{ min: 0, max: 120 }}
+                                    sx={{ flex: 1 }}
+                                    helperText="Optional"
+                                />
+                                <TextField
+                                    label="Months"
+                                    type="number"
+                                    value={ageMonths}
+                                    onChange={(e) => setAgeMonths(e.target.value)}
+                                    inputProps={{ min: 0, max: 11 }}
+                                    sx={{ flex: 1 }}
+                                    helperText="Additional months"
+                                />
+                            </Box>
                         </>
                     )}
                 </Box>

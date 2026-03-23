@@ -257,6 +257,7 @@ interface SeedReport {
     hasDangerSigns: boolean;
     isImmediateReport: boolean;
     personsCount: number;
+    patientAgeMonths?: number;
     createdAt: Date;
     verifiedBy?: string;
     verifiedAt?: Date;
@@ -304,6 +305,7 @@ function generateReports(count: number): SeedReport[] {
             hasDangerSigns,
             isImmediateReport,
             personsCount: Math.random() > 0.7 ? randomInt(2, 8) : 1,
+            patientAgeMonths: Math.random() > 0.3 ? randomInt(1, 720) : undefined,
             createdAt,
         };
 
@@ -405,6 +407,7 @@ async function seedReports(db: Firestore): Promise<void> {
         };
 
         if (report.temp !== undefined) firestoreDoc.temp = report.temp;
+        if (report.patientAgeMonths !== undefined) firestoreDoc.patientAgeMonths = report.patientAgeMonths;
         if (report.verifiedBy) firestoreDoc.verifiedBy = report.verifiedBy;
         if (report.verifiedAt) firestoreDoc.verifiedAt = Timestamp.fromDate(report.verifiedAt);
         if (report.verificationNotes) firestoreDoc.verificationNotes = report.verificationNotes;

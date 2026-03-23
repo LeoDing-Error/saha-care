@@ -63,6 +63,8 @@ export interface Report {
     isImmediateReport: boolean;
     /** Number of persons affected in this report (minimum 1) */
     personsCount: number;
+    /** Patient age in months (optional, new reports only) */
+    patientAgeMonths?: number;
     /** If reclassification was triggered, the original disease */
     reclassifiedFrom?: string;
     createdAt: Date;

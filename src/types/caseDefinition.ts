@@ -40,6 +40,11 @@ export interface AssessmentQuestion {
 }
 
 /**
+ * Whether a threshold fires on report creation or after verification clustering.
+ */
+export type ThresholdType = 'immediate' | 'cluster';
+
+/**
  * Alert threshold rule for a disease.
  * Supports time-windowed thresholds per the GH partner's specifications.
  */
@@ -52,6 +57,16 @@ export interface AlertThreshold {
     severity: AlertSeverity;
     /** Description for display (e.g., "5+ cases in same region within 24 hours") */
     description: string;
+    /** Whether this threshold fires on creation (immediate) or verification (cluster) */
+    type: ThresholdType;
+    /** Cluster: only count verified reports */
+    requireVerified?: boolean;
+    /** Cluster: geo-distance in km instead of region-wide */
+    proximityKm?: number;
+    /** Filter to hasDangerSigns === true */
+    requireDangerSigns?: boolean;
+    /** Filter to patientAgeMonths < this value */
+    maxAgeMonths?: number;
 }
 
 /**
