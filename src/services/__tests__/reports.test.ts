@@ -40,7 +40,7 @@ describe('Reports Service', () => {
       const result = await createReport(reportData);
 
       expect(mockAddDoc).toHaveBeenCalled();
-      expect(result).toBe('new-report-id');
+      expect(result).toEqual({ id: 'new-report-id', caseId: expect.any(String) });
     });
 
     it('includes all required fields in report', async () => {

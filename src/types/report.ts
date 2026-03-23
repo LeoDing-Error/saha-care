@@ -33,6 +33,8 @@ export interface QuestionAnswer {
  */
 export interface Report {
     id: string;
+    /** Human-readable case reference (e.g. SC-20260323-A1B2) */
+    caseId?: string;
     /** Disease identifier — references caseDefinitions */
     disease: string;
     /** Structured answers to assessment questions */

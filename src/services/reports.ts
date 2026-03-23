@@ -15,6 +15,18 @@ import type { Report, ReportLocation, QuestionAnswer } from '../types';
 
 const REPORTS_COLLECTION = 'reports';
 
+const CASE_ID_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+function generateCaseId(): string {
+    const now = new Date();
+    const date = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+    let suffix = '';
+    for (let i = 0; i < 4; i++) {
+        suffix += CASE_ID_CHARS[Math.floor(Math.random() * CASE_ID_CHARS.length)];
+    }
+    return `SC-${date}-${suffix}`;
+}
+
 /**
  * Create a new case report.
  */
@@ -33,17 +45,19 @@ export async function createReport(data: {
     personsCount: number;
     patientAgeMonths?: number;
     reclassifiedFrom?: string;
-}): Promise<string> {
+}): Promise<{ id: string; caseId: string }> {
+    const caseId = generateCaseId();
     // Strip undefined values — Firestore rejects them
     const cleanData = Object.fromEntries(
         Object.entries(data).filter(([, v]) => v !== undefined)
     );
     const docRef = await addDoc(collection(db, REPORTS_COLLECTION), {
         ...cleanData,
+        caseId,
         status: 'pending',
         createdAt: serverTimestamp(),
     });
-    return docRef.id;
+    return { id: docRef.id, caseId };
 }
 
 /**

@@ -85,6 +85,9 @@ export function ReportsPage() {
                 <div className="space-y-3">
                     <div className="flex items-start justify-between">
                         <div className="flex-1">
+                            {report.caseId && (
+                                <span className="text-xs font-mono text-gray-500 mb-1">{report.caseId}</span>
+                            )}
                             <div className="flex items-center gap-2 mb-2">
                                 <h3 className="font-medium text-gray-900">{report.disease}</h3>
                                 {report.isImmediateReport && <Badge className="bg-red-600 text-white">IMMEDIATE</Badge>}

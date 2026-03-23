@@ -100,6 +100,7 @@ export function ReportFormPage() {
         region: userProfile?.region || 'Rafah',
     });
     const [submitted, setSubmitted] = useState(false);
+    const [submittedCaseId, setSubmittedCaseId] = useState<string | null>(null);
     const [submitLoading, setSubmitLoading] = useState(false);
 
     const filteredDiseases = diseases.filter((d) =>
@@ -148,7 +149,7 @@ export function ReportFormPage() {
                 ? parseFloat(answers[tempQuestion.id].value!)
                 : undefined;
 
-            await createReport({
+            const { caseId } = await createReport({
                 disease: selectedDisease.name,
                 answers: questionAnswers,
                 symptoms: getDetectedSymptoms(),
@@ -166,6 +167,7 @@ export function ReportFormPage() {
                 isImmediateReport: hasImmediateFlag,
                 personsCount: parseInt(personsAffected) || 1,
             });
+            setSubmittedCaseId(caseId);
             setSubmitted(true);
         } catch (err) {
             console.error('Failed to submit report:', err);
@@ -183,11 +185,14 @@ export function ReportFormPage() {
                             <CheckCircle className="h-10 w-10 text-green-600" />
                         </div>
                         <h2 className="text-2xl text-gray-900 mb-2">Report Submitted Successfully</h2>
+                        {submittedCaseId && (
+                            <p className="text-lg font-mono text-teal-700 mb-2">Case reference: {submittedCaseId}</p>
+                        )}
                         <p className="text-gray-600 mb-6">Your disease report has been submitted and will sync when online.</p>
                         <div className="flex gap-3 justify-center">
                             <Button variant="outline" onClick={() => navigate('/reports')}>View Reports</Button>
                             <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => {
-                                setStep(1); setSelectedDisease(null); setAnswers({}); setPersonsAffected('1'); setSubmitted(false);
+                                setStep(1); setSelectedDisease(null); setAnswers({}); setPersonsAffected('1'); setSubmittedCaseId(null); setSubmitted(false);
                             }}>Submit Another</Button>
                         </div>
                     </CardContent>
