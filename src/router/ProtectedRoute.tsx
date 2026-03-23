@@ -1,23 +1,26 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Box, CircularProgress } from '@mui/material';
-
-interface ProtectedRouteProps {
-    children: React.ReactNode;
-}
 
 /**
  * Wraps routes that require authentication.
- * Redirects to /login if the user is not signed in.
+ * Renders a loading spinner while auth state is resolving,
+ * then redirects to /login if the user is not signed in.
+ *
+ * When used as a layout route (no children prop), renders <Outlet />.
+ * When used with an explicit children prop, renders children.
  */
+interface ProtectedRouteProps {
+    children?: React.ReactNode;
+}
+
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     const { firebaseUser, loading } = useAuth();
 
     if (loading) {
         return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-                <CircularProgress />
-            </Box>
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="w-10 h-10 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
+            </div>
         );
     }
 
@@ -25,5 +28,5 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
         return <Navigate to="/login" replace />;
     }
 
-    return <>{children}</>;
+    return <>{children ?? <Outlet />}</>;
 }

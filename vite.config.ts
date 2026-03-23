@@ -1,10 +1,13 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import tailwindcss from '@tailwindcss/vite';
+import path from 'path';
 
 export default defineConfig({
     plugins: [
         react(),
+        tailwindcss(),
         VitePWA({
             registerType: 'autoUpdate',
             includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
@@ -12,7 +15,7 @@ export default defineConfig({
                 name: 'SAHA-Care',
                 short_name: 'SAHA-Care',
                 description: 'Community-based disease surveillance for conflict-affected regions',
-                theme_color: '#1976d2',
+                theme_color: '#0d9488',
                 background_color: '#ffffff',
                 display: 'standalone',
                 orientation: 'portrait',
@@ -86,4 +89,9 @@ export default defineConfig({
             },
         }),
     ],
+    resolve: {
+        alias: {
+            '@': path.resolve(__dirname, './src'),
+        },
+    },
 });

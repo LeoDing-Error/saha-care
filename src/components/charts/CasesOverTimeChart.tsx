@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { ToggleButton, ToggleButtonGroup } from '@mui/material';
 import { useDashboard } from '../../hooks/useDashboard';
 import ChartWrapper from './ChartWrapper';
 import type { AggregatePeriod } from '../../types';
@@ -50,22 +49,29 @@ export default function CasesOverTimeChart() {
         return Array.from(byDate.values()).sort((a, b) => a.date.localeCompare(b.date));
     }, [filteredAggregates, filteredReports]);
 
-    const handleGranularity = (_: React.MouseEvent<HTMLElement>, value: AggregatePeriod | null) => {
-        if (value) {
-            setFilters({ period: value });
-        }
+    const handleGranularity = (value: AggregatePeriod) => {
+        setFilters({ period: value });
     };
 
     const granularityToggle = (
-        <ToggleButtonGroup
-            value={filters.period}
-            exclusive
-            onChange={handleGranularity}
-            size="small"
-        >
-            <ToggleButton value="day">Daily</ToggleButton>
-            <ToggleButton value="week">Weekly</ToggleButton>
-        </ToggleButtonGroup>
+        <div className="flex rounded border border-gray-300 overflow-hidden text-sm">
+            {(['day', 'week'] as AggregatePeriod[]).map((period, i) => (
+                <button
+                    key={period}
+                    type="button"
+                    onClick={() => handleGranularity(period)}
+                    className={[
+                        'px-3 py-1',
+                        i > 0 ? 'border-l border-gray-300' : '',
+                        filters.period === period
+                            ? 'bg-teal-600 text-white'
+                            : 'bg-white text-gray-700 hover:bg-gray-50',
+                    ].join(' ')}
+                >
+                    {period === 'day' ? 'Daily' : 'Weekly'}
+                </button>
+            ))}
+        </div>
     );
 
     return (
