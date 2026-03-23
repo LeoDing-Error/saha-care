@@ -4,6 +4,9 @@ import {
     signOut as firebaseSignOut,
     onAuthStateChanged,
     updateProfile,
+    reauthenticateWithCredential,
+    updatePassword,
+    EmailAuthProvider,
     type User as FirebaseUser,
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, onSnapshot, serverTimestamp, type Unsubscribe } from 'firebase/firestore';
@@ -85,6 +88,23 @@ export function subscribeToUserProfile(
         console.error('Error subscribing to user profile:', err);
         callback(null);
     });
+}
+
+/**
+ * Change the current user's password.
+ * Requires reauthentication with current password first.
+ */
+export async function changePassword(
+    currentPassword: string,
+    newPassword: string
+): Promise<void> {
+    const user = auth.currentUser;
+    if (!user || !user.email) {
+        throw new Error('No authenticated user');
+    }
+    const credential = EmailAuthProvider.credential(user.email, currentPassword);
+    await reauthenticateWithCredential(user, credential);
+    await updatePassword(user, newPassword);
 }
 
 /**
