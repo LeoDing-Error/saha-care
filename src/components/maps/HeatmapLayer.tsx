@@ -1,8 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useMap } from 'react-leaflet';
 import L from 'leaflet';
-import 'leaflet.heat';
 import type { Report } from '../../types';
+
+// leaflet.heat is a CJS side-effect plugin that attaches to window.L.
+// Set global L before importing so it can find and augment it.
+(window as any).L = L;
+import('leaflet.heat');
 
 interface HeatmapLayerProps {
     reports: Report[];
@@ -10,10 +14,16 @@ interface HeatmapLayerProps {
 
 export default function HeatmapLayer({ reports }: HeatmapLayerProps) {
     const map = useMap();
+    const layerRef = useRef<L.Layer | null>(null);
 
     useEffect(() => {
-        // Build heat data: [lat, lng, intensity]
-        // Weight by personsCount so clusters with more cases glow hotter
+        if (layerRef.current) {
+            map.removeLayer(layerRef.current);
+            layerRef.current = null;
+        }
+
+        if (reports.length === 0) return;
+
         const points: [number, number, number][] = reports.map((r) => [
             r.location.lat,
             r.location.lng,
@@ -35,9 +45,13 @@ export default function HeatmapLayer({ reports }: HeatmapLayerProps) {
         });
 
         heat.addTo(map);
+        layerRef.current = heat;
 
         return () => {
-            map.removeLayer(heat);
+            if (layerRef.current) {
+                map.removeLayer(layerRef.current);
+                layerRef.current = null;
+            }
         };
     }, [map, reports]);
 
