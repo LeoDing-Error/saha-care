@@ -68,6 +68,9 @@ export default function AlertsPanel() {
                                                 color={SEVERITY_COLOR[alert.severity]}
                                                 variant={alert.severity === 'critical' ? 'filled' : 'outlined'}
                                             />
+                                            {alert.thresholdType === 'cluster' && (
+                                                <Chip label="Cluster" size="small" variant="outlined" />
+                                            )}
                                         </Box>
                                     }
                                     secondary={
