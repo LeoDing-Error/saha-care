@@ -1,11 +1,11 @@
-import { LayoutDashboard, BookOpen, FileText, MessageSquare, Users, PlusCircle, MapPin } from 'lucide-react';
+import { LayoutDashboard, BookOpen, FileText, MessageSquare, Users, PlusCircle, type LucideIcon } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { Button } from './ui/button';
 import { useAuth } from '../contexts/AuthContext';
 
 interface NavItem {
     to: string;
-    icon: React.ReactNode;
+    icon: LucideIcon;
     label: string;
 }
 
@@ -13,74 +13,83 @@ export function Sidebar() {
     const { userProfile } = useAuth();
     const role = userProfile?.role;
 
-    // Build nav items based on role
     const navItems: NavItem[] = [];
 
     if (role === 'volunteer') {
         navItems.push(
-            { to: '/', icon: <LayoutDashboard className="w-5 h-5" />, label: 'Dashboard' },
-            { to: '/guide', icon: <BookOpen className="w-5 h-5" />, label: 'Guide' },
-            { to: '/reports', icon: <FileText className="w-5 h-5" />, label: 'Reports' },
+            { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+            { to: '/guide', icon: BookOpen, label: 'Guide' },
+            { to: '/reports', icon: FileText, label: 'Reports' },
         );
     } else if (role === 'supervisor') {
         navItems.push(
-            { to: '/', icon: <LayoutDashboard className="w-5 h-5" />, label: 'Dashboard' },
-            { to: '/guide', icon: <BookOpen className="w-5 h-5" />, label: 'Guide' },
-            { to: '/reports', icon: <FileText className="w-5 h-5" />, label: 'Reports' },
-            { to: '/messages', icon: <MessageSquare className="w-5 h-5" />, label: 'Messages' },
-            { to: '/volunteers', icon: <Users className="w-5 h-5" />, label: 'Volunteers' },
+            { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+            { to: '/guide', icon: BookOpen, label: 'Guide' },
+            { to: '/reports', icon: FileText, label: 'Reports' },
+            { to: '/messages', icon: MessageSquare, label: 'Messages' },
+            { to: '/volunteers', icon: Users, label: 'Volunteers' },
         );
     } else if (role === 'official') {
         navItems.push(
-            { to: '/', icon: <LayoutDashboard className="w-5 h-5" />, label: 'Dashboard' },
-            { to: '/reports', icon: <FileText className="w-5 h-5" />, label: 'Reports' },
-            { to: '/volunteers', icon: <Users className="w-5 h-5" />, label: 'Supervisors' },
+            { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+            { to: '/reports', icon: FileText, label: 'Reports' },
+            { to: '/volunteers', icon: Users, label: 'Supervisors' },
         );
     }
 
     const showSubmitButton = role === 'volunteer' || role === 'supervisor';
 
     return (
-        <aside className="w-64 min-h-[calc(100vh-4rem)] bg-white border-r border-gray-200 flex flex-col fixed left-0 top-16">
-            {/* Navigation */}
-            <nav className="flex-1 p-4 space-y-1">
-                {navItems.map((item) => (
-                    <NavLink
-                        key={item.to}
-                        to={item.to}
-                        end={item.to === '/'}
-                        className={({ isActive }) =>
-                            [
-                                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                                isActive
-                                    ? 'bg-teal-50 text-teal-700 border border-teal-200'
-                                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
-                            ].join(' ')
-                        }
-                    >
-                        {item.icon}
-                        {item.label}
-                    </NavLink>
-                ))}
+        <aside className="fixed left-0 top-20 h-[calc(100vh-5rem)] w-64 bg-white border-r border-gray-200 p-4">
+            <nav className="space-y-2">
+                {navItems.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                        <NavLink
+                            key={item.to}
+                            to={item.to}
+                            end={item.to === '/'}
+                        >
+                            {({ isActive }) => (
+                                <Button
+                                    variant={isActive ? 'default' : 'ghost'}
+                                    className={`w-full justify-start h-12 ${
+                                        isActive
+                                            ? 'bg-teal-600 text-white hover:bg-teal-700'
+                                            : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                                    }`}
+                                    asChild
+                                >
+                                    <span>
+                                        <Icon className="mr-3 h-5 w-5" />
+                                        {item.label}
+                                    </span>
+                                </Button>
+                            )}
+                        </NavLink>
+                    );
+                })}
             </nav>
 
-            {/* Submit report CTA */}
             {showSubmitButton && (
-                <div className="p-4 border-t border-gray-100">
+                <div className="mt-6">
                     <NavLink to="/report/new">
-                        <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white gap-2">
-                            <PlusCircle className="w-4 h-4" />
+                        <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12">
+                            <PlusCircle className="mr-2 h-5 w-5" />
                             Submit Report
                         </Button>
                     </NavLink>
                 </div>
             )}
 
-            {/* Region widget */}
-            <div className="p-4 border-t border-gray-100">
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <MapPin className="w-3.5 h-3.5 text-teal-500 flex-shrink-0" />
-                    <span className="truncate">{userProfile?.region || 'Unknown Region'}</span>
+            <div className="mt-8 p-4 bg-teal-50 rounded-lg border border-teal-200">
+                <div className="text-xs text-teal-800 mb-1">Your Region</div>
+                <div className="text-sm text-teal-900">
+                    {userProfile?.region || 'Unknown Region'}
+                </div>
+                <div className="mt-3 text-xs text-teal-600">12 Active Volunteers</div>
+                <div className="mt-1 w-full bg-teal-200 rounded-full h-1.5">
+                    <div className="w-4/5 bg-teal-600 h-1.5 rounded-full"></div>
                 </div>
             </div>
         </aside>

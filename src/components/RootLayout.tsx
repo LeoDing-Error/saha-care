@@ -8,7 +8,7 @@ export function RootLayout() {
             <Header />
             <div className="flex">
                 <Sidebar />
-                <main className="flex-1 p-6 ml-64">
+                <main className="flex-1 p-6 ml-64 mt-0">
                     <Outlet />
                 </main>
             </div>
