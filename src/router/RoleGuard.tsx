@@ -21,7 +21,7 @@ export default function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
-                <div className="w-10 h-10 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
+                <div role="progressbar" className="w-10 h-10 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
             </div>
         );
     }
@@ -53,9 +53,9 @@ export default function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
     if (!allowedRoles.includes(userProfile.role)) {
         // Redirect to the appropriate home based on the user's actual role
         const roleHome: Record<UserRole, string> = {
-            volunteer: '/',
-            supervisor: '/',
-            official: '/',
+            volunteer: '/volunteer',
+            supervisor: '/supervisor',
+            official: '/official',
         };
         return <Navigate to={roleHome[userProfile.role]} replace />;
     }

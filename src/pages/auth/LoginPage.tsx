@@ -113,7 +113,7 @@ export function LoginPage() {
               {/* Security PIN */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="pin">Password</Label>
+                  <Label htmlFor="pin">Security PIN</Label>
                   <span className="text-sm text-gray-400">
                     Forgot?
                   </span>
