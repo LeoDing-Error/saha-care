@@ -9,7 +9,8 @@ import {
     serverTimestamp,
     type Unsubscribe,
 } from 'firebase/firestore';
-import { db } from './firebase';
+import { updateProfile } from 'firebase/auth';
+import { auth, db } from './firebase';
 import type { User } from '../types';
 
 const USERS_COLLECTION = 'users';
@@ -109,6 +110,23 @@ export async function rejectUser(
         rejectionReason: reason,
         updatedAt: serverTimestamp(),
     });
+}
+
+/**
+ * Update a user's display name in Firestore and Firebase Auth.
+ */
+export async function updateUserDisplayName(
+    userId: string,
+    displayName: string
+): Promise<void> {
+    const userRef = doc(db, USERS_COLLECTION, userId);
+    await updateDoc(userRef, {
+        displayName,
+        updatedAt: serverTimestamp(),
+    });
+    if (auth.currentUser) {
+        await updateProfile(auth.currentUser, { displayName });
+    }
 }
 
 /**

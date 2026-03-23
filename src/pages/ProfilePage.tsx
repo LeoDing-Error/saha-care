@@ -1,4 +1,6 @@
-import { User, Mail, Lock, Shield, Camera } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { User, Mail, Lock, Shield, Camera, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -6,9 +8,25 @@ import { Label } from '../components/ui/label';
 import { Avatar, AvatarFallback } from '../components/ui/avatar';
 import { Badge } from '../components/ui/badge';
 import { useAuth } from '../contexts/AuthContext';
+import { updateUserDisplayName } from '../services/users';
+import { changePassword } from '../services/auth';
 
 export function ProfilePage() {
     const { userProfile, firebaseUser } = useAuth();
+
+    const [displayName, setDisplayName] = useState('');
+    const [savingName, setSavingName] = useState(false);
+
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [savingPassword, setSavingPassword] = useState(false);
+
+    useEffect(() => {
+        if (userProfile?.displayName) {
+            setDisplayName(userProfile.displayName);
+        }
+    }, [userProfile?.displayName]);
 
     const initials = userProfile?.displayName
         ?.split(' ')
@@ -18,6 +36,69 @@ export function ProfilePage() {
     const roleName = userProfile?.role
         ? userProfile.role.charAt(0).toUpperCase() + userProfile.role.slice(1)
         : 'User';
+
+    async function handleSaveProfile() {
+        if (!userProfile) return;
+        const trimmed = displayName.trim();
+        if (!trimmed) {
+            toast.error('Name cannot be empty');
+            return;
+        }
+        if (trimmed === userProfile.displayName) {
+            toast.info('No changes to save');
+            return;
+        }
+        setSavingName(true);
+        try {
+            await updateUserDisplayName(userProfile.uid, trimmed);
+            toast.success('Profile updated successfully');
+        } catch (err) {
+            toast.error('Failed to update profile');
+            console.error(err);
+        } finally {
+            setSavingName(false);
+        }
+    }
+
+    async function handleUpdatePassword() {
+        if (!currentPassword) {
+            toast.error('Please enter your current password');
+            return;
+        }
+        if (newPassword.length < 8) {
+            toast.error('New password must be at least 8 characters');
+            return;
+        }
+        if (!/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) ||
+            !/[0-9]/.test(newPassword) || !/[^A-Za-z0-9]/.test(newPassword)) {
+            toast.error('Password must include uppercase, lowercase, numbers, and special characters');
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            toast.error('Passwords do not match');
+            return;
+        }
+        setSavingPassword(true);
+        try {
+            await changePassword(currentPassword, newPassword);
+            toast.success('Password updated successfully');
+            setCurrentPassword('');
+            setNewPassword('');
+            setConfirmPassword('');
+        } catch (err: unknown) {
+            const code = (err as { code?: string }).code;
+            if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
+                toast.error('Current password is incorrect');
+            } else if (code === 'auth/weak-password') {
+                toast.error('New password is too weak');
+            } else {
+                toast.error('Failed to update password');
+            }
+            console.error(err);
+        } finally {
+            setSavingPassword(false);
+        }
+    }
 
     return (
         <div className="space-y-6 max-w-5xl">
@@ -77,7 +158,7 @@ export function ProfilePage() {
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
                             <Label className="text-sm text-gray-700">Full Name</Label>
-                            <Input defaultValue={userProfile?.displayName || ''} className="h-10" />
+                            <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="h-10" />
                         </div>
                         <div className="space-y-2">
                             <Label className="text-sm text-gray-700">Email Address</Label>
@@ -94,8 +175,12 @@ export function ProfilePage() {
                             <Label className="text-sm text-gray-700">Role</Label>
                             <Input defaultValue={roleName} className="h-10" readOnly />
                         </div>
-                        <Button className="w-full bg-teal-600 hover:bg-teal-700 text-white h-10 mt-2">
-                            Save Changes
+                        <Button
+                            className="w-full bg-teal-600 hover:bg-teal-700 text-white h-10 mt-2"
+                            onClick={handleSaveProfile}
+                            disabled={savingName}
+                        >
+                            {savingName ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving...</> : 'Save Changes'}
                         </Button>
                     </CardContent>
                 </Card>
@@ -114,21 +199,39 @@ export function ProfilePage() {
                             <Label className="text-sm text-gray-700">Current Password</Label>
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                <Input type="password" placeholder="Enter current password" className="pl-10 h-10" />
+                                <Input
+                                    type="password"
+                                    placeholder="Enter current password"
+                                    className="pl-10 h-10"
+                                    value={currentPassword}
+                                    onChange={(e) => setCurrentPassword(e.target.value)}
+                                />
                             </div>
                         </div>
                         <div className="space-y-2">
                             <Label className="text-sm text-gray-700">New Password</Label>
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                <Input type="password" placeholder="Enter new password" className="pl-10 h-10" />
+                                <Input
+                                    type="password"
+                                    placeholder="Enter new password"
+                                    className="pl-10 h-10"
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                />
                             </div>
                         </div>
                         <div className="space-y-2">
                             <Label className="text-sm text-gray-700">Confirm Password</Label>
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                <Input type="password" placeholder="Confirm new password" className="pl-10 h-10" />
+                                <Input
+                                    type="password"
+                                    placeholder="Confirm new password"
+                                    className="pl-10 h-10"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                />
                             </div>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-3 mt-2">
@@ -136,8 +239,12 @@ export function ProfilePage() {
                                 Password must be at least 8 characters and include uppercase, lowercase, numbers, and special characters.
                             </p>
                         </div>
-                        <Button className="w-full bg-red-600 hover:bg-red-700 text-white h-10">
-                            Update Password
+                        <Button
+                            className="w-full bg-red-600 hover:bg-red-700 text-white h-10"
+                            onClick={handleUpdatePassword}
+                            disabled={savingPassword}
+                        >
+                            {savingPassword ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Updating...</> : 'Update Password'}
                         </Button>
                     </CardContent>
                 </Card>
