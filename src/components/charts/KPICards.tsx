@@ -1,11 +1,4 @@
-import { Card, CardContent, Typography, Grid, Skeleton, Box } from '@mui/material';
-import AssignmentIcon from '@mui/icons-material/Assignment';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import PendingIcon from '@mui/icons-material/Pending';
-import BugReportIcon from '@mui/icons-material/BugReport';
-import TodayIcon from '@mui/icons-material/Today';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import PeopleIcon from '@mui/icons-material/People';
+import { ClipboardList, CheckCircle, Clock, Bug, CalendarDays, TriangleAlert, Users } from 'lucide-react';
 import { useDashboard } from '../../hooks/useDashboard';
 
 interface KPICardProps {
@@ -18,23 +11,19 @@ interface KPICardProps {
 
 function KPICard({ label, value, icon, color, loading }: KPICardProps) {
     return (
-        <Card sx={{ height: '100%' }}>
-            <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 2 }}>
-                <Box sx={{ color: color || 'action.active' }}>{icon}</Box>
-                <Box>
+        <div className="bg-white rounded-lg shadow border h-full">
+            <div className="flex items-center gap-4 p-4">
+                <div style={{ color: color || '#757575' }}>{icon}</div>
+                <div>
                     {loading ? (
-                        <Skeleton width={60} height={32} />
+                        <div className="w-14 h-7 bg-gray-200 animate-pulse rounded" />
                     ) : (
-                        <Typography variant="h5" fontWeight={700}>
-                            {value}
-                        </Typography>
+                        <p className="text-2xl font-bold leading-none">{value}</p>
                     )}
-                    <Typography variant="body2" color="text.secondary">
-                        {label}
-                    </Typography>
-                </Box>
-            </CardContent>
-        </Card>
+                    <p className="text-sm text-gray-500 mt-0.5">{label}</p>
+                </div>
+            </div>
+        </div>
     );
 }
 
@@ -42,22 +31,20 @@ export default function KPICards() {
     const { kpis, loading } = useDashboard();
 
     const cards = [
-        { label: 'Total Reports', value: kpis.totalReports, icon: <AssignmentIcon fontSize="large" />, color: '#1976d2' },
-        { label: 'Verified', value: kpis.verifiedCount, icon: <CheckCircleIcon fontSize="large" />, color: '#2e7d32' },
-        { label: 'Pending', value: kpis.pendingCount, icon: <PendingIcon fontSize="large" />, color: '#ed6c02' },
-        { label: 'Active Diseases', value: kpis.activeDiseases, icon: <BugReportIcon fontSize="large" />, color: '#9c27b0' },
-        { label: 'Reports Today', value: kpis.reportsToday, icon: <TodayIcon fontSize="large" />, color: '#0288d1' },
-        { label: 'Persons Affected', value: kpis.totalPersons, icon: <PeopleIcon fontSize="large" />, color: '#00695c' },
-        { label: 'Active Alerts', value: kpis.activeAlerts, icon: <WarningAmberIcon fontSize="large" />, color: kpis.activeAlerts > 0 ? '#d32f2f' : '#757575' },
+        { label: 'Total Reports', value: kpis.totalReports, icon: <ClipboardList size={32} />, color: '#1976d2' },
+        { label: 'Verified', value: kpis.verifiedCount, icon: <CheckCircle size={32} />, color: '#2e7d32' },
+        { label: 'Pending', value: kpis.pendingCount, icon: <Clock size={32} />, color: '#ed6c02' },
+        { label: 'Active Diseases', value: kpis.activeDiseases, icon: <Bug size={32} />, color: '#9c27b0' },
+        { label: 'Reports Today', value: kpis.reportsToday, icon: <CalendarDays size={32} />, color: '#0288d1' },
+        { label: 'Persons Affected', value: kpis.totalPersons, icon: <Users size={32} />, color: '#00695c' },
+        { label: 'Active Alerts', value: kpis.activeAlerts, icon: <TriangleAlert size={32} />, color: kpis.activeAlerts > 0 ? '#d32f2f' : '#757575' },
     ];
 
     return (
-        <Grid container spacing={2} sx={{ mb: 3 }}>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
             {cards.map((card) => (
-                <Grid key={card.label} size={{ xs: 6, sm: 4, md: 2 }}>
-                    <KPICard {...card} loading={loading} />
-                </Grid>
+                <KPICard key={card.label} {...card} loading={loading} />
             ))}
-        </Grid>
+        </div>
     );
 }

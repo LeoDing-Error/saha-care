@@ -1,6 +1,5 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Box, CircularProgress, Container, Paper, Typography, Alert } from '@mui/material';
 import type { UserRole } from '../types';
 
 interface RoleGuardProps {
@@ -11,17 +10,19 @@ interface RoleGuardProps {
 
 /**
  * Guards routes by user role and approval status.
- * - If the user's role is not in allowedRoles → redirect to their home
- * - If the user's status is "pending" → show a pending approval message
+ * - While loading → spinner
+ * - No userProfile → redirect to /login
+ * - Status "pending" → show a pending-approval message
+ * - Role not in allowedRoles → redirect to the user's home route
  */
 export default function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
     const { userProfile, loading } = useAuth();
 
     if (loading) {
         return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-                <CircularProgress />
-            </Box>
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="w-10 h-10 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
+            </div>
         );
     }
 
@@ -29,36 +30,32 @@ export default function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
         return <Navigate to="/login" replace />;
     }
 
-    // Show pending approval message
+    // Pending approval screen
     if (userProfile.status === 'pending') {
         return (
-            <Container maxWidth="sm">
-                <Box sx={{ mt: 8 }}>
-                    <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
-                        <Typography variant="h5" gutterBottom fontWeight={600}>
-                            Account Pending Approval
-                        </Typography>
-                        <Alert severity="info" sx={{ mt: 2 }}>
-                            Your account is awaiting approval from a{' '}
-                            {userProfile.role === 'volunteer' ? 'supervisor' : 'health official'} in your region.
-                            You will be able to access the app once your account is approved.
-                        </Alert>
-                        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                            Region: {userProfile.region} · Role: {userProfile.role}
-                        </Typography>
-                    </Paper>
-                </Box>
-            </Container>
+            <div className="flex items-center justify-center min-h-screen bg-gray-50 px-4">
+                <div className="max-w-sm w-full bg-white rounded-xl shadow-md p-8 text-center">
+                    <h2 className="text-xl font-semibold text-gray-900">Account Pending Approval</h2>
+                    <div className="mt-4 rounded-lg bg-blue-50 border border-blue-200 px-4 py-3 text-sm text-blue-800">
+                        Your account is awaiting approval from a{' '}
+                        {userProfile.role === 'volunteer' ? 'supervisor' : 'health official'} in your region. You will
+                        be able to access the app once your account is approved.
+                    </div>
+                    <p className="mt-4 text-xs text-gray-400">
+                        Region: {userProfile.region} &middot; Role: {userProfile.role}
+                    </p>
+                </div>
+            </div>
         );
     }
 
     // Check role access
     if (!allowedRoles.includes(userProfile.role)) {
-        // Redirect to the appropriate home based on user's actual role
+        // Redirect to the appropriate home based on the user's actual role
         const roleHome: Record<UserRole, string> = {
-            volunteer: '/volunteer',
-            supervisor: '/supervisor',
-            official: '/official',
+            volunteer: '/',
+            supervisor: '/',
+            official: '/',
         };
         return <Navigate to={roleHome[userProfile.role]} replace />;
     }

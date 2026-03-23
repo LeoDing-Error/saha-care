@@ -1,5 +1,3 @@
-import { Paper, Typography, Box } from '@mui/material';
-
 const GRADIENT_STOPS = [
     { color: '#bd0026', label: 'High' },
     { color: '#fd8d3c', label: '' },
@@ -9,36 +7,21 @@ const GRADIENT_STOPS = [
 
 export default function HeatmapLegend() {
     return (
-        <Paper
-            elevation={2}
-            sx={{
-                position: 'absolute',
-                bottom: 16,
-                right: 16,
-                zIndex: 1000,
-                p: 1.5,
-                maxWidth: 160,
-            }}
-        >
-            <Typography variant="caption" fontWeight={600} display="block" sx={{ mb: 0.5 }}>
-                Case Intensity
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'stretch', gap: 1 }}>
-                <Box
-                    sx={{
-                        width: 16,
-                        borderRadius: 1,
+        <div className="absolute bottom-4 right-4 z-[1000] bg-white rounded-lg shadow p-3 border max-w-[160px]">
+            <span className="text-xs font-semibold block mb-1">Case Intensity</span>
+            <div className="flex items-stretch gap-2">
+                <div
+                    className="w-4 rounded"
+                    style={{
                         background: `linear-gradient(to bottom, ${GRADIENT_STOPS.map((s) => s.color).join(', ')})`,
                     }}
                 />
-                <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div className="flex flex-col justify-between">
                     {GRADIENT_STOPS.filter((s) => s.label).map((stop) => (
-                        <Typography key={stop.label} variant="caption">
-                            {stop.label}
-                        </Typography>
+                        <span key={stop.label} className="text-xs">{stop.label}</span>
                     ))}
-                </Box>
-            </Box>
-        </Paper>
+                </div>
+            </div>
+        </div>
     );
 }
