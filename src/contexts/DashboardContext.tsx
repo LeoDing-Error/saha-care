@@ -139,39 +139,38 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         return unsubscribe;
     }, [queryRegion, refreshKey]);
 
-    // Subscribe to reports
+    // Subscribe to reports (server-side date filtering)
     useEffect(() => {
         setLoading(true);
-        const unsubscribe = subscribeToDashboardReports(queryRegion, (data) => {
-            setReports(data);
-            setLoading(false);
-            setLastUpdated(new Date());
-        });
+        const unsubscribe = subscribeToDashboardReports(
+            queryRegion,
+            filters.dateRange,
+            filters.disease !== 'all' ? filters.disease : undefined,
+            filters.status !== 'all' ? filters.status : undefined,
+            (data) => {
+                setReports(data);
+                setLoading(false);
+                setLastUpdated(new Date());
+            }
+        );
         return unsubscribe;
-    }, [queryRegion, refreshKey]);
+    }, [queryRegion, filters.dateRange, filters.disease, filters.status, refreshKey]);
 
-    // Client-side filtered reports
+    // Client-side filtered reports (date range is already server-side)
     const filteredReports = useMemo(() => {
         return reports.filter((report) => {
-            // Safely convert createdAt to a timestamp for comparison
-            const reportTime = report.createdAt instanceof Date
-                ? report.createdAt.getTime()
-                : new Date(report.createdAt).getTime();
-            if (isNaN(reportTime)) return true; // Include reports with invalid dates rather than hiding them
-            if (reportTime < filters.dateRange.start.getTime() || reportTime > filters.dateRange.end.getTime()) return false;
             if (filters.disease !== 'all' && report.disease !== filters.disease) return false;
             if (filters.status !== 'all' && report.status !== filters.status) return false;
             return true;
         });
-    }, [reports, filters.dateRange, filters.disease, filters.status]);
+    }, [reports, filters.disease, filters.status]);
 
     // Client-side filtered aggregates
     const filteredAggregates = useMemo(() => {
         return aggregates.filter((agg) => {
             if (filters.disease !== 'all' && agg.disease !== filters.disease) return false;
-            // Filter aggregates by date range using the date key from the document ID
-            const parts = agg.id.split('_');
-            const dateKey = parts[parts.length - 1];
+            // Use explicit dateKey field if available, fall back to parsing doc ID
+            const dateKey = agg.dateKey || agg.id.split('_').pop();
             if (dateKey) {
                 const aggDate = new Date(dateKey);
                 if (!isNaN(aggDate.getTime())) {

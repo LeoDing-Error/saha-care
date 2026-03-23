@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { User as FirebaseUser } from 'firebase/auth';
-import { onAuthChange, getUserProfile } from '../services/auth';
+import { onAuthChange, getUserProfile, subscribeToUserProfile } from '../services/auth';
 import type { User } from '../types';
 
 interface AuthContextType {
@@ -34,23 +34,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     useEffect(() => {
-        const unsubscribe = onAuthChange(async (user) => {
+        let profileUnsub: (() => void) | null = null;
+
+        const authUnsub = onAuthChange((user) => {
             setFirebaseUser(user);
+            // Clean up previous profile listener
+            if (profileUnsub) {
+                profileUnsub();
+                profileUnsub = null;
+            }
             if (user) {
-                try {
-                    const profile = await getUserProfile(user.uid);
+                // Live listener — reacts to role/status changes in real-time
+                profileUnsub = subscribeToUserProfile(user.uid, (profile) => {
                     setUserProfile(profile);
-                } catch (err) {
-                    console.error('Failed to load user profile:', err);
-                    setUserProfile(null);
-                }
+                    setLoading(false);
+                });
             } else {
                 setUserProfile(null);
+                setLoading(false);
             }
-            setLoading(false);
         });
 
-        return unsubscribe;
+        return () => {
+            authUnsub();
+            if (profileUnsub) profileUnsub();
+        };
     }, []);
 
     return (

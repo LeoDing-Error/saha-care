@@ -3,7 +3,9 @@ import {
     query,
     where,
     orderBy,
+    limit,
     onSnapshot,
+    Timestamp,
     type Unsubscribe,
     type QueryConstraint,
 } from 'firebase/firestore';
@@ -92,13 +94,19 @@ export function subscribeToAlerts(
  */
 export function subscribeToDashboardReports(
     region: string | undefined,
+    dateRange: { start: Date; end: Date },
+    disease: string | undefined,
+    status: string | undefined,
     callback: (reports: Report[]) => void
 ): Unsubscribe {
     const constraints: QueryConstraint[] = [];
     if (region) {
         constraints.push(where('region', '==', region));
     }
+    constraints.push(where('createdAt', '>=', Timestamp.fromDate(dateRange.start)));
+    constraints.push(where('createdAt', '<=', Timestamp.fromDate(dateRange.end)));
     constraints.push(orderBy('createdAt', 'desc'));
+    constraints.push(limit(500));
 
     const q = query(
         collection(db, REPORTS_COLLECTION),

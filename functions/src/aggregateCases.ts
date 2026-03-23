@@ -43,13 +43,14 @@ export const aggregateCases = onDocumentWritten(
         // Ignore deletions
         if (!after) return;
 
-        const { disease, region, status, personsCount: rawPersonsCount } = after;
+        const { disease, region, status, personsCount: rawPersonsCount, createdAt } = after;
         const personsCount = typeof rawPersonsCount === 'number' && rawPersonsCount >= 1 ? rawPersonsCount : 1;
         const reportId = event.params.reportId;
 
-        const now = new Date();
-        const dayKey = now.toISOString().split('T')[0]; // "2026-03-12"
-        const weekKey = getWeekStart(now); // Monday of current week
+        // Use report's createdAt for bucketing (handles offline-submitted reports)
+        const reportDate = createdAt?.toDate ? createdAt.toDate() : new Date();
+        const dayKey = reportDate.toISOString().split('T')[0]; // "2026-03-12"
+        const weekKey = getWeekStart(reportDate); // Monday of report's week
 
         const diseaseSlug = slugify(disease);
         const regionSlug = slugify(region);
@@ -66,32 +67,32 @@ export const aggregateCases = onDocumentWritten(
             // New report created — increment case count
             logger.info('Aggregating new report', { reportId, disease, region });
 
-            const baseData = {
-                disease,
-                region,
-                lastUpdated: FieldValue.serverTimestamp(),
-            };
-
             const isVerified = status === 'verified';
 
             await dayRef.set(
                 {
-                    ...baseData,
+                    disease,
+                    region,
                     period: 'day',
+                    dateKey: dayKey,
                     caseCount: FieldValue.increment(1),
                     verifiedCount: FieldValue.increment(isVerified ? 1 : 0),
                     personsCount: FieldValue.increment(personsCount),
+                    lastUpdated: FieldValue.serverTimestamp(),
                 },
                 { merge: true }
             );
 
             await weekRef.set(
                 {
-                    ...baseData,
+                    disease,
+                    region,
                     period: 'week',
+                    dateKey: weekKey,
                     caseCount: FieldValue.increment(1),
                     verifiedCount: FieldValue.increment(isVerified ? 1 : 0),
                     personsCount: FieldValue.increment(personsCount),
+                    lastUpdated: FieldValue.serverTimestamp(),
                 },
                 { merge: true }
             );
@@ -99,18 +100,13 @@ export const aggregateCases = onDocumentWritten(
             // Report just verified — increment verified count only
             logger.info('Aggregating verified report', { reportId, disease, region });
 
-            const updateData = {
-                verifiedCount: FieldValue.increment(1),
-                lastUpdated: FieldValue.serverTimestamp(),
-            };
-
             await dayRef.set(
-                { disease, region, period: 'day', ...updateData },
+                { disease, region, period: 'day', dateKey: dayKey, verifiedCount: FieldValue.increment(1), lastUpdated: FieldValue.serverTimestamp() },
                 { merge: true }
             );
 
             await weekRef.set(
-                { disease, region, period: 'week', ...updateData },
+                { disease, region, period: 'week', dateKey: weekKey, verifiedCount: FieldValue.increment(1), lastUpdated: FieldValue.serverTimestamp() },
                 { merge: true }
             );
         }
