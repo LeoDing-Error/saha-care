@@ -12,11 +12,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../components/ui/select';
+import { signUp } from '../../services/auth';
+import { REGIONS } from '../../constants/regions';
+import type { UserRole } from '../../types';
 
 export function SignupPage() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -26,11 +31,46 @@ export function SignupPage() {
     region: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock registration - in real app would create account
-    console.log('Register:', formData);
-    navigate('/login');
+    setError('');
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+
+    if (!formData.role) {
+      setError('Please select a role.');
+      return;
+    }
+
+    if (!formData.region) {
+      setError('Please select a region.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await signUp(
+        formData.email,
+        formData.password,
+        formData.fullName,
+        formData.role as UserRole,
+        formData.region
+      );
+      navigate('/login');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Registration failed. Please try again.';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateField = (field: string, value: string) => {
@@ -154,11 +194,9 @@ export function SignupPage() {
                       <SelectValue placeholder="Select Role" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="supervisor">Supervisor</SelectItem>
-                      <SelectItem value="clinical-coordinator">Clinical Coordinator</SelectItem>
-                      <SelectItem value="field-coordinator">Field Coordinator</SelectItem>
-                      <SelectItem value="data-analyst">Data Analyst</SelectItem>
                       <SelectItem value="volunteer">Volunteer</SelectItem>
+                      <SelectItem value="supervisor">Supervisor</SelectItem>
+                      <SelectItem value="official">Official</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -173,19 +211,24 @@ export function SignupPage() {
                       <SelectValue placeholder="Select Region" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="rafah">Rafah</SelectItem>
-                      <SelectItem value="khan-younis">Khan Younis</SelectItem>
-                      <SelectItem value="gaza-city">Gaza City</SelectItem>
-                      <SelectItem value="north-gaza">North Gaza</SelectItem>
-                      <SelectItem value="deir-al-balah">Deir al-Balah</SelectItem>
+                      {REGIONS.map((region) => (
+                        <SelectItem key={region} value={region}>{region}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
+              {/* Error Display */}
+              {error && (
+                <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+                  {error}
+                </div>
+              )}
+
               {/* Register Button */}
-              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 py-6">
-                Register
+              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 py-6" disabled={loading}>
+                {loading ? 'Creating account...' : 'Register'}
               </Button>
 
               {/* Sign In Link */}

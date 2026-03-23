@@ -5,19 +5,38 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Card, CardContent } from '../../components/ui/card';
+import { signIn } from '../../services/auth';
+import { useAuth } from '../../contexts/AuthContext';
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const { firebaseUser } = useAuth();
   const [userType, setUserType] = useState<'clinical' | 'field'>('clinical');
   const [showPin, setShowPin] = useState(false);
   const [email, setEmail] = useState('');
   const [pin, setPin] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Mock login - in real app would validate credentials
-    console.log('Login:', { email, pin, userType });
+  // Redirect if already logged in
+  if (firebaseUser) {
     navigate('/');
+    return null;
+  }
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      await signIn(email, pin);
+      navigate('/');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Login failed. Please try again.';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -94,10 +113,10 @@ export function LoginPage() {
               {/* Security PIN */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="pin">Security PIN</Label>
-                  <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-700">
+                  <Label htmlFor="pin">Password</Label>
+                  <span className="text-sm text-gray-400">
                     Forgot?
-                  </Link>
+                  </span>
                 </div>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -120,10 +139,17 @@ export function LoginPage() {
                 </div>
               </div>
 
+              {/* Error Display */}
+              {error && (
+                <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+                  {error}
+                </div>
+              )}
+
               {/* Login Button */}
-              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
-                Login
-                <ArrowRight className="w-4 h-4 ml-2" />
+              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={loading}>
+                {loading ? 'Signing in...' : 'Login'}
+                {!loading && <ArrowRight className="w-4 h-4 ml-2" />}
               </Button>
 
               {/* Register Link */}
