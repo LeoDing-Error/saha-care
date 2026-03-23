@@ -10,6 +10,7 @@ import { Badge } from '../components/ui/badge';
 import { useAuth } from '../contexts/AuthContext';
 import { updateUserDisplayName } from '../services/users';
 import { changePassword } from '../services/auth';
+import { subscribeToMyReports } from '../services/reports';
 
 export function ProfilePage() {
     const { userProfile, firebaseUser } = useAuth();
@@ -22,11 +23,23 @@ export function ProfilePage() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [savingPassword, setSavingPassword] = useState(false);
 
+    const [totalReports, setTotalReports] = useState(0);
+    const [verifiedReports, setVerifiedReports] = useState(0);
+
     useEffect(() => {
         if (userProfile?.displayName) {
             setDisplayName(userProfile.displayName);
         }
     }, [userProfile?.displayName]);
+
+    useEffect(() => {
+        if (!userProfile?.uid) return;
+        const unsubscribe = subscribeToMyReports(userProfile.uid, (reports) => {
+            setTotalReports(reports.length);
+            setVerifiedReports(reports.filter((r) => r.status === 'verified').length);
+        });
+        return unsubscribe;
+    }, [userProfile?.uid]);
 
     const initials = userProfile?.displayName
         ?.split(' ')
@@ -139,6 +152,17 @@ export function ProfilePage() {
                                         Active since {userProfile.createdAt.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                                     </span>
                                 )}
+                            </div>
+                            <div className="mt-4 flex items-center gap-4">
+                                <div className="text-center">
+                                    <p className="text-2xl font-semibold text-gray-900">{totalReports}</p>
+                                    <p className="text-xs text-gray-500">Total Reports</p>
+                                </div>
+                                <div className="w-px h-10 bg-gray-300" />
+                                <div className="text-center">
+                                    <p className="text-2xl font-semibold text-teal-600">{verifiedReports}</p>
+                                    <p className="text-xs text-gray-500">Verified</p>
+                                </div>
                             </div>
                         </div>
                     </div>
