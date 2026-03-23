@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Droplet, Activity, Bug, AlertTriangle, Wind, Info, type LucideIcon } from 'lucide-react';
+import { Droplet, Activity, Bug, AlertTriangle, Wind, Info, Eye, Zap, type LucideIcon } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
@@ -14,15 +14,18 @@ const protocolSteps = [
 ];
 
 const diseaseIconMap: Record<string, { icon: LucideIcon; bg: string; color: string }> = {
-    cholera: { icon: Droplet, bg: 'bg-red-100', color: 'text-red-600' },
-    measles: { icon: Activity, bg: 'bg-green-100', color: 'text-green-600' },
-    malaria: { icon: Bug, bg: 'bg-blue-100', color: 'text-blue-600' },
     'acute watery diarrhea': { icon: Droplet, bg: 'bg-gray-100', color: 'text-gray-600' },
-    meningitis: { icon: AlertTriangle, bg: 'bg-pink-100', color: 'text-pink-600' },
-    sari: { icon: Wind, bg: 'bg-cyan-100', color: 'text-cyan-600' },
-    'severe acute respiratory infection': { icon: Wind, bg: 'bg-cyan-100', color: 'text-cyan-600' },
     'bloody diarrhea': { icon: Droplet, bg: 'bg-red-100', color: 'text-red-600' },
-    respiratory: { icon: Wind, bg: 'bg-cyan-100', color: 'text-cyan-600' },
+    'severe acute respiratory': { icon: Wind, bg: 'bg-cyan-100', color: 'text-cyan-600' },
+    measles: { icon: Activity, bg: 'bg-green-100', color: 'text-green-600' },
+    chickenpox: { icon: Bug, bg: 'bg-yellow-100', color: 'text-yellow-600' },
+    varicella: { icon: Bug, bg: 'bg-yellow-100', color: 'text-yellow-600' },
+    jaundice: { icon: Eye, bg: 'bg-amber-100', color: 'text-amber-600' },
+    leishmaniasis: { icon: Bug, bg: 'bg-orange-100', color: 'text-orange-600' },
+    'flaccid paralysis': { icon: Zap, bg: 'bg-purple-100', color: 'text-purple-600' },
+    pertussis: { icon: Wind, bg: 'bg-teal-100', color: 'text-teal-600' },
+    'whooping cough': { icon: Wind, bg: 'bg-teal-100', color: 'text-teal-600' },
+    diphtheria: { icon: AlertTriangle, bg: 'bg-red-100', color: 'text-red-600' },
 };
 
 function getDiseaseIcon(disease: string) {
@@ -33,26 +36,12 @@ function getDiseaseIcon(disease: string) {
     return { icon: Activity, bg: 'bg-gray-100', color: 'text-gray-600' };
 }
 
-const fallbackDiseases = [
-    { id: 'cholera', disease: 'Cholera', definition: 'Severe acute watery diarrhea in a patient aged 2 years or older, with or without vomiting.', guidance: 'Immediate isolation, Aggressive ORS therapy', prioritySurveillance: true },
-    { id: 'measles', disease: 'Measles', definition: 'Fever and maculopapular rash with at least one of: cough, coryza, or conjunctivitis.', guidance: 'Vitamin A supplementation, Notify local health clinic', prioritySurveillance: false },
-    { id: 'malaria', disease: 'Malaria', definition: 'Fever or history of fever in the last 48 hours. Confirmed by RDT or microscopy.', guidance: 'ACT Treatment, Long-lasting insecticidal nets', prioritySurveillance: false },
-    { id: 'awd', disease: 'Acute Watery Diarrhea', definition: '3 or more loose stools in 24 hours. Monitor for dehydration levels.', guidance: 'ORS Administration, Hand hygiene education', prioritySurveillance: false },
-    { id: 'meningitis', disease: 'Meningitis', definition: 'Sudden onset of fever with stiff neck, altered consciousness, or bulging fontanelle.', guidance: 'Immediate referral, Antibiotic prophylaxis', prioritySurveillance: true },
-    { id: 'respiratory', disease: 'Respiratory Infections', definition: 'Cough or difficulty breathing with tachypnea (fast breathing) for age.', guidance: 'Assess for chest indrawing, Supportive care', prioritySurveillance: false },
-];
-
 export function GuidePage() {
     const navigate = useNavigate();
     const { definitions, loading } = useCaseDefinitions();
 
-    const diseases = definitions.length > 0
-        ? definitions.map((d: CaseDefinition) => ({ id: d.id, disease: d.disease, definition: d.definition, guidance: d.guidance, prioritySurveillance: d.prioritySurveillance }))
-        : fallbackDiseases;
-
-    const handleReportCase = (disease: { id: string; disease: string }) => {
-        const fullDef = definitions.find((d) => d.id === disease.id);
-        navigate('/report/new', { state: { selectedDisease: fullDef || disease } });
+    const handleReportCase = (disease: CaseDefinition) => {
+        navigate('/report/new', { state: { selectedDisease: disease } });
     };
 
     return (
@@ -90,9 +79,11 @@ export function GuidePage() {
                 <p className="text-gray-600 mb-6">Quick reference and reporting tool for field volunteers.</p>
                 {loading ? (
                     <div className="text-center py-8 text-gray-500">Loading disease definitions...</div>
+                ) : definitions.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">No disease definitions available.</div>
                 ) : (
-                    <div className="grid grid-cols-3 gap-6">
-                        {diseases.map((disease) => {
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {definitions.map((disease) => {
                             const { icon: Icon, bg, color } = getDiseaseIcon(disease.disease);
                             const recommendations = disease.guidance.split(',').map((r) => r.trim()).filter(Boolean);
                             return (
