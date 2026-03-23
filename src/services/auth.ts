@@ -6,7 +6,7 @@ import {
     updateProfile,
     type User as FirebaseUser,
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, onSnapshot, serverTimestamp, type Unsubscribe } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import type { UserRole } from '../types';
 
@@ -65,6 +65,26 @@ export async function getUserProfile(uid: string) {
     const snap = await getDoc(doc(db, 'users', uid));
     if (!snap.exists()) return null;
     return { ...snap.data(), uid: snap.id } as import('../types').User;
+}
+
+/**
+ * Subscribe to real-time updates on a user's Firestore profile.
+ * Ensures role/status changes (e.g., rejection) take effect immediately.
+ */
+export function subscribeToUserProfile(
+    uid: string,
+    callback: (profile: import('../types').User | null) => void
+): Unsubscribe {
+    return onSnapshot(doc(db, 'users', uid), (snap) => {
+        if (!snap.exists()) {
+            callback(null);
+            return;
+        }
+        callback({ ...snap.data(), uid: snap.id } as import('../types').User);
+    }, (err) => {
+        console.error('Error subscribing to user profile:', err);
+        callback(null);
+    });
 }
 
 /**

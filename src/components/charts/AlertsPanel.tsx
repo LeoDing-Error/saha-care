@@ -50,6 +50,11 @@ export default function AlertsPanel() {
                                     >
                                         {alert.severity}
                                     </span>
+                                    {alert.thresholdType === 'cluster' && (
+                                        <span className="px-2 py-0.5 rounded-full text-xs font-medium border border-gray-300 text-gray-600">
+                                            Cluster
+                                        </span>
+                                    )}
                                 </div>
                                 <p className="text-xs text-gray-500 mt-0.5">
                                     {alert.region} &middot; {alert.caseCount} cases &middot; {timeAgo(alert.createdAt)}

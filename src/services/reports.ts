@@ -31,6 +31,7 @@ export async function createReport(data: {
     hasDangerSigns: boolean;
     isImmediateReport: boolean;
     personsCount: number;
+    patientAgeMonths?: number;
     reclassifiedFrom?: string;
 }): Promise<string> {
     // Strip undefined values — Firestore rejects them

@@ -127,6 +127,9 @@ vi.mock('firebase/auth', () => ({
 
 vi.mock('firebase/firestore', () => ({
   getFirestore: vi.fn(() => ({})),
+  initializeFirestore: vi.fn(() => ({})),
+  persistentLocalCache: vi.fn(() => ({})),
+  persistentMultipleTabManager: vi.fn(() => ({})),
   connectFirestoreEmulator: vi.fn(),
   doc: vi.fn(() => ({})),
   getDoc: (...args: unknown[]) => mockGetDoc(...args),
@@ -137,9 +140,10 @@ vi.mock('firebase/firestore', () => ({
   query: vi.fn(() => ({})),
   where: vi.fn(() => ({})),
   orderBy: vi.fn(() => ({})),
+  limit: vi.fn(() => ({})),
   onSnapshot: (...args: unknown[]) => mockOnSnapshot(...args),
   serverTimestamp: () => mockServerTimestamp(),
-  enableIndexedDbPersistence: vi.fn(() => Promise.resolve()),
+  Timestamp: { fromDate: vi.fn((d: Date) => d) },
 }));
 
 vi.mock('firebase/app', () => ({

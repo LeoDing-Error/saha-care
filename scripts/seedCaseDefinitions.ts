@@ -43,11 +43,18 @@ interface AssessmentQuestion {
     reclassifyTo?: string;
 }
 
+type ThresholdType = 'immediate' | 'cluster';
+
 interface AlertThreshold {
     count: number;
     windowHours: number;
     severity: AlertSeverity;
     description: string;
+    type: ThresholdType;
+    requireVerified?: boolean;
+    proximityKm?: number;
+    requireDangerSigns?: boolean;
+    maxAgeMonths?: number;
 }
 
 interface CaseDefinition {
@@ -152,7 +159,8 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             'Refer to seek clinical care if: any danger signs appear, diarrhea persists for more than 3 days, blood appears in stool, unable to keep ORS down due to vomiting.',
         active: true,
         thresholds: [
-            { count: 5, windowHours: 24, severity: 'high', description: '5+ cases in the same region or camp within 24 hours' },
+            { count: 10, windowHours: 24, severity: 'medium', description: '10+ verified cases within 2km in 24 hours', type: 'cluster', requireVerified: true, proximityKm: 2 },
+            { count: 5, windowHours: 24, severity: 'medium', description: '5+ verified under-5 cases within 2km in 24 hours', type: 'cluster', requireVerified: true, proximityKm: 2, maxAgeMonths: 60 },
         ],
         prioritySurveillance: false,
     },
@@ -220,7 +228,8 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             'Refer immediately to medical assessment. Offer ORS if available.',
         active: true,
         thresholds: [
-            { count: 1, windowHours: 168, severity: 'critical', description: 'Immediate alert — 1 confirmed case (potential cholera risk)' },
+            { count: 1, windowHours: 168, severity: 'critical', description: 'Immediate alert — 1 case', type: 'immediate' },
+            { count: 2, windowHours: 168, severity: 'high', description: '2+ verified cases within 2km in 1 week', type: 'cluster', requireVerified: true, proximityKm: 2 },
         ],
         prioritySurveillance: false,
     },
@@ -311,7 +320,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             'Refer immediately to medical assessment. Keep child upright to help breathing. Offer small sips of fluids if available.',
         active: true,
         thresholds: [
-            { count: 1, windowHours: 168, severity: 'critical', description: 'Immediate alert — 1 confirmed case' },
+            { count: 3, windowHours: 168, severity: 'high', description: '3+ verified cases with danger signs within 2km in 1 week', type: 'cluster', requireVerified: true, proximityKm: 2, requireDangerSigns: true },
         ],
         prioritySurveillance: false,
     },
@@ -400,7 +409,8 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             'Refer to seek care if: difficulty breathing, cannot drink, confusion or seizures, severe rash, any danger sign.',
         active: true,
         thresholds: [
-            { count: 1, windowHours: 168, severity: 'critical', description: 'Immediate alert — 1 suspected case' },
+            { count: 1, windowHours: 168, severity: 'critical', description: 'Immediate alert — 1 suspected case', type: 'immediate' },
+            { count: 2, windowHours: 168, severity: 'high', description: '2+ verified cases within 2km in 1 week', type: 'cluster', requireVerified: true, proximityKm: 2 },
         ],
         prioritySurveillance: true,
     },
@@ -477,7 +487,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             'Refer to clinical care if: blisters become infected, difficulty breathing, confusion or stiff neck, any danger sign.',
         active: true,
         thresholds: [
-            { count: 5, windowHours: 168, severity: 'medium', description: '5+ cases in region within 1 week' },
+            { count: 10, windowHours: 168, severity: 'medium', description: '10+ verified cases within 2km in 1 week', type: 'cluster', requireVerified: true, proximityKm: 2 },
         ],
         prioritySurveillance: false,
     },
@@ -563,7 +573,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             'Refer immediately to medical assessment. Encourage rest and fluids.',
         active: true,
         thresholds: [
-            { count: 2, windowHours: 168, severity: 'high', description: '1 above baseline or 2+ cases in one week (risk of hepatitis outbreak)' },
+            { count: 3, windowHours: 168, severity: 'high', description: '3+ verified cases within 2km in 1 week', type: 'cluster', requireVerified: true, proximityKm: 2 },
         ],
         prioritySurveillance: false,
     },
@@ -641,7 +651,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             'Refer if sores are not healing (>2 weeks). Cover sores with dressing (if available) and keep as clean as possible.',
         active: true,
         thresholds: [
-            { count: 5, windowHours: 168, severity: 'medium', description: '5+ cases in region within 1 week' },
+            { count: 5, windowHours: 168, severity: 'medium', description: '5+ verified cases within 2km in 1 week', type: 'cluster', requireVerified: true, proximityKm: 2 },
         ],
         prioritySurveillance: false,
     },
@@ -716,7 +726,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             'Refer immediately to medical assessment.',
         active: true,
         thresholds: [
-            { count: 1, windowHours: 168, severity: 'critical', description: 'Immediate alert — 1 case (polio surveillance)' },
+            { count: 1, windowHours: 168, severity: 'critical', description: 'Immediate alert — 1 case (polio surveillance)', type: 'immediate' },
         ],
         prioritySurveillance: true,
     },
@@ -837,8 +847,8 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             'Refer for medical assessment, especially infants under 6 months. Isolate from other children. Ensure adequate hydration.',
         active: true,
         thresholds: [
-            { count: 1, windowHours: 168, severity: 'high', description: '1 case in non-endemic area' },
-            { count: 5, windowHours: 168, severity: 'critical', description: '5+ cases in same region or camp within 1 week' },
+            { count: 1, windowHours: 168, severity: 'high', description: 'Immediate alert — 1 infant case', type: 'immediate', maxAgeMonths: 12 },
+            { count: 5, windowHours: 168, severity: 'high', description: '5+ verified cases within 2km in 1 week', type: 'cluster', requireVerified: true, proximityKm: 2 },
         ],
         prioritySurveillance: true,
     },
@@ -957,7 +967,8 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             'Refer immediately to medical assessment. Isolate patient. This is a medical emergency if airway is compromised.',
         active: true,
         thresholds: [
-            { count: 1, windowHours: 168, severity: 'critical', description: 'Immediate alert — 1 suspected case' },
+            { count: 1, windowHours: 168, severity: 'critical', description: 'Immediate alert — 1 suspected case', type: 'immediate' },
+            { count: 2, windowHours: 168, severity: 'high', description: '2+ verified cases within 2km in 1 week', type: 'cluster', requireVerified: true, proximityKm: 2 },
         ],
         prioritySurveillance: true,
     },

@@ -31,6 +31,12 @@ export interface Alert {
     status: AlertStatus;
     /** Whether this was triggered by an immediate-report flag */
     immediateAlert: boolean;
+    /** Center point of the geographic cluster (cluster alerts only) */
+    clusterCenter?: { lat: number; lng: number };
+    /** Whether this alert was from an immediate or cluster threshold */
+    thresholdType?: 'immediate' | 'cluster';
+    /** IDs of reports that contributed to this cluster alert */
+    contributingReportIds?: string[];
     createdAt: Date;
     resolvedAt?: Date;
 }
@@ -46,6 +52,8 @@ export interface Aggregate {
     disease: string;
     region: string;
     period: AggregatePeriod;
+    /** Explicit date key for this bucket (e.g., "2026-03-12") */
+    dateKey: string;
     caseCount: number;
     verifiedCount: number;
     /** Total persons affected across all reports in this aggregate */
