@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -7,7 +7,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { subscribeToAlerts } from '../services/dashboard';
 import type { Alert } from '../types';
 import ReportMap from '../components/maps/ReportMap';
-import { DashboardProvider } from '../contexts/DashboardContext';
+import { DashboardProvider, useDashboard } from '../contexts/DashboardContext';
+import { getDiseaseColor } from '../components/maps/DiseaseMarker';
 
 function formatTimeAgo(date: Date): string {
     const now = new Date();
@@ -34,6 +35,63 @@ const severityColors: Record<string, string> = {
     medium: 'bg-yellow-100 text-yellow-700 border-yellow-300',
     low: 'bg-blue-100 text-blue-700 border-blue-300',
 };
+
+function DiseaseMapSection({ region }: { region?: string }) {
+    const { reports, filters, setFilters } = useDashboard();
+
+    const diseases = useMemo(() => {
+        const set = new Set(reports.map((r) => r.disease));
+        return Array.from(set).sort();
+    }, [reports]);
+
+    const activeDisease = filters.disease;
+
+    return (
+        <Card>
+            <CardHeader>
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                    <CardTitle>
+                        Disease Outbreak Map - {region || 'All Regions'}
+                    </CardTitle>
+                    <div className="flex gap-2 flex-wrap">
+                        <Badge
+                            variant="outline"
+                            className={`cursor-pointer transition-colors ${
+                                activeDisease === 'all'
+                                    ? 'bg-teal-100 border-teal-500 text-teal-700'
+                                    : 'hover:bg-teal-50'
+                            }`}
+                            onClick={() => setFilters({ disease: 'all' })}
+                        >
+                            All Diseases
+                        </Badge>
+                        {diseases.map((disease) => (
+                            <Badge
+                                key={disease}
+                                variant="outline"
+                                className={`cursor-pointer transition-colors ${
+                                    activeDisease === disease
+                                        ? 'bg-teal-100 border-teal-500 text-teal-700'
+                                        : 'hover:bg-teal-50'
+                                }`}
+                                onClick={() => setFilters({ disease })}
+                            >
+                                <span
+                                    className="inline-block w-2 h-2 rounded-full mr-1.5"
+                                    style={{ backgroundColor: getDiseaseColor(disease) }}
+                                />
+                                {disease}
+                            </Badge>
+                        ))}
+                    </div>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <ReportMap />
+            </CardContent>
+        </Card>
+    );
+}
 
 export function DashboardPage() {
     const { userProfile } = useAuth();
@@ -100,26 +158,9 @@ export function DashboardPage() {
             </div>
 
             {/* Disease Map */}
-            <Card>
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <CardTitle>
-                            Disease Outbreak Map - {userProfile?.region || 'All Regions'}
-                        </CardTitle>
-                        <div className="flex gap-2">
-                            <Badge variant="outline" className="cursor-pointer hover:bg-teal-50">All Diseases</Badge>
-                            <Badge variant="outline" className="cursor-pointer hover:bg-teal-50">AWD</Badge>
-                            <Badge variant="outline" className="cursor-pointer hover:bg-teal-50">SARI</Badge>
-                            <Badge variant="outline" className="cursor-pointer hover:bg-teal-50">Measles</Badge>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <DashboardProvider>
-                        <ReportMap />
-                    </DashboardProvider>
-                </CardContent>
-            </Card>
+            <DashboardProvider>
+                <DiseaseMapSection region={userProfile?.region} />
+            </DashboardProvider>
 
             {/* Active Alerts */}
             <Card>
