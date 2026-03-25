@@ -8,6 +8,7 @@ import { subscribeToAlerts } from '../services/dashboard';
 import type { Alert } from '../types';
 import ReportMap from '../components/maps/ReportMap';
 import { DashboardProvider, useDashboard } from '../contexts/DashboardContext';
+import { AlertReportsList } from '../components/reports/AlertReportsList';
 import { getDiseaseColor } from '../components/maps/DiseaseMarker';
 
 function formatTimeAgo(date: Date): string {
@@ -234,22 +235,7 @@ export function DashboardPage() {
                                             </Button>
                                         </div>
                                         {expandedAlerts.includes(alert.id) && (
-                                            <div className="mt-3 bg-white rounded-lg border border-gray-200 p-4">
-                                                <div className="space-y-2 text-sm">
-                                                    <div className="flex justify-between">
-                                                        <span className="text-gray-600">Region:</span>
-                                                        <span className="font-medium">{alert.region}</span>
-                                                    </div>
-                                                    <div className="flex justify-between">
-                                                        <span className="text-gray-600">Window:</span>
-                                                        <span className="font-medium">{alert.windowHours}h</span>
-                                                    </div>
-                                                    <div className="flex justify-between">
-                                                        <span className="text-gray-600">Created:</span>
-                                                        <span className="font-medium">{alert.createdAt.toLocaleString()}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <AlertReportsList alert={alert} />
                                         )}
                                     </div>
                                 ))
