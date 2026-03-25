@@ -179,7 +179,13 @@ describe('Auth Service', () => {
       const profile = await getUserProfile('test-uid-123');
 
       expect(mockGetDoc).toHaveBeenCalled();
-      expect(profile).toEqual({ ...mockUserProfile, uid: 'test-uid-123' });
+      expect(profile).toBeTruthy();
+      expect(profile!.uid).toBe('test-uid-123');
+      expect(profile!.email).toBe(mockUserProfile.email);
+      expect(profile!.displayName).toBe(mockUserProfile.displayName);
+      expect(profile!.role).toBe(mockUserProfile.role);
+      expect(profile!.createdAt).toBeInstanceOf(Date);
+      expect(profile!.updatedAt).toBeInstanceOf(Date);
     });
 
     it('returns null if user document does not exist', async () => {

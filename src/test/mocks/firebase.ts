@@ -1,5 +1,10 @@
 import { vi } from 'vitest';
 
+/** Create a Firestore Timestamp-like object from a Date */
+function mockTimestamp(date = new Date()) {
+  return { toDate: () => date, seconds: Math.floor(date.getTime() / 1000), nanoseconds: 0 };
+}
+
 // Mock user for auth
 export const mockFirebaseUser = {
   uid: 'test-uid-123',
@@ -15,8 +20,8 @@ export const mockUserProfile = {
   role: 'volunteer' as const,
   status: 'approved' as const,
   region: 'North Gaza',
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  createdAt: mockTimestamp(),
+  updatedAt: mockTimestamp(),
 };
 
 // Mock pending user profile
