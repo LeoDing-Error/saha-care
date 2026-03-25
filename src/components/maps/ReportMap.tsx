@@ -18,14 +18,14 @@ export default function ReportMap() {
         <ChartWrapper
             title="Disease Heatmap"
             loading={loading}
-            isEmpty={reportsWithLocation.length === 0}
-            height={400}
+            isEmpty={false}
+            height={500}
         >
             <div style={{ position: 'relative' }}>
                 <MapContainer
                     center={GAZA_CENTER}
                     zoom={GAZA_ZOOM}
-                    style={{ height: 400, width: '100%', borderRadius: 4 }}
+                    style={{ height: 500, width: '100%', borderRadius: 4 }}
                 >
                     <TileLayer
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

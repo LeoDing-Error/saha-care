@@ -1,3 +1,4 @@
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { DashboardPage } from '../DashboardPage';
@@ -18,6 +19,14 @@ vi.mock('../../contexts/AuthContext', () => ({
     useAuth: () => ({
         userProfile: { role: 'official', region: undefined },
     }),
+}));
+
+vi.mock('../../components/maps/ReportMap', () => ({
+    default: () => <div data-testid="report-map">ReportMap</div>,
+}));
+
+vi.mock('../../contexts/DashboardContext', () => ({
+    DashboardProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 const makeAlert = (overrides: Partial<Alert> = {}): Alert => ({
