@@ -41,7 +41,7 @@ export default function AlertsPanel() {
                     </div>
                 ) : (
                     <ul className="divide-y divide-gray-100">
-                        {alerts.map((alert) => (
+                        {alerts.filter(a => a.disease !== 'Danger Signs (Any Disease)').map((alert) => (
                             <li key={alert.id} className="py-3">
                                 <div className="flex items-center gap-2 flex-wrap">
                                     <span className="text-sm font-semibold">{alert.disease}</span>
