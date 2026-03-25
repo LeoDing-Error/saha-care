@@ -88,7 +88,7 @@ export function GuidePage() {
                             const recommendations = disease.guidance.split(',').map((r) => r.trim()).filter(Boolean);
                             return (
                                 <Card key={disease.id} className="hover:shadow-lg transition-shadow">
-                                    <CardContent className="pt-6">
+                                    <CardContent className="pt-6 flex-1 flex flex-col">
                                         <div className="flex items-start justify-between mb-4">
                                             <div className={`w-12 h-12 ${bg} rounded-xl flex items-center justify-center`}>
                                                 <Icon className={`w-6 h-6 ${color}`} />
@@ -113,7 +113,7 @@ export function GuidePage() {
                                                 ))}
                                             </ul>
                                         </div>
-                                        <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white" onClick={() => handleReportCase(disease)}>
+                                        <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-auto" onClick={() => handleReportCase(disease)}>
                                             <Activity className="w-4 h-4 mr-2" />
                                             REPORT CASE
                                         </Button>
