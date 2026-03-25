@@ -157,7 +157,11 @@ export function MessagesPage() {
             })
             .catch((err) => {
                 console.error('Failed to create conversation:', err);
-                setConversationError('Failed to start conversation. Please try again.');
+                // Show more specific error for permission issues
+                const message = err?.code === 'permission-denied'
+                    ? 'Permission denied. Firestore rules may need to be deployed.'
+                    : 'Failed to start conversation. Please try again.';
+                setConversationError(message);
                 setConversationLoading(false);
             });
     }, [searchParams, loading, conversations, firebaseUser?.uid, userProfile, conversationLoading]);
