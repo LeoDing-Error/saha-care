@@ -100,6 +100,18 @@ function weightedPick(items: { disease: string; weight: number }[]): string {
     return items[items.length - 1].disease;
 }
 
+const CASE_ID_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+/** Generate a human-readable case ID for a given date (same format as src/services/reports.ts) */
+function generateCaseId(date: Date): string {
+    const dateStr = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`;
+    let suffix = '';
+    for (let i = 0; i < 4; i++) {
+        suffix += CASE_ID_CHARS[Math.floor(Math.random() * CASE_ID_CHARS.length)];
+    }
+    return `SC-${dateStr}-${suffix}`;
+}
+
 /** Generate a random date within the last N days */
 function randomDate(daysBack: number): Date {
     const now = Date.now();
@@ -244,6 +256,7 @@ function generateDangerSigns(disease: string): { dangerSigns: string[]; hasDange
 // ─── Report Generation ───
 
 interface SeedReport {
+    caseId: string;
     disease: string;
     answers: { questionId: string; questionText: string; answer: boolean; numericValue?: number }[];
     symptoms: string[];
@@ -288,6 +301,7 @@ function generateReports(count: number): SeedReport[] {
         else status = 'rejected';
 
         const report: SeedReport = {
+            caseId: generateCaseId(createdAt),
             disease,
             answers,
             symptoms,
@@ -391,6 +405,7 @@ async function seedReports(db: Firestore): Promise<void> {
 
         // Build the Firestore document
         const firestoreDoc: Record<string, unknown> = {
+            caseId: report.caseId,
             disease: report.disease,
             answers: report.answers,
             symptoms: report.symptoms,
