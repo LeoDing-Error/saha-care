@@ -117,6 +117,24 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // ── Notifications collection ──
+    match /notifications/{notificationId} {
+      // Users can only read their own notifications
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+
+      // Users can only update their own notifications (mark read, soft delete)
+      // Cannot change userId, type, title, or createdAt
+      allow update: if isSignedIn() &&
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == resource.data.userId &&
+        request.resource.data.type == resource.data.type &&
+        request.resource.data.title == resource.data.title &&
+        request.resource.data.createdAt == resource.data.createdAt;
+
+      // Only Cloud Functions create/delete notifications
+      allow create, delete: if false;
+    }
+
     // ── Conversations collection ──
     match /conversations/{conversationId} {
       // Participants can read conversations they belong to

@@ -12,6 +12,7 @@ import { Badge } from './ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useOfflineStatus } from '../hooks/useOfflineStatus';
+import { useNotifications } from '../contexts/NotificationContext';
 import { signOut } from '../services/auth';
 
 function getInitials(name: string | undefined): string {
@@ -28,6 +29,7 @@ export function Header() {
     const navigate = useNavigate();
     const { userProfile } = useAuth();
     const isOnline = useOfflineStatus();
+    const { totalUnreadCount } = useNotifications();
 
     const handleLogout = async () => {
         await signOut();
@@ -73,9 +75,11 @@ export function Header() {
                         onClick={() => navigate('/notifications')}
                     >
                         <Bell className="h-5 w-5 text-gray-600" />
-                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
-                            3
-                        </span>
+                        {totalUnreadCount > 0 && (
+                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
+                                {totalUnreadCount > 9 ? '9+' : totalUnreadCount}
+                            </span>
+                        )}
                     </Button>
 
                     <DropdownMenu>

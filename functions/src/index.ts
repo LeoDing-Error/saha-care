@@ -13,3 +13,5 @@ setGlobalOptions({ maxInstances: 10 });
 export { onUserApproval } from './onUserApproval';
 export { onReportWrite } from './onReportWrite';
 export { aggregateCases } from './aggregateCases';
+export { onAlertCreate } from './onAlertCreate';
+export { onMessageCreate } from './onMessageCreate';

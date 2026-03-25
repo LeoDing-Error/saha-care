@@ -3,3 +3,4 @@ export type { Report, ReportStatus, ReportLocation, QuestionAnswer } from './rep
 export type { CaseDefinition, AssessmentQuestion, AlertThreshold, ThresholdType } from './caseDefinition';
 export type { Alert, AlertSeverity, AlertStatus, Aggregate, AggregatePeriod } from './alert';
 export type { Conversation, Message } from './conversation';
+export type { AppNotification, NotificationType, NotificationPriority } from './notification';
