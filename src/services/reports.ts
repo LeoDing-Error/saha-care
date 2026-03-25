@@ -17,6 +17,25 @@ import type { Report, ReportLocation, QuestionAnswer } from '../types';
 
 const REPORTS_COLLECTION = 'reports';
 
+function stripUndefined(obj: Record<string, unknown>): Record<string, unknown> {
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj)) {
+        if (value === undefined) continue;
+        if (Array.isArray(value)) {
+            result[key] = value.map(item =>
+                item !== null && typeof item === 'object' && !Array.isArray(item)
+                    ? stripUndefined(item as Record<string, unknown>)
+                    : item
+            );
+        } else if (value !== null && typeof value === 'object') {
+            result[key] = stripUndefined(value as Record<string, unknown>);
+        } else {
+            result[key] = value;
+        }
+    }
+    return result;
+}
+
 const CASE_ID_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
 function generateCaseId(): string {
@@ -50,9 +69,7 @@ export async function createReport(data: {
 }): Promise<{ id: string; caseId: string }> {
     const caseId = generateCaseId();
     // Strip undefined values — Firestore rejects them
-    const cleanData = Object.fromEntries(
-        Object.entries(data).filter(([, v]) => v !== undefined)
-    );
+    const cleanData = stripUndefined(data as unknown as Record<string, unknown>);
     const docRef = await addDoc(collection(db, REPORTS_COLLECTION), {
         ...cleanData,
         caseId,

@@ -137,6 +137,43 @@ describe('Reports Service', () => {
       expect(savedReport.createdAt).toBeDefined();
     });
 
+    it('strips nested undefined values before saving to Firestore', async () => {
+      mockAddDoc.mockResolvedValue({ id: 'new-report-id' });
+
+      const reportData = {
+        disease: 'Acute Watery Diarrhea',
+        answers: [
+          {
+            questionId: 'awd-q1',
+            questionText: 'Loose stools?',
+            answer: true,
+            numericValue: undefined,
+          },
+        ],
+        symptoms: ['Loose stools?'],
+        location: { lat: 31.5, lng: 34.45, name: undefined },
+        reporterId: 'test-uid-123',
+        reporterName: 'Test User',
+        region: 'north-gaza',
+        hasDangerSigns: false,
+        isImmediateReport: false,
+        personsCount: 1,
+      };
+
+      await createReport(reportData as Parameters<typeof createReport>[0]);
+
+      const addDocCall = mockAddDoc.mock.calls[0];
+      const savedReport = addDocCall[1];
+
+      // Nested undefined in location.name should be stripped
+      expect(savedReport.location).not.toHaveProperty('name');
+      // Nested undefined in answers[].numericValue should be stripped
+      expect(savedReport.answers[0]).not.toHaveProperty('numericValue');
+      // Other fields should still be present
+      expect(savedReport.location.lat).toBe(31.5);
+      expect(savedReport.answers[0].answer).toBe(true);
+    });
+
     it('throws error if Firestore fails', async () => {
       mockAddDoc.mockRejectedValue(new Error('Firestore error'));
 
