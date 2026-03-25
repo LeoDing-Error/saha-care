@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { RefreshCw, MapPin, Activity, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -40,15 +40,23 @@ export function DashboardPage() {
     const [timeFilter, setTimeFilter] = useState('all');
     const [severityFilter, setSeverityFilter] = useState('all');
     const [expandedAlerts, setExpandedAlerts] = useState<string[]>([]);
+    const [refreshKey, setRefreshKey] = useState(0);
+    const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+    const handleRefresh = useCallback(() => {
+        setLoading(true);
+        setRefreshKey((k) => k + 1);
+    }, []);
 
     useEffect(() => {
         const region = userProfile?.role === 'official' ? undefined : userProfile?.region;
         const unsub = subscribeToAlerts(region, (data) => {
             setAlerts(data);
             setLoading(false);
+            setLastUpdated(new Date());
         });
         return unsub;
-    }, [userProfile?.region, userProfile?.role]);
+    }, [userProfile?.region, userProfile?.role, refreshKey]);
 
     const filteredAlerts = alerts.filter((alert) => {
         const windowLabel = formatWindowHours(alert.windowHours);
@@ -79,8 +87,10 @@ export function DashboardPage() {
                     </p>
                 </div>
                 <div className="flex items-center space-x-3">
-                    <span className="text-sm text-gray-500">Last updated: just now</span>
-                    <Button variant="outline" size="sm">
+                    <span className="text-sm text-gray-500">
+                        Last updated: {lastUpdated ? formatTimeAgo(lastUpdated) : 'just now'}
+                    </span>
+                    <Button variant="outline" size="sm" onClick={handleRefresh}>
                         <RefreshCw className="h-4 w-4 mr-2" />
                         Refresh
                     </Button>
