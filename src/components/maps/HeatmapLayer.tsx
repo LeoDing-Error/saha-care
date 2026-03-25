@@ -5,6 +5,7 @@ import type { Report } from '../../types';
 
 // leaflet.heat is a CJS side-effect plugin that attaches to window.L.
 // Set global L before importing so it can find and augment it.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (window as any).L = L;
 import('leaflet.heat');
 
@@ -30,6 +31,7 @@ export default function HeatmapLayer({ reports }: HeatmapLayerProps) {
             r.personsCount || 1,
         ]);
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const heat = (L as any).heatLayer(points, {
             radius: 25,
             blur: 15,
