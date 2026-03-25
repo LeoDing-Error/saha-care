@@ -5,10 +5,10 @@ Community-based disease surveillance PWA for conflict zones (Gaza Strip). Offlin
 ## Tech Stack
 
 - **App:** React + Vite + TypeScript (PWA with service worker)
-- **UI:** Material UI (MUI) + Leaflet + Recharts
+- **UI:** shadcn/ui + Tailwind CSS + Leaflet + Recharts
 - **BaaS:** Firebase (Firestore, Auth, Hosting, Cloud Functions)
-- **Server-side:** Cloud Functions (Node.js/TypeScript) — approval enforcement, alert triggers, data aggregation
-- **State:** React Context (AuthContext) + Firestore `onSnapshot` listeners + local `useState`
+- **Server-side:** Cloud Functions (Node.js/TypeScript) — approval enforcement, alert triggers, data aggregation, notifications
+- **State:** React Context (AuthContext, DashboardContext, NotificationContext) + Firestore `onSnapshot` listeners + local `useState`
 - **Offline:** Firestore offline cache + Vite PWA plugin (service worker)
 
 ## Architecture
@@ -23,6 +23,7 @@ React PWA ──► Firestore (offline cache ↔ auto-sync) ──► Firestore 
                                                      │  alerts     │
                                                      │  aggregates │
                                                      │  users      │
+                                                     │  notifications│
                                                      └─────────────┘
 Firebase Hosting ──► serves PWA (CDN + SSL)
 ```
@@ -33,8 +34,8 @@ One app, three role-based views: Volunteer (reporting), Supervisor (verification
 
 | Role | Access | Approval |
 |---|---|---|
-| **Volunteer** | Submit reports | Approved by supervisor |
-| **Supervisor** | Review/verify reports, approve volunteers, maps, regional charts | Approved by official |
+| **Volunteer** | Submit reports, messages, guide, notifications | Approved by supervisor |
+| **Supervisor** | Review/verify reports, approve volunteers, messages, maps, regional charts | Approved by official |
 | **Official** | Dashboard, aggregated data, maps, charts, approve supervisors | Pre-provisioned |
 
 Self-registration with approval — users enter `pending` state until approved by higher role.
@@ -48,6 +49,9 @@ Server-side logic deployed as Firebase Cloud Functions (Node.js/TypeScript). Tri
 | `onUserApproval` | `users/{uid}` onUpdate | Validates role escalation, enforces region scoping, prevents unauthorized approval |
 | `onReportWrite` | `reports/{id}` onCreate | Checks case counts against thresholds per disease/region, auto-creates `alerts` documents |
 | `aggregateCases` | `reports/{id}` onWrite | Maintains pre-computed rollup documents in `aggregates` collection for dashboard performance |
+| `onAlertCreate` | `alerts/{id}` onCreate | Handles new alert creation side effects |
+| `onMessageCreate` | `conversations/{id}/messages/{msgId}` onCreate | Creates notification for recipient when a new message is sent |
+| `notifications` | (helper) | Shared notification utilities used by other functions |
 
 ## Firestore Collections
 
@@ -55,8 +59,9 @@ Server-side logic deployed as Firebase Cloud Functions (Node.js/TypeScript). Tri
 - `reports` — disease, symptoms, temp, location (lat/lng + name), status (pending/verified/rejected), reporterId, verifiedBy
 - `caseDefinitions` — disease, symptoms (JSON), dangerSigns, guidance, active flag
 - `alerts` — disease, region, caseCount, threshold, severity, status
-- `conversations` — reportId, participantIds, lastMessageAt *(future phase)*
-  - `messages` (subcollection) — senderId, text, read, sentAt *(future phase)*
+- `conversations` — reportId, reportDisease, reportDate, volunteerId, volunteerName, supervisorId, supervisorName, participantIds, region, lastMessage, lastMessageAt, unreadCounts, createdAt
+  - `messages` (subcollection) — senderId, senderName, senderRole, text, sentAt, read
+- `notifications` — userId, type, title, body, read, createdAt, metadata
 - `aggregates` — disease, region, period (day/week), caseCount, verifiedCount, lastUpdated (maintained by Cloud Function)
 
 ## Key Constraints
@@ -68,29 +73,36 @@ Server-side logic deployed as Firebase Cloud Functions (Node.js/TypeScript). Tri
 ## Project Structure
 
 ```
-saha-care/
-├── src/                      # React PWA source
+montpellier/
+├── src/
 │   ├── components/
 │   │   ├── charts/           # AlertsPanel, CasesByDiseaseChart, CasesOverTimeChart, ChartWrapper, DashboardFilters, KPICards
-│   │   ├── common/           # OfflineIndicator
-│   │   ├── forms/            # ReportForm (+ __tests__/)
-│   │   ├── maps/             # ReportMap, DiseaseMarker, HeatmapLayer, HeatmapLegend, MapLegend
-│   │   ├── reports/          # RegionReportsList, ReportReviewCard, VerificationDialog
-│   │   └── users/            # ApprovalConfirmDialog, PendingUsersList, RejectionDialog, UserApprovalCard, UserStatusChip (+ __tests__/)
+│   │   ├── maps/             # ReportMap, DiseaseMarker, HeatmapLayer, HeatmapLegend, LocationPickerMap, MapLegend, leafletSetup
+│   │   ├── reports/          # AlertReportsList, ReportDetailDialog
+│   │   ├── ui/               # shadcn/ui primitives (button, card, dialog, form, table, tabs, etc.)
+│   │   ├── Header.tsx        # App header bar
+│   │   ├── RootLayout.tsx    # Root layout wrapper
+│   │   └── Sidebar.tsx       # Navigation sidebar
 │   ├── constants/            # index, regions, roles
-│   ├── contexts/             # AuthContext, DashboardContext (+ __tests__/)
+│   ├── contexts/             # AuthContext, DashboardContext, NotificationContext (+ __tests__/)
 │   ├── hooks/                # useCaseDefinitions, useDashboard, useOfflineStatus
-│   ├── layouts/              # AppLayout
 │   ├── pages/
-│   │   ├── auth/             # LoginPage, RegisterPage
-│   │   ├── official/         # OfficialHomePage, DashboardPage, PendingSupervisorsPage
-│   │   ├── supervisor/       # SupervisorHomePage, SupervisorDashboardPage, ReviewReportsPage, PendingVolunteersPage
-│   │   └── volunteer/        # ReportFormPage, ReportListPage
+│   │   ├── auth/             # LoginPage, SignupPage
+│   │   ├── DashboardPage.tsx
+│   │   ├── GuidePage.tsx     # Case definition guide with report-case actions
+│   │   ├── MessagesPage.tsx  # Conversation list + chat interface
+│   │   ├── NotFoundPage.tsx
+│   │   ├── NotificationsPage.tsx
+│   │   ├── ProfilePage.tsx
+│   │   ├── ReportFormPage.tsx
+│   │   ├── ReportsPage.tsx
+│   │   ├── VolunteersPage.tsx
+│   │   └── __tests__/
 │   ├── router/               # AppRouter, ProtectedRoute, RoleGuard (+ __tests__/)
-│   ├── services/             # firebase, auth, reports, users, dashboard (+ __tests__/)
+│   ├── services/             # firebase, auth, reports, users, dashboard, conversations, notifications (+ __tests__/)
 │   ├── test/                 # Test setup + mocks (firebase mock)
-│   ├── types/                # user, report, alert, caseDefinition, index
-│   ├── utils/                # location
+│   ├── types/                # user, report, alert, caseDefinition, conversation, notification, index
+│   ├── utils/                # location, formatTime, regionDetection, urgency (+ __tests__/)
 │   ├── App.tsx
 │   └── main.tsx
 ├── functions/                # Cloud Functions
@@ -98,27 +110,26 @@ saha-care/
 │   │   ├── onUserApproval.ts
 │   │   ├── onReportWrite.ts
 │   │   ├── aggregateCases.ts
+│   │   ├── onAlertCreate.ts
+│   │   ├── onMessageCreate.ts
+│   │   ├── notifications.ts
 │   │   └── index.ts
 │   ├── package.json
 │   └── tsconfig.json
 ├── docs/                     # Documentation + GitHub Pages Landing Site
-│   ├── FIREBASE_SETUP.md     # Firebase setup guide
-│   ├── MANUAL_TESTS.md       # Manual testing procedures
-│   ├── firestore-schema.md   # Firestore schema reference
+│   ├── FIREBASE_SETUP.md
+│   ├── MANUAL_TESTS.md
+│   ├── firestore-schema.md
 │   ├── plans/                # Sprint & planning docs
-│   │   ├── master-plan.md
-│   │   ├── Sprint1-Foundation.md
-│   │   ├── Sprint2-Verification.md
-│   │   ├── Sprint3-Dashboard.md
-│   │   └── Sprint4-Security.md
 │   ├── diagrams/             # Mermaid diagrams (architecture.mmd, erd.mmd)
 │   ├── index.html            # Landing page HTML
 │   ├── style.css             # Landing page styles
 │   └── main.js               # Landing page script
 ├── public/                   # PWA icons (favicon, apple-touch, pwa-192/512, mask-icon)
-├── scripts/                  # seedCaseDefinitions, seedReports, generateIcons
+├── scripts/                  # seedCaseDefinitions, seedReports, seedGazaCityAlerts, generateIcons
+├── .github/workflows/        # deploy.yml — CI/CD pipeline
 ├── firestore.rules
-├── firestore.indexes.json    # Composite indexes for queries
+├── firestore.indexes.json
 ├── firebase.json
 ├── vite.config.ts            # PWA plugin config
 └── vitest.config.ts          # Test config
@@ -137,3 +148,4 @@ saha-care/
 - **Local testing:** Firebase Emulator Suite (Firestore, Auth, Cloud Functions)
 - **CI/CD:** GitHub Actions → lint → test → build → deploy to Firebase Hosting
 - **Run locally:** `npm run dev`
+- **Setup:** `setup.sh` — initial project setup script
