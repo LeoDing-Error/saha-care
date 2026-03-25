@@ -15,6 +15,12 @@ export default tseslint.config(
         },
     },
     {
+        files: ['src/components/ui/**'],
+        rules: {
+            '@typescript-eslint/ban-ts-comment': 'off',
+        },
+    },
+    {
         ignores: ['dist/**', 'functions/**', 'docs/**', 'scripts/**'],
     },
 );

@@ -170,9 +170,15 @@ describe('Auth Service', () => {
 
   describe('getUserProfile', () => {
     it('fetches user profile from Firestore', async () => {
+      // Firestore returns Timestamp objects with toDate(), not plain Dates
+      const firestoreData = {
+        ...mockUserProfile,
+        createdAt: { toDate: () => mockUserProfile.createdAt },
+        updatedAt: { toDate: () => mockUserProfile.updatedAt },
+      };
       mockGetDoc.mockResolvedValue({
         exists: () => true,
-        data: () => mockUserProfile,
+        data: () => firestoreData,
         id: 'test-uid-123',
       });
 
