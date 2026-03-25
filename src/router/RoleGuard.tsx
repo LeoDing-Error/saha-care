@@ -53,9 +53,9 @@ export default function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
     if (!allowedRoles.includes(userProfile.role)) {
         // Redirect to the appropriate home based on the user's actual role
         const roleHome: Record<UserRole, string> = {
-            volunteer: '/volunteer',
-            supervisor: '/supervisor',
-            official: '/official',
+            volunteer: '/reports',
+            supervisor: '/',
+            official: '/',
         };
         return <Navigate to={roleHome[userProfile.role]} replace />;
     }

@@ -1,6 +1,8 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import ProtectedRoute from './ProtectedRoute';
+import RoleGuard from './RoleGuard';
 import { RootLayout } from '../components/RootLayout';
+import { useAuth } from '../contexts/AuthContext';
 
 // Auth pages
 import { LoginPage } from '../pages/auth/LoginPage';
@@ -17,6 +19,15 @@ import { ProfilePage } from '../pages/ProfilePage';
 import { NotificationsPage } from '../pages/NotificationsPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 
+/** Redirects volunteers to /reports; shows Dashboard for other roles */
+function IndexRedirect() {
+    const { userProfile } = useAuth();
+    if (userProfile?.role === 'volunteer') {
+        return <Navigate to="/reports" replace />;
+    }
+    return <DashboardPage />;
+}
+
 export const router = createBrowserRouter([
     // Public routes
     { path: '/login', element: <LoginPage /> },
@@ -31,12 +42,12 @@ export const router = createBrowserRouter([
             </ProtectedRoute>
         ),
         children: [
-            { index: true, element: <DashboardPage /> },
+            { index: true, element: <IndexRedirect /> },
             { path: 'guide', element: <GuidePage /> },
             { path: 'reports', element: <ReportsPage /> },
             { path: 'report/new', element: <ReportFormPage /> },
             { path: 'messages', element: <MessagesPage /> },
-            { path: 'volunteers', element: <VolunteersPage /> },
+            { path: 'volunteers', element: <RoleGuard allowedRoles={['supervisor', 'official']}><VolunteersPage /></RoleGuard> },
             { path: 'profile', element: <ProfilePage /> },
             { path: 'notifications', element: <NotificationsPage /> },
             { path: '*', element: <NotFoundPage /> },
