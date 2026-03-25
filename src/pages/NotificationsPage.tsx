@@ -2,7 +2,7 @@ import { Bell, MessageSquare, AlertTriangle, CheckCircle, Clock, X } from 'lucid
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
+import { Avatar, AvatarFallback } from '../components/ui/avatar';
 import { useState } from 'react';
 
 interface Notification {

@@ -170,16 +170,28 @@ describe('Auth Service', () => {
 
   describe('getUserProfile', () => {
     it('fetches user profile from Firestore', async () => {
+      // Firestore returns Timestamp objects with toDate(), not plain Dates
+      const firestoreData = {
+        ...mockUserProfile,
+        createdAt: { toDate: () => mockUserProfile.createdAt },
+        updatedAt: { toDate: () => mockUserProfile.updatedAt },
+      };
       mockGetDoc.mockResolvedValue({
         exists: () => true,
-        data: () => mockUserProfile,
+        data: () => firestoreData,
         id: 'test-uid-123',
       });
 
       const profile = await getUserProfile('test-uid-123');
 
       expect(mockGetDoc).toHaveBeenCalled();
-      expect(profile).toEqual({ ...mockUserProfile, uid: 'test-uid-123' });
+      expect(profile).toBeTruthy();
+      expect(profile!.uid).toBe('test-uid-123');
+      expect(profile!.email).toBe(mockUserProfile.email);
+      expect(profile!.displayName).toBe(mockUserProfile.displayName);
+      expect(profile!.role).toBe(mockUserProfile.role);
+      expect(profile!.createdAt).toBeInstanceOf(Date);
+      expect(profile!.updatedAt).toBeInstanceOf(Date);
     });
 
     it('returns null if user document does not exist', async () => {

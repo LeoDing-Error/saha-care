@@ -95,8 +95,8 @@ export function subscribeToAlerts(
 export function subscribeToDashboardReports(
     region: string | undefined,
     dateRange: { start: Date; end: Date },
-    disease: string | undefined,
-    status: string | undefined,
+    _disease: string | undefined,
+    _status: string | undefined,
     callback: (reports: Report[]) => void
 ): Unsubscribe {
     const constraints: QueryConstraint[] = [];
