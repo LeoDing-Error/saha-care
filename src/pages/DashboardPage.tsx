@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import { RefreshCw, MapPin, Activity, ChevronDown, ChevronUp } from 'lucide-react';
+import { RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { useAuth } from '../contexts/AuthContext';
 import { subscribeToAlerts } from '../services/dashboard';
 import type { Alert } from '../types';
+import ReportMap from '../components/maps/ReportMap';
+import { DashboardProvider } from '../contexts/DashboardContext';
 
 function formatTimeAgo(date: Date): string {
     const now = new Date();
@@ -113,54 +115,9 @@ export function DashboardPage() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg h-[500px] flex items-center justify-center border-2 border-gray-200 relative overflow-hidden">
-                        <div className="absolute inset-0 opacity-10">
-                            <svg viewBox="0 0 800 500" className="w-full h-full">
-                                <path d="M 100 100 L 200 80 L 300 120 L 400 90 L 500 110 L 600 95 L 700 120" stroke="#0d9488" strokeWidth="2" fill="none" />
-                                <path d="M 100 200 L 250 180 L 400 210 L 550 190 L 700 220" stroke="#0d9488" strokeWidth="2" fill="none" />
-                            </svg>
-                        </div>
-                        <div className="absolute top-[30%] left-[25%] w-24 h-24 bg-red-500 rounded-full blur-2xl opacity-40"></div>
-                        <div className="absolute top-[50%] left-[60%] w-32 h-32 bg-yellow-400 rounded-full blur-2xl opacity-30"></div>
-                        <div className="absolute top-[65%] left-[35%] w-20 h-20 bg-green-400 rounded-full blur-2xl opacity-25"></div>
-                        <div className="absolute top-[40%] right-[20%] w-28 h-28 bg-orange-500 rounded-full blur-2xl opacity-35"></div>
-                        <div className="absolute top-[30%] left-[25%] animate-pulse">
-                            <MapPin className="w-8 h-8 text-red-600 fill-red-200" />
-                        </div>
-                        <div className="absolute top-[50%] left-[60%]">
-                            <MapPin className="w-6 h-6 text-yellow-600 fill-yellow-200" />
-                        </div>
-                        <div className="absolute top-[65%] left-[35%]">
-                            <MapPin className="w-5 h-5 text-green-600 fill-green-200" />
-                        </div>
-                        <div className="absolute top-[40%] right-[20%] animate-pulse">
-                            <MapPin className="w-7 h-7 text-orange-600 fill-orange-200" />
-                        </div>
-                        <div className="text-center z-10">
-                            <div className="w-16 h-16 bg-teal-100 rounded-full mx-auto mb-3 flex items-center justify-center">
-                                <Activity className="h-8 w-8 text-teal-600" />
-                            </div>
-                            <p className="text-gray-600 font-medium">Interactive Heatmap</p>
-                            <p className="text-sm text-gray-500 mt-1">Gaza Strip - {userProfile?.region || 'All Regions'}</p>
-                            <p className="text-xs text-gray-500 mt-2">{alerts.length} active alerts tracked</p>
-                        </div>
-                    </div>
-                    <div className="mt-4 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-600">Report Density:</span>
-                            <div className="flex items-center gap-1">
-                                <div className="w-8 h-4 bg-green-400 rounded"></div>
-                                <span className="text-xs text-gray-500">Low</span>
-                                <div className="w-8 h-4 bg-yellow-400 rounded mx-1"></div>
-                                <span className="text-xs text-gray-500">Medium</span>
-                                <div className="w-8 h-4 bg-orange-500 rounded ml-1"></div>
-                                <span className="text-xs text-gray-500">High</span>
-                                <div className="w-8 h-4 bg-red-500 rounded ml-1"></div>
-                                <span className="text-xs text-gray-500">Critical</span>
-                            </div>
-                        </div>
-                        <p className="text-sm text-gray-500">Showing active outbreak zones for selected filters</p>
-                    </div>
+                    <DashboardProvider>
+                        <ReportMap />
+                    </DashboardProvider>
                 </CardContent>
             </Card>
 
