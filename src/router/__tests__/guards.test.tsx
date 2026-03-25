@@ -39,9 +39,8 @@ const TestWrapper = ({
     <MemoryRouter initialEntries={initialEntries}>
       <Routes>
         <Route path="/login" element={<div>Login Page</div>} />
-        <Route path="/volunteer" element={<div>Volunteer Home</div>} />
-        <Route path="/supervisor" element={<div>Supervisor Home</div>} />
-        <Route path="/official" element={<div>Official Home</div>} />
+        <Route path="/reports" element={<div>Reports Home</div>} />
+        <Route path="/" element={<div>Dashboard Home</div>} />
         <Route path="/protected" element={children} />
       </Routes>
     </MemoryRouter>
@@ -203,7 +202,7 @@ describe('RoleGuard', () => {
 
     // Should redirect to volunteer home, not show supervisor content
     expect(screen.queryByText('Supervisor Content')).not.toBeInTheDocument();
-    expect(screen.getByText('Volunteer Home')).toBeInTheDocument();
+    expect(screen.getByText('Reports Home')).toBeInTheDocument();
   });
 
   it('redirects supervisor to supervisor home when accessing volunteer route', () => {
@@ -223,7 +222,7 @@ describe('RoleGuard', () => {
 
     // Should redirect to supervisor home
     expect(screen.queryByText('Volunteer Content')).not.toBeInTheDocument();
-    expect(screen.getByText('Supervisor Home')).toBeInTheDocument();
+    expect(screen.getByText('Dashboard Home')).toBeInTheDocument();
   });
 
   it('redirects official to official home when accessing wrong role route', () => {
@@ -243,6 +242,6 @@ describe('RoleGuard', () => {
 
     // Should redirect to official home
     expect(screen.queryByText('Volunteer Content')).not.toBeInTheDocument();
-    expect(screen.getByText('Official Home')).toBeInTheDocument();
+    expect(screen.getByText('Dashboard Home')).toBeInTheDocument();
   });
 });

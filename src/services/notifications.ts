@@ -21,7 +21,8 @@ const NOTIFICATIONS_COLLECTION = 'notifications';
  */
 export function subscribeToNotifications(
     userId: string,
-    callback: (notifications: AppNotification[]) => void
+    callback: (notifications: AppNotification[]) => void,
+    onError?: (error: Error) => void
 ): Unsubscribe {
     const q = query(
         collection(db, NOTIFICATIONS_COLLECTION),
@@ -38,7 +39,7 @@ export function subscribeToNotifications(
             createdAt: d.data().createdAt?.toDate() || new Date(),
         })) as AppNotification[];
         callback(notifications);
-    });
+    }, onError);
 }
 
 /**
@@ -46,7 +47,8 @@ export function subscribeToNotifications(
  */
 export function subscribeToUnreadCount(
     userId: string,
-    callback: (count: number) => void
+    callback: (count: number) => void,
+    onError?: (error: Error) => void
 ): Unsubscribe {
     const q = query(
         collection(db, NOTIFICATIONS_COLLECTION),
@@ -57,7 +59,7 @@ export function subscribeToUnreadCount(
 
     return onSnapshot(q, (snapshot) => {
         callback(snapshot.size);
-    });
+    }, onError);
 }
 
 /**
