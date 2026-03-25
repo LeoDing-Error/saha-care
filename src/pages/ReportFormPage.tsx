@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { toast } from 'sonner';
 import { Search, MapPin, AlertTriangle, CheckCircle, ChevronRight, Pencil } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -99,8 +100,6 @@ export function ReportFormPage() {
         longitude: '34.3050',
         region: userProfile?.region || 'Rafah',
     });
-    const [submitted, setSubmitted] = useState(false);
-    const [submittedCaseId, setSubmittedCaseId] = useState<string | null>(null);
     const [submitLoading, setSubmitLoading] = useState(false);
 
     const filteredDiseases = diseases.filter((d) =>
@@ -167,39 +166,15 @@ export function ReportFormPage() {
                 isImmediateReport: hasImmediateFlag,
                 personsCount: parseInt(personsAffected) || 1,
             });
-            setSubmittedCaseId(caseId);
-            setSubmitted(true);
+            toast.success(`Report submitted — Case ${caseId}`);
+            navigate('/');
         } catch (err) {
             console.error('Failed to submit report:', err);
+            toast.error('Failed to submit report. Please try again.');
         } finally {
             setSubmitLoading(false);
         }
     };
-
-    if (submitted) {
-        return (
-            <div className="max-w-2xl mx-auto py-12">
-                <Card className="border-2 border-green-500">
-                    <CardContent className="pt-12 pb-12 text-center">
-                        <div className="w-16 h-16 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-                            <CheckCircle className="h-10 w-10 text-green-600" />
-                        </div>
-                        <h2 className="text-2xl text-gray-900 mb-2">Report Submitted Successfully</h2>
-                        {submittedCaseId && (
-                            <p className="text-lg font-mono text-teal-700 mb-2">Case reference: {submittedCaseId}</p>
-                        )}
-                        <p className="text-gray-600 mb-6">Your disease report has been submitted and will sync when online.</p>
-                        <div className="flex gap-3 justify-center">
-                            <Button variant="outline" onClick={() => navigate('/reports')}>View Reports</Button>
-                            <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => {
-                                setStep(1); setSelectedDisease(null); setAnswers({}); setPersonsAffected('1'); setSubmittedCaseId(null); setSubmitted(false);
-                            }}>Submit Another</Button>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-        );
-    }
 
     return (
         <div className="max-w-4xl mx-auto space-y-6">
