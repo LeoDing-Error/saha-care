@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Filter, CheckCircle, X, AlertTriangle, MapPin, Thermometer, Users, Clock, MessageSquare } from 'lucide-react';
+import { Filter, CheckCircle, X, MapPin, Thermometer, Users, Clock, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
@@ -143,16 +143,6 @@ export function ReportsPage() {
                                     <div className="flex flex-wrap gap-1">
                                         {report.symptoms.map((symptom, idx) => (
                                             <Badge key={idx} variant="secondary" className="text-xs">{symptom}</Badge>
-                                        ))}
-                                    </div>
-                                )}
-                                {report.dangerSigns && report.dangerSigns.length > 0 && (
-                                    <div className="flex flex-wrap gap-1">
-                                        {report.dangerSigns.map((sign, idx) => (
-                                            <Badge key={idx} className="bg-red-100 text-red-700 hover:bg-red-100 text-xs">
-                                                <AlertTriangle className="h-3 w-3 mr-1" />
-                                                {sign}
-                                            </Badge>
                                         ))}
                                     </div>
                                 )}
