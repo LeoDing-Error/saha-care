@@ -271,7 +271,7 @@ export function ReportsPage() {
                             <Card>
                                 <CardContent className="py-12 text-center">
                                     <p className="text-gray-500 mb-4">You haven't submitted any reports yet</p>
-                                    <Button className="bg-blue-600 hover:bg-blue-700">Submit Report</Button>
+                                    <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => navigate('/report/new')}>Submit Report</Button>
                                 </CardContent>
                             </Card>
                         )}
