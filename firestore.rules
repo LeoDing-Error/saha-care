@@ -139,8 +139,7 @@ service cloud.firestore {
     match /conversations/{conversationId} {
       // Participants can read conversations they belong to
       allow read: if isApproved() &&
-        (resource.data.volunteerId == request.auth.uid ||
-         resource.data.supervisorId == request.auth.uid);
+        request.auth.uid in resource.data.participantIds;
 
       // Approved volunteers and supervisors can create conversations
       allow create: if isApproved() &&
