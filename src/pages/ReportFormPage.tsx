@@ -12,7 +12,8 @@ import { Alert, AlertDescription } from '../components/ui/alert';
 import { useAuth } from '../contexts/AuthContext';
 import { useCaseDefinitions } from '../hooks/useCaseDefinitions';
 import { createReport } from '../services/reports';
-import type { CaseDefinition, AssessmentQuestion } from '../types';
+import LocationPickerMap from '../components/maps/LocationPickerMap';
+import type { CaseDefinition, AssessmentQuestion, ReportLocation } from '../types';
 
 interface LocalDisease {
     id: string;
@@ -94,13 +95,20 @@ export function ReportFormPage() {
     const [answers, setAnswers] = useState<Record<string, { answer: boolean; value?: string }>>({});
     const [personsAffected, setPersonsAffected] = useState('1');
     const [locationData, setLocationData] = useState({
-        useCurrent: true,
         name: '',
         latitude: '31.2653',
         longitude: '34.3050',
         region: userProfile?.region || 'Rafah',
     });
     const [submitLoading, setSubmitLoading] = useState(false);
+
+    const handleMapLocationSelect = (location: ReportLocation) => {
+        setLocationData((prev) => ({
+            ...prev,
+            latitude: location.lat.toFixed(6),
+            longitude: location.lng.toFixed(6),
+        }));
+    };
 
     const filteredDiseases = diseases.filter((d) =>
         d.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -304,17 +312,13 @@ export function ReportFormPage() {
                     <Card>
                         <CardHeader><CardTitle>Location Information</CardTitle></CardHeader>
                         <CardContent className="space-y-4">
-                            <Button className="w-full" variant={locationData.useCurrent ? 'default' : 'outline'}
-                                onClick={() => setLocationData((prev) => ({ ...prev, useCurrent: true }))}>
-                                <MapPin className="h-4 w-4 mr-2" />Use Current Location
-                            </Button>
-                            <div className="bg-gray-100 rounded-lg h-64 flex items-center justify-center">
-                                <div className="text-center">
-                                    <MapPin className="h-12 w-12 text-teal-600 mx-auto mb-2" />
-                                    <p className="text-gray-600">Map Preview</p>
-                                    <p className="text-sm text-gray-500 mt-1">{locationData.latitude}, {locationData.longitude}</p>
-                                </div>
-                            </div>
+                            <LocationPickerMap
+                                initialPosition={{
+                                    lat: parseFloat(locationData.latitude),
+                                    lng: parseFloat(locationData.longitude),
+                                }}
+                                onLocationSelect={handleMapLocationSelect}
+                            />
                             <div className="space-y-3">
                                 <div>
                                     <Label htmlFor="location-name">Location Name (Optional)</Label>
