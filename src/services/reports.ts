@@ -6,9 +6,11 @@ import {
     query,
     where,
     orderBy,
+    limit,
     onSnapshot,
     serverTimestamp,
     type Unsubscribe,
+    type QueryConstraint,
 } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Report, ReportLocation, QuestionAnswer } from '../types';
@@ -122,6 +124,39 @@ export async function verifyReport(
         verifiedBy: verifierId,
         verificationNotes: notes || null,
         verifiedAt: serverTimestamp(),
+    });
+}
+
+/**
+ * Subscribe to reports for a specific disease (dashboard drill-down).
+ */
+export function subscribeToReportsByDisease(
+    disease: string,
+    region: string | undefined,
+    callback: (reports: Report[]) => void
+): Unsubscribe {
+    const constraints: QueryConstraint[] = [
+        where('disease', '==', disease),
+    ];
+    if (region) {
+        constraints.push(where('region', '==', region));
+    }
+    constraints.push(orderBy('createdAt', 'desc'));
+    constraints.push(limit(50));
+
+    const q = query(
+        collection(db, REPORTS_COLLECTION),
+        ...constraints
+    );
+
+    return onSnapshot(q, (snapshot) => {
+        const reports = snapshot.docs.map((d) => ({
+            id: d.id,
+            ...d.data(),
+            createdAt: d.data().createdAt?.toDate() || new Date(),
+            verifiedAt: d.data().verifiedAt?.toDate(),
+        })) as Report[];
+        callback(reports);
     });
 }
 
