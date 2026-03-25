@@ -87,7 +87,7 @@ export function GuidePage() {
                             const { icon: Icon, bg, color } = getDiseaseIcon(disease.disease);
                             const recommendations = disease.guidance.split(',').map((r) => r.trim()).filter(Boolean);
                             return (
-                                <Card key={disease.id} className="hover:shadow-lg transition-shadow">
+                                <Card key={disease.id} className="h-full hover:shadow-lg transition-shadow">
                                     <CardContent className="pt-6 flex-1 flex flex-col">
                                         <div className="flex items-start justify-between mb-4">
                                             <div className={`w-12 h-12 ${bg} rounded-xl flex items-center justify-center`}>
