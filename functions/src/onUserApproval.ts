@@ -2,6 +2,7 @@ import { onDocumentUpdated } from 'firebase-functions/v2/firestore';
 import { initializeApp, getApps } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import * as logger from 'firebase-functions/logger';
+import { createNotification } from './notifications';
 
 // Initialize Firebase Admin if not already initialized
 if (getApps().length === 0) {
@@ -118,6 +119,20 @@ export const onUserApproval = onDocumentUpdated(
         }
 
         await db.collection('auditLogs').add(auditLog);
+
+        // Notify the affected user
+        await createNotification({
+            userId,
+            type: 'user_status',
+            title: isApproval ? 'Account Approved' : 'Account Rejected',
+            description: isApproval
+                ? `Your ${after.role} account has been approved. You now have full access.`
+                : `Your ${after.role} account has been rejected.${after.rejectionReason ? ' Reason: ' + after.rejectionReason : ''}`,
+            priority: 'high',
+            sourceId: userId,
+            sourceCollection: 'users',
+            region: after.region,
+        });
 
         logger.info('User approval processed', {
             action: auditLog.action,

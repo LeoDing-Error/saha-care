@@ -2,6 +2,7 @@ import { onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { initializeApp, getApps } from 'firebase-admin/app';
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
 import * as logger from 'firebase-functions/logger';
+import { createNotification } from './notifications';
 
 if (getApps().length === 0) {
     initializeApp();
@@ -141,11 +142,27 @@ export const onReportWrite = onDocumentWritten(
         const { disease, region, hasDangerSigns, location } = after;
         const isNewReport = !before;
         const justVerified = before && before.status !== 'verified' && after.status === 'verified';
+        const justRejected = before && before.status !== 'rejected' && after.status === 'rejected';
 
         // Skip non-interesting updates
-        if (!isNewReport && !justVerified) return;
+        if (!isNewReport && !justVerified && !justRejected) return;
 
-        logger.info('Processing report', { reportId, disease, region, isNewReport, justVerified });
+        logger.info('Processing report', { reportId, disease, region, isNewReport, justVerified, justRejected });
+
+        // ── Notify reporter when report status changes ──
+        if ((justVerified || justRejected) && after.reporterId) {
+            const newStatus = justVerified ? 'verified' : 'rejected';
+            await createNotification({
+                userId: after.reporterId,
+                type: 'report_status',
+                title: `Report ${newStatus}`,
+                description: `Your ${disease} report has been ${newStatus} by a supervisor.`,
+                priority: 'medium',
+                sourceId: reportId,
+                sourceCollection: 'reports',
+                region: region || '',
+            });
+        }
 
         // ── Cross-disease danger-signs alert (new reports only) ──
         if (isNewReport && hasDangerSigns) {
