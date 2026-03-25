@@ -26,8 +26,8 @@ const __dirname = dirname(__filename);
 
 const TOTAL_REPORTS = 150;
 
-/** Volunteer user IDs — replace with real UIDs from your Firestore users collection */
-const VOLUNTEER_IDS = [
+/** Fallback volunteer user IDs used when no real approved volunteers are found in Firestore */
+const FALLBACK_VOLUNTEER_IDS = [
     { uid: 'volunteer-1', name: 'Amira Hassan', region: 'Gaza City' },
     { uid: 'volunteer-2', name: 'Youssef Khalil', region: 'North Gaza' },
     { uid: 'volunteer-3', name: 'Fatima Al-Masri', region: 'Deir al-Balah' },
@@ -38,7 +38,8 @@ const VOLUNTEER_IDS = [
     { uid: 'volunteer-8', name: 'Hana Qassem', region: 'Khan Younis' },
 ];
 
-const SUPERVISOR_IDS = [
+/** Fallback supervisor UIDs used when no real approved supervisors are found in Firestore */
+const FALLBACK_SUPERVISOR_IDS = [
     'supervisor-1',
     'supervisor-2',
     'supervisor-3',
@@ -75,6 +76,37 @@ const DISEASES = [
     { disease: 'Suspected Pertussis (Whooping Cough)', weight: 4 },
     { disease: 'Suspected Diphtheria', weight: 3 },
 ];
+
+// ─── Real User Fetching ───
+
+interface VolunteerEntry {
+    uid: string;
+    name: string;
+    region: string;
+}
+
+/**
+ * Fetches real approved volunteers and supervisors from Firestore.
+ * Returns fallback arrays if none are found.
+ */
+async function fetchRealUsers(db: Firestore): Promise<{ volunteers: VolunteerEntry[]; supervisors: string[] }> {
+    const usersCollection = db.collection('users');
+
+    const [volunteerSnap, supervisorSnap] = await Promise.all([
+        usersCollection.where('role', '==', 'volunteer').where('status', '==', 'approved').get(),
+        usersCollection.where('role', '==', 'supervisor').where('status', '==', 'approved').get(),
+    ]);
+
+    const volunteers: VolunteerEntry[] = volunteerSnap.docs.map((doc) => ({
+        uid: doc.id,
+        name: (doc.data().displayName as string) || 'Unknown',
+        region: (doc.data().region as string) || 'Gaza City',
+    }));
+
+    const supervisors: string[] = supervisorSnap.docs.map((doc) => doc.id);
+
+    return { volunteers, supervisors };
+}
 
 // ─── Helper functions ───
 
@@ -277,12 +309,12 @@ interface SeedReport {
     verificationNotes?: string;
 }
 
-function generateReports(count: number): SeedReport[] {
+function generateReports(count: number, volunteerIds: VolunteerEntry[], supervisorIds: string[]): SeedReport[] {
     const reports: SeedReport[] = [];
 
     for (let i = 0; i < count; i++) {
         const disease = weightedPick(DISEASES);
-        const volunteer = pick(VOLUNTEER_IDS);
+        const volunteer = pick(volunteerIds);
         const region = volunteer.region;
         const coords = REGION_COORDS[region];
         const locationNames = LOCATION_NAMES[region];
@@ -325,7 +357,7 @@ function generateReports(count: number): SeedReport[] {
 
         // Add verification metadata for verified/rejected reports
         if (status === 'verified' || status === 'rejected') {
-            report.verifiedBy = pick(SUPERVISOR_IDS);
+            report.verifiedBy = pick(supervisorIds);
             report.verifiedAt = new Date(createdAt.getTime() + randomInt(1, 48) * 60 * 60 * 1000); // 1-48h after creation
             if (status === 'rejected') {
                 report.verificationNotes = pick([
@@ -387,7 +419,30 @@ function initializeFirebaseAdmin(useEmulator: boolean): Firestore {
 
 async function seedReports(db: Firestore): Promise<void> {
     const coll = db.collection('reports');
-    const reports = generateReports(TOTAL_REPORTS);
+
+    // Fetch real users from Firestore, falling back to hardcoded arrays if none found
+    console.log('Fetching real users from Firestore...');
+    const { volunteers: realVolunteers, supervisors: realSupervisors } = await fetchRealUsers(db);
+
+    let volunteerIds: VolunteerEntry[];
+    if (realVolunteers.length > 0) {
+        console.log(`  Found ${realVolunteers.length} approved volunteer(s) — using real UIDs`);
+        volunteerIds = realVolunteers;
+    } else {
+        console.warn('  WARNING: No approved volunteers found in Firestore — using fallback IDs');
+        volunteerIds = FALLBACK_VOLUNTEER_IDS;
+    }
+
+    let supervisorIds: string[];
+    if (realSupervisors.length > 0) {
+        console.log(`  Found ${realSupervisors.length} approved supervisor(s) — using real UIDs`);
+        supervisorIds = realSupervisors;
+    } else {
+        console.warn('  WARNING: No approved supervisors found in Firestore — using fallback IDs');
+        supervisorIds = FALLBACK_SUPERVISOR_IDS;
+    }
+
+    const reports = generateReports(TOTAL_REPORTS, volunteerIds, supervisorIds);
 
     console.log(`\nSeeding ${reports.length} reports...\n`);
 

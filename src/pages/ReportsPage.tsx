@@ -95,7 +95,14 @@ export function ReportsPage() {
         navigate(`/messages?${params.toString()}`);
     };
 
-    const ReportCard = ({ report, showActions = true }: { report: Report; showActions?: boolean }) => (
+    const isFakeReporterId = (reporterId: string) => {
+        // Firebase UIDs are typically 28+ chars; placeholder IDs like "volunteer-1" are short
+        return !reporterId || reporterId.length < 20 || /^(volunteer|supervisor|user)-\d+$/.test(reporterId);
+    };
+
+    const ReportCard = ({ report, showActions = true }: { report: Report; showActions?: boolean }) => {
+        const fakeReporter = isFakeReporterId(report.reporterId);
+        return (
         <Card className="hover:shadow-md transition-shadow">
             <CardContent className="pt-6">
                 <div className="space-y-3">
@@ -172,10 +179,12 @@ export function ReportsPage() {
                         <Button
                             variant="outline"
                             size="sm"
-                            className="border-teal-500 text-teal-600 hover:bg-teal-50"
+                            className={`border-teal-500 text-teal-600 hover:bg-teal-50${fakeReporter ? ' opacity-50 cursor-not-allowed' : ''}`}
+                            disabled={fakeReporter}
+                            title={fakeReporter ? 'Cannot message — report created with test data' : ''}
                             onClick={(e) => {
                                 e.stopPropagation();
-                                handleMessage(report);
+                                if (!fakeReporter) handleMessage(report);
                             }}
                         >
                             <MessageSquare className="h-4 w-4 mr-2" />
@@ -197,7 +206,8 @@ export function ReportsPage() {
                 </div>
             </CardContent>
         </Card>
-    );
+        );
+    };
 
     return (
         <div className="space-y-6">
