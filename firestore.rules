@@ -116,5 +116,38 @@ service cloud.firestore {
       // Only Cloud Functions should write (no client writes)
       allow write: if false;
     }
+
+    // ── Conversations collection ──
+    match /conversations/{conversationId} {
+      // Participants can read conversations they belong to
+      allow read: if isApproved() &&
+        (resource.data.volunteerId == request.auth.uid ||
+         resource.data.supervisorId == request.auth.uid);
+
+      // Approved volunteers and supervisors can create conversations
+      allow create: if isApproved() &&
+        (hasRole('volunteer') || hasRole('supervisor')) &&
+        (request.resource.data.volunteerId == request.auth.uid ||
+         request.resource.data.supervisorId == request.auth.uid);
+
+      // Participants can update (for lastMessage, unreadCounts)
+      allow update: if isApproved() &&
+        (resource.data.volunteerId == request.auth.uid ||
+         resource.data.supervisorId == request.auth.uid);
+
+      // Messages subcollection
+      match /messages/{messageId} {
+        // Participants can read messages
+        allow read: if isApproved() &&
+          (get(/databases/$(database)/documents/conversations/$(conversationId)).data.volunteerId == request.auth.uid ||
+           get(/databases/$(database)/documents/conversations/$(conversationId)).data.supervisorId == request.auth.uid);
+
+        // Participants can create messages with their own senderId
+        allow create: if isApproved() &&
+          request.resource.data.senderId == request.auth.uid &&
+          (get(/databases/$(database)/documents/conversations/$(conversationId)).data.volunteerId == request.auth.uid ||
+           get(/databases/$(database)/documents/conversations/$(conversationId)).data.supervisorId == request.auth.uid);
+      }
+    }
   }
 }

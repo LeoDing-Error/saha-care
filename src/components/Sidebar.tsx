@@ -20,6 +20,7 @@ export function Sidebar() {
             { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
             { to: '/guide', icon: BookOpen, label: 'Guide' },
             { to: '/reports', icon: FileText, label: 'Reports' },
+            { to: '/messages', icon: MessageSquare, label: 'Messages' },
         );
     } else if (role === 'supervisor') {
         navItems.push(
