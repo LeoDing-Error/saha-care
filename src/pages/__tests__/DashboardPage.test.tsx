@@ -27,6 +27,11 @@ vi.mock('../../components/maps/ReportMap', () => ({
 
 vi.mock('../../contexts/DashboardContext', () => ({
     DashboardProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    useDashboard: () => ({
+        reports: [],
+        filters: { disease: 'all' },
+        setFilters: vi.fn(),
+    }),
 }));
 
 const makeAlert = (overrides: Partial<Alert> = {}): Alert => ({
