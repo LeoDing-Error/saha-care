@@ -21,11 +21,30 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
         return <Navigate to="/login" replace />;
     }
 
-    // Block users whose profile hasn't loaded yet
+    // Profile failed to load (Firestore error, missing document, or network issue)
     if (!userProfile) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div role="progressbar" className="w-10 h-10 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
+            <div className="flex items-center justify-center min-h-screen bg-gray-50 px-4">
+                <div className="max-w-sm w-full bg-white rounded-xl shadow-md p-8 text-center">
+                    <h2 className="text-xl font-semibold text-gray-900">Unable to Load Profile</h2>
+                    <div className="mt-4 rounded-lg bg-yellow-50 border border-yellow-200 px-4 py-3 text-sm text-yellow-800">
+                        Your profile could not be loaded. This may be a temporary network issue.
+                    </div>
+                    <div className="mt-6 flex flex-col gap-3">
+                        <button
+                            onClick={() => window.location.reload()}
+                            className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm"
+                        >
+                            Try Again
+                        </button>
+                        <button
+                            onClick={() => signOut()}
+                            className="text-sm text-gray-500 hover:text-gray-700 underline"
+                        >
+                            Sign out
+                        </button>
+                    </div>
+                </div>
             </div>
         );
     }
