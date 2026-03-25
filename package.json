@@ -13,6 +13,7 @@
         "generate:icons": "npx tsx scripts/generateIcons.ts",
         "seed:cases": "npx tsx scripts/seedCaseDefinitions.ts",
         "seed:reports": "npx tsx scripts/seedReports.ts",
+        "seed:gaza-alerts": "npx tsx scripts/seedGazaCityAlerts.ts",
         "test": "vitest",
         "test:run": "vitest run",
         "test:coverage": "vitest run --coverage"
