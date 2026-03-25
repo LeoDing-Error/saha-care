@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Filter, CheckCircle, X, AlertTriangle, MapPin, Thermometer, Users, Clock, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { findConversationByReport, createConversation } from '../services/conversations';
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
@@ -82,43 +82,17 @@ export function ReportsPage() {
         }
     };
 
-    const handleMessage = async (report: Report) => {
+    const handleMessage = (report: Report) => {
         if (!firebaseUser || !userProfile) return;
-        try {
-            const existing = await findConversationByReport(report.id);
-            if (existing) {
-                navigate(`/messages?conversationId=${existing.id}`);
-                return;
-            }
-            // Determine volunteer/supervisor fields
-            let volunteerId: string, volunteerName: string, supervisorId: string, supervisorName: string;
-            if (userProfile.role === 'supervisor') {
-                volunteerId = report.reporterId;
-                volunteerName = report.reporterName || 'Unknown';
-                supervisorId = firebaseUser.uid;
-                supervisorName = userProfile.displayName;
-            } else {
-                // Volunteer
-                volunteerId = firebaseUser.uid;
-                volunteerName = userProfile.displayName;
-                supervisorId = userProfile.supervisorId || '';
-                supervisorName = ''; // Will be resolved later
-            }
-            const newId = await createConversation({
-                reportId: report.id,
-                reportDisease: report.disease,
-                reportDate: report.createdAt,
-                volunteerId,
-                volunteerName,
-                supervisorId,
-                supervisorName,
-                participantIds: [volunteerId, supervisorId],
-                region: report.region,
-            });
-            navigate(`/messages?conversationId=${newId}`);
-        } catch (err) {
-            console.error('Failed to start conversation:', err);
-        }
+        const params = new URLSearchParams({
+            reportId: report.id,
+            reportDisease: report.disease,
+            reportDate: report.createdAt.toISOString(),
+            volunteerId: report.reporterId,
+            volunteerName: report.reporterName || 'Unknown',
+            region: report.region,
+        });
+        navigate(`/messages?${params.toString()}`);
     };
 
     const ReportCard = ({ report, showActions = true }: { report: Report; showActions?: boolean }) => (

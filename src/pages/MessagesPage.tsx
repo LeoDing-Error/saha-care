@@ -15,6 +15,7 @@ import {
     sendMessage,
     markConversationRead,
     getReport,
+    createConversation,
 } from '../services/conversations';
 import type { Conversation, Message, Report } from '../types';
 
@@ -66,6 +67,8 @@ export function MessagesPage() {
     const [showReportPanel, setShowReportPanel] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [reportDetail, setReportDetail] = useState<Report | null>(null);
+    const [conversationLoading, setConversationLoading] = useState(false);
+    const [conversationError, setConversationError] = useState<string | null>(null);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const conversationsLoadedRef = useRef(false);
@@ -108,6 +111,53 @@ export function MessagesPage() {
             conversationsLoadedRef.current = false;
         };
     }, [firebaseUser?.uid, searchParams]);
+
+    // Handle reportId URL param — find or create conversation
+    useEffect(() => {
+        const reportId = searchParams.get('reportId');
+        if (!reportId || loading || !firebaseUser?.uid || !userProfile) return;
+
+        // Check if conversation for this report already exists
+        const existing = conversations.find(c => c.reportId === reportId);
+        if (existing) {
+            setSelectedConversation(existing);
+            setConversationLoading(false);
+            setConversationError(null);
+            return;
+        }
+
+        // Don't create if already creating
+        if (conversationLoading) return;
+
+        const reportDisease = searchParams.get('reportDisease') || '';
+        const reportDateStr = searchParams.get('reportDate');
+        const volunteerId = searchParams.get('volunteerId') || '';
+        const volunteerName = searchParams.get('volunteerName') || 'Unknown';
+        const region = searchParams.get('region') || '';
+
+        setConversationLoading(true);
+        setConversationError(null);
+
+        createConversation({
+            reportId,
+            reportDisease,
+            reportDate: reportDateStr ? new Date(reportDateStr) : new Date(),
+            volunteerId,
+            volunteerName,
+            supervisorId: firebaseUser.uid,
+            supervisorName: userProfile.displayName,
+            participantIds: [volunteerId, firebaseUser.uid],
+            region,
+        })
+            .then(() => {
+                // onSnapshot will pick up the new conversation; the effect re-runs to select it
+            })
+            .catch((err) => {
+                console.error('Failed to create conversation:', err);
+                setConversationError('Failed to start conversation. Please try again.');
+                setConversationLoading(false);
+            });
+    }, [searchParams, loading, conversations, firebaseUser?.uid, userProfile, conversationLoading]);
 
     // Subscribe to messages when a conversation is selected
     useEffect(() => {
@@ -434,6 +484,22 @@ export function MessagesPage() {
                 </Card>
             ) : (
                 <>
+                    {conversationLoading && (
+                        <Card className="border-teal-200 bg-teal-50">
+                            <CardContent className="py-6 text-center">
+                                <p className="text-teal-700">Starting conversation...</p>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {conversationError && (
+                        <Card className="border-red-200 bg-red-50">
+                            <CardContent className="py-6 text-center">
+                                <p className="text-red-700">{conversationError}</p>
+                            </CardContent>
+                        </Card>
+                    )}
+
                     <div className="space-y-3">
                         {filteredConversations.map(conv => {
                             const unreadCount = conv.unreadCounts[firebaseUser?.uid || ''] || 0;
