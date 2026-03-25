@@ -1,4 +1,4 @@
-import { AlertTriangle, MapPin, Thermometer, Users, Clock } from 'lucide-react';
+import { MapPin, Thermometer, Users, Clock } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Badge } from '../ui/badge';
 import type { Report } from '../../types';
@@ -80,24 +80,6 @@ export function ReportDetailDialog({ report, open, onClose }: ReportDetailDialog
                                 {report.symptoms.map((symptom, idx) => (
                                     <Badge key={idx} variant="secondary" className="text-xs">
                                         {symptom}
-                                    </Badge>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Danger signs */}
-                    {report.dangerSigns && report.dangerSigns.length > 0 && (
-                        <div>
-                            <p className="text-xs font-medium text-gray-500 mb-1">Danger Signs</p>
-                            <div className="flex flex-wrap gap-1">
-                                {report.dangerSigns.map((sign, idx) => (
-                                    <Badge
-                                        key={idx}
-                                        className="bg-red-100 text-red-700 hover:bg-red-100 text-xs"
-                                    >
-                                        <AlertTriangle className="h-3 w-3 mr-1" />
-                                        {sign}
                                     </Badge>
                                 ))}
                             </div>
