@@ -101,6 +101,9 @@ export function MessagesPage() {
                     }
                 }
             }
+        }, (error) => {
+            console.error('Conversations subscription error:', error);
+            setLoading(false);
         });
 
         return () => {

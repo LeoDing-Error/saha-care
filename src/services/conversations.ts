@@ -26,7 +26,8 @@ const REPORTS_COLLECTION = 'reports';
  */
 export function subscribeToConversations(
     userId: string,
-    callback: (convs: Conversation[]) => void
+    callback: (convs: Conversation[]) => void,
+    onError?: (error: Error) => void
 ): Unsubscribe {
     const q = query(
         collection(db, CONVERSATIONS_COLLECTION),
@@ -43,6 +44,9 @@ export function subscribeToConversations(
             createdAt: d.data().createdAt?.toDate() || new Date(),
         })) as Conversation[];
         callback(convs);
+    }, (error) => {
+        console.error('Failed to load conversations:', error);
+        onError?.(error);
     });
 }
 

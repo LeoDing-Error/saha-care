@@ -99,6 +99,9 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
                 return sum + (conv.unreadCounts?.[userId] || 0);
             }, 0);
             setConversationUnread(total);
+        }, (error) => {
+            console.error('Conversation unread subscription error:', error);
+            setConversationUnread(0);
         });
 
         return unsub;
