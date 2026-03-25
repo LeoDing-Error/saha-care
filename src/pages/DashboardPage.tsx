@@ -120,6 +120,7 @@ export function DashboardPage() {
     }, [userProfile?.region, userProfile?.role, refreshKey]);
 
     const filteredAlerts = alerts.filter((alert) => {
+        if (alert.disease === 'Danger Signs (Any Disease)') return false;
         const windowLabel = formatWindowHours(alert.windowHours);
         const matchesTime =
             timeFilter === 'all' ||
