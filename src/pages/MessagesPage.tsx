@@ -77,6 +77,9 @@ export function MessagesPage() {
 
     const quickReplies = isVolunteer ? volunteerQuickReplies : supervisorQuickReplies;
 
+    const isFakeVolunteerId = (id: string) =>
+        !id || id.length < 20 || /^(volunteer|supervisor|user)-\d+$/.test(id);
+
     // Get the other party's name for a conversation
     const getOtherName = (conv: Conversation) =>
         isVolunteer ? conv.supervisorName : conv.volunteerName;
@@ -156,11 +159,16 @@ export function MessagesPage() {
                 // onSnapshot will pick up the new conversation; the effect re-runs to select it
             })
             .catch((err) => {
-                console.error('Failed to create conversation:', err);
+                console.error('Failed to create conversation:', err, { reportId, volunteerId, volunteerName });
                 // Show more specific error for permission issues
-                const message = err?.code === 'permission-denied'
-                    ? 'Permission denied. Firestore rules may need to be deployed.'
-                    : 'Failed to start conversation. Please try again.';
+                let message: string;
+                if (isFakeVolunteerId(volunteerId)) {
+                    message = 'Cannot message this volunteer — the report was created with test data. Re-seed reports with real user accounts.';
+                } else if (err?.code === 'permission-denied') {
+                    message = 'Permission denied. Firestore rules may need to be deployed.';
+                } else {
+                    message = 'Failed to start conversation. Please try again.';
+                }
                 setConversationError(message);
                 setConversationLoading(false);
             });
@@ -174,6 +182,8 @@ export function MessagesPage() {
 
         const unsubscribe = subscribeToMessages(selectedConversation.id, (msgs) => {
             setMessages(msgs);
+        }, (error) => {
+            console.error('Messages subscription error:', error);
         });
 
         return () => unsubscribe();

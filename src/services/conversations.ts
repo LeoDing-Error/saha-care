@@ -55,7 +55,8 @@ export function subscribeToConversations(
  */
 export function subscribeToMessages(
     conversationId: string,
-    callback: (msgs: Message[]) => void
+    callback: (msgs: Message[]) => void,
+    onError?: (error: Error) => void
 ): Unsubscribe {
     const q = query(
         collection(db, CONVERSATIONS_COLLECTION, conversationId, MESSAGES_SUBCOLLECTION),
@@ -69,6 +70,9 @@ export function subscribeToMessages(
             sentAt: d.data().sentAt?.toDate() || new Date(),
         })) as Message[];
         callback(msgs);
+    }, (error) => {
+        console.error('Failed to load messages:', error);
+        onError?.(error);
     });
 }
 
