@@ -68,6 +68,9 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
                 toast(n.title, { description: n.description });
             });
             prevIdsRef.current = new Set(notifs.map(n => n.id));
+        }, (error) => {
+            console.error('Notifications subscription error:', error);
+            setLoading(false);
         });
 
         return () => {
@@ -83,7 +86,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
             return;
         }
 
-        const unsub = subscribeToUnreadCount(userId, setUnreadCount);
+        const unsub = subscribeToUnreadCount(userId, setUnreadCount, (error) => {
+            console.error('Unread count subscription error:', error);
+            setUnreadCount(0);
+        });
         return unsub;
     }, [userId]);
 
