@@ -44,7 +44,7 @@ export function LoginPage() {
       <div className="w-full max-w-md">
         {/* Logo and Title */}
         <div className="text-center mb-8">
-          <img src="/logo.png" alt="SAHA-Care" className="w-16 h-16 rounded-2xl shadow-sm mb-4" />
+          <img src="/logo.png" alt="SAHA-Care" className="inline-block w-16 h-16 rounded-2xl shadow-sm mb-4" />
           <h1 className="text-3xl text-gray-900 mb-2">SAHA-Care</h1>
           <p className="text-gray-600">Humanitarian Health Network Access</p>
         </div>
