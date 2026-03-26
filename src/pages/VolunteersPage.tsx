@@ -224,12 +224,12 @@ export function VolunteersPage() {
                                                     </div>
                                                 </td>
                                                 <td className="py-4 px-2 text-sm text-gray-600">{v.email}</td>
-                                                <td className="py-4 px-2 text-sm text-gray-600">{(v as any).approvedAt?.toLocaleDateString() ?? '—'}</td>
+                                                <td className="py-4 px-2 text-sm text-gray-600">{v.approvedAt?.toLocaleDateString() ?? '—'}</td>
                                                 <td className="py-4 px-2 text-center"><Badge variant="secondary">—</Badge></td>
                                                 <td className="py-4 px-2">
                                                     <div className="flex items-center gap-2 text-sm text-gray-600">
                                                         <Activity className="h-4 w-4 text-green-600" />
-                                                        {(v as any).approvedAt ? formatDate((v as any).approvedAt) : '—'}
+                                                        {v.approvedAt ? formatDate(v.approvedAt) : '—'}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -273,8 +273,8 @@ export function VolunteersPage() {
                                                     </div>
                                                 </td>
                                                 <td className="py-4 px-2 text-sm text-gray-600">{v.email}</td>
-                                                <td className="py-4 px-2 text-sm text-gray-600">{(v as any).rejectedAt?.toLocaleDateString() ?? '—'}</td>
-                                                <td className="py-4 px-2 max-w-xs"><p className="text-sm text-gray-600 italic line-clamp-2">{(v as any).rejectionReason ?? '—'}</p></td>
+                                                <td className="py-4 px-2 text-sm text-gray-600">{v.rejectedAt?.toLocaleDateString() ?? '—'}</td>
+                                                <td className="py-4 px-2 max-w-xs"><p className="text-sm text-gray-600 italic line-clamp-2">{v.rejectionReason ?? '—'}</p></td>
                                                 <td className="py-4 px-2 text-right">
                                                     <Button variant="outline" size="sm" onClick={() => { if (confirm('Move this volunteer back to pending?')) reconsiderUser(v.uid); }}>
                                                         Reconsider
