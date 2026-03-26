@@ -113,6 +113,7 @@ export const mockAddDoc = vi.fn();
 export const mockUpdateDoc = vi.fn();
 export const mockOnSnapshot = vi.fn();
 export const mockServerTimestamp = vi.fn(() => new Date());
+export const mockDeleteField = vi.fn(() => '__delete__');
 
 // Mock Firebase modules
 vi.mock('firebase/auth', () => ({
@@ -143,6 +144,7 @@ vi.mock('firebase/firestore', () => ({
   limit: vi.fn(() => ({})),
   onSnapshot: (...args: unknown[]) => mockOnSnapshot(...args),
   serverTimestamp: () => mockServerTimestamp(),
+  deleteField: () => mockDeleteField(),
   Timestamp: { fromDate: vi.fn((d: Date) => d) },
 }));
 

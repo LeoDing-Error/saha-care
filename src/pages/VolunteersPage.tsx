@@ -10,7 +10,7 @@ import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { useAuth } from '../contexts/AuthContext';
-import { subscribeToPendingVolunteers, approveUser, rejectUser } from '../services/users';
+import { subscribeToPendingVolunteers, subscribeToActiveVolunteers, subscribeToRejectedVolunteers, approveUser, rejectUser, reconsiderUser } from '../services/users';
 import type { User } from '../types';
 
 function formatDate(date: Date): string {
@@ -26,6 +26,8 @@ function formatDate(date: Date): string {
 export function VolunteersPage() {
     const { userProfile, firebaseUser } = useAuth();
     const [pendingVolunteers, setPendingVolunteers] = useState<User[]>([]);
+    const [activeVolunteers, setActiveVolunteers] = useState<User[]>([]);
+    const [rejectedVolunteers, setRejectedVolunteers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [actionType, setActionType] = useState<'approve' | 'reject' | null>(null);
     const [selectedVolunteer, setSelectedVolunteer] = useState<User | null>(null);
@@ -37,6 +39,22 @@ export function VolunteersPage() {
         const unsub = subscribeToPendingVolunteers(userProfile.region, (users) => {
             setPendingVolunteers(users);
             setLoading(false);
+        });
+        return unsub;
+    }, [userProfile?.region]);
+
+    useEffect(() => {
+        if (!userProfile?.region) return;
+        const unsub = subscribeToActiveVolunteers(userProfile.region, (users) => {
+            setActiveVolunteers(users);
+        });
+        return unsub;
+    }, [userProfile?.region]);
+
+    useEffect(() => {
+        if (!userProfile?.region) return;
+        const unsub = subscribeToRejectedVolunteers(userProfile.region, (users) => {
+            setRejectedVolunteers(users);
         });
         return unsub;
     }, [userProfile?.region]);
@@ -70,17 +88,6 @@ export function VolunteersPage() {
             setRejectionReason('');
         }
     };
-
-    // Mock data for active/rejected tabs since we don't have those subscriptions
-    const activeVolunteers = [
-        { id: 'v3', name: 'Fatima Al-Masri', email: 'fatima.masri@email.com', approvedDate: '2026-03-10', reportsSubmitted: 24, lastActive: '2026-03-20' },
-        { id: 'v4', name: 'Omar Ibrahim', email: 'omar.ibrahim@email.com', approvedDate: '2026-03-08', reportsSubmitted: 31, lastActive: '2026-03-20' },
-        { id: 'v5', name: 'Layla Hassan', email: 'layla.hassan@email.com', approvedDate: '2026-03-05', reportsSubmitted: 18, lastActive: '2026-03-19' },
-    ];
-
-    const rejectedVolunteers = [
-        { id: 'v8', name: 'Ali Mahmoud', email: 'ali.m@email.com', rejectedDate: '2026-03-15', rejectionReason: 'Incomplete training documentation.' },
-    ];
 
     const stats = { active: activeVolunteers.length, pending: pendingVolunteers.length, rejected: rejectedVolunteers.length };
 
@@ -204,29 +211,33 @@ export function VolunteersPage() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {activeVolunteers.map((v) => (
-                                            <tr key={v.id} className="border-b last:border-0 hover:bg-gray-50">
+                                        {activeVolunteers.length > 0 ? activeVolunteers.map((v) => (
+                                            <tr key={v.uid} className="border-b last:border-0 hover:bg-gray-50">
                                                 <td className="py-4 px-2">
                                                     <div className="flex items-center gap-3">
                                                         <Avatar className="w-8 h-8">
                                                             <AvatarFallback className="bg-teal-100 text-teal-700 text-xs">
-                                                                {v.name.split(' ').map((n) => n[0]).join('')}
+                                                                {v.displayName.split(' ').map((n) => n[0]).join('')}
                                                             </AvatarFallback>
                                                         </Avatar>
-                                                        <span className="font-medium text-gray-900">{v.name}</span>
+                                                        <span className="font-medium text-gray-900">{v.displayName}</span>
                                                     </div>
                                                 </td>
                                                 <td className="py-4 px-2 text-sm text-gray-600">{v.email}</td>
-                                                <td className="py-4 px-2 text-sm text-gray-600">{new Date(v.approvedDate).toLocaleDateString()}</td>
-                                                <td className="py-4 px-2 text-center"><Badge variant="secondary">{v.reportsSubmitted}</Badge></td>
+                                                <td className="py-4 px-2 text-sm text-gray-600">{(v as any).approvedAt?.toLocaleDateString() ?? '—'}</td>
+                                                <td className="py-4 px-2 text-center"><Badge variant="secondary">—</Badge></td>
                                                 <td className="py-4 px-2">
                                                     <div className="flex items-center gap-2 text-sm text-gray-600">
                                                         <Activity className="h-4 w-4 text-green-600" />
-                                                        {formatDate(new Date(v.lastActive))}
+                                                        {(v as any).approvedAt ? formatDate((v as any).approvedAt) : '—'}
                                                     </div>
                                                 </td>
                                             </tr>
-                                        ))}
+                                        )) : (
+                                            <tr>
+                                                <td colSpan={5} className="py-8 text-center text-gray-500">No active volunteers yet.</td>
+                                            </tr>
+                                        )}
                                     </tbody>
                                 </table>
                             </div>
@@ -249,24 +260,32 @@ export function VolunteersPage() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {rejectedVolunteers.map((v) => (
-                                            <tr key={v.id} className="border-b last:border-0 hover:bg-gray-50">
+                                        {rejectedVolunteers.length > 0 ? rejectedVolunteers.map((v) => (
+                                            <tr key={v.uid} className="border-b last:border-0 hover:bg-gray-50">
                                                 <td className="py-4 px-2">
                                                     <div className="flex items-center gap-3">
                                                         <Avatar className="w-8 h-8">
                                                             <AvatarFallback className="bg-red-100 text-red-700 text-xs">
-                                                                {v.name.split(' ').map((n) => n[0]).join('')}
+                                                                {v.displayName.split(' ').map((n) => n[0]).join('')}
                                                             </AvatarFallback>
                                                         </Avatar>
-                                                        <span className="font-medium text-gray-900">{v.name}</span>
+                                                        <span className="font-medium text-gray-900">{v.displayName}</span>
                                                     </div>
                                                 </td>
                                                 <td className="py-4 px-2 text-sm text-gray-600">{v.email}</td>
-                                                <td className="py-4 px-2 text-sm text-gray-600">{new Date(v.rejectedDate).toLocaleDateString()}</td>
-                                                <td className="py-4 px-2 max-w-xs"><p className="text-sm text-gray-600 italic line-clamp-2">{v.rejectionReason}</p></td>
-                                                <td className="py-4 px-2 text-right"><Button variant="outline" size="sm">Reconsider</Button></td>
+                                                <td className="py-4 px-2 text-sm text-gray-600">{(v as any).rejectedAt?.toLocaleDateString() ?? '—'}</td>
+                                                <td className="py-4 px-2 max-w-xs"><p className="text-sm text-gray-600 italic line-clamp-2">{(v as any).rejectionReason ?? '—'}</p></td>
+                                                <td className="py-4 px-2 text-right">
+                                                    <Button variant="outline" size="sm" onClick={() => { if (confirm('Move this volunteer back to pending?')) reconsiderUser(v.uid); }}>
+                                                        Reconsider
+                                                    </Button>
+                                                </td>
                                             </tr>
-                                        ))}
+                                        )) : (
+                                            <tr>
+                                                <td colSpan={5} className="py-8 text-center text-gray-500">No rejected volunteers.</td>
+                                            </tr>
+                                        )}
                                     </tbody>
                                 </table>
                             </div>
