@@ -15,6 +15,7 @@
         "seed:reports": "npx tsx scripts/seedReports.ts",
         "seed:gaza-alerts": "npx tsx scripts/seedGazaCityAlerts.ts",
         "seed:users": "npx tsx scripts/seedVolunteers.ts",
+        "delete:alerts": "npx tsx scripts/deleteAlerts.ts",
         "test": "vitest",
         "test:run": "vitest run",
         "test:coverage": "vitest run --coverage"
