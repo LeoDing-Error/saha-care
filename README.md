@@ -36,12 +36,15 @@ One app serves three roles: **Volunteers** submit reports, **Supervisors** verif
 ## Core Features
 
 - **Offline-first data collection** -- Firestore offline cache + service worker. Reports created offline sync automatically on reconnect.
-- **Standardized case definitions** -- WHO-aligned symptom checklists for priority diseases
-- **Role-based access** -- Volunteer (reporting), Supervisor (verification + maps), Official (dashboard + alerts)
+- **Standardized case definitions** -- WHO-aligned symptom checklists for priority diseases with an in-app guide and quick-report actions
+- **Role-based access** -- Volunteer (reporting, messages, guide, notifications), Supervisor (verification, approval, maps, regional charts), Official (dashboard, alerts, approve supervisors)
 - **Supervisor verification** -- Review reports, verify/reject, view locations on map, approve volunteers
-- **Dashboard & maps** -- KPI cards, Recharts charts (disease trends, case counts), Leaflet map with clustered markers
+- **Dashboard & maps** -- KPI cards, Recharts charts (disease trends, case counts), Leaflet map with heatmap layers and clustered markers
 - **Automated alerts** -- Cloud Functions detect when case counts exceed thresholds per disease/region
+- **In-app messaging** -- Volunteer↔Supervisor conversations linked to reports with real-time updates
+- **Notifications** -- Real-time notification system for approvals, new messages, and outbreak alerts
 - **Self-registration with approval** -- Users register and enter a pending state until approved by a higher role
+- **Profile management** -- User profile page with role and region information
 - **Installable PWA** -- "Add to Home Screen" on Android Chrome, behaves like a native app
 
 ---
@@ -54,11 +57,12 @@ React PWA ──> Firestore (offline cache <-> auto-sync) ──> Firestore DB
                                                        Cloud Functions
                                                        (onWrite triggers)
                                                               |
-                                                       +--------------+
-                                                       |  alerts      |
-                                                       |  aggregates  |
-                                                       |  users       |
-                                                       +--------------+
+                                                       +-----------------+
+                                                       |  alerts         |
+                                                       |  aggregates     |
+                                                       |  users          |
+                                                       |  notifications  |
+                                                       +-----------------+
 Firebase Hosting ──> serves PWA (CDN + SSL)
 ```
 
@@ -69,13 +73,13 @@ See [`docs/architecture.mmd`](docs/architecture.mmd) for the full Mermaid diagra
 | Layer | Technology |
 |---|---|
 | Framework | React + Vite + TypeScript (PWA) |
-| UI | Material UI (MUI) |
+| UI | shadcn/ui + Tailwind CSS |
 | Maps | Leaflet + OpenStreetMap |
 | Charts | Recharts |
-| State | React Context + Firestore `onSnapshot` listeners |
+| State | React Context + Firestore `onSnapshot` listeners + local `useState` |
 | Database | Firestore (NoSQL, offline sync, real-time, security rules) |
 | Auth | Firebase Auth (email/password, custom claims for roles) |
-| Server-side | Cloud Functions (Node.js/TypeScript) -- 3 Firestore-triggered functions |
+| Server-side | Cloud Functions (Node.js/TypeScript) -- 6 Firestore-triggered functions |
 | Hosting | Firebase Hosting (CDN + SSL) |
 | Offline | Firestore offline cache + Vite PWA plugin (service worker) |
 | CI/CD | GitHub Actions -> Firebase Hosting |
@@ -86,8 +90,8 @@ See [`docs/architecture.mmd`](docs/architecture.mmd) for the full Mermaid diagra
 
 | Role | Access | Approval |
 |---|---|---|
-| **Volunteer** | Submit reports | Approved by supervisor |
-| **Supervisor** | Review/verify reports, approve volunteers, maps, regional charts | Approved by official |
+| **Volunteer** | Submit reports, messages, guide, notifications | Approved by supervisor |
+| **Supervisor** | Review/verify reports, approve volunteers, messages, maps, regional charts | Approved by official |
 | **Official** | Dashboard, aggregated data, maps, charts, approve supervisors | Pre-provisioned |
 
 ---
@@ -98,9 +102,12 @@ Server-side logic triggered by Firestore writes -- no HTTP endpoints needed.
 
 | Function | Trigger | Purpose |
 |---|---|---|
-| `onUserApproval` | `users/{uid}` onUpdate | Validates role escalation, enforces region scoping |
+| `onUserApproval` | `users/{uid}` onUpdate | Validates role escalation, enforces region scoping, prevents unauthorized approval |
 | `onReportWrite` | `reports/{id}` onCreate | Checks thresholds per disease/region, auto-creates alerts |
-| `aggregateCases` | `reports/{id}` onWrite | Maintains pre-computed rollups for dashboard performance |
+| `aggregateCases` | `reports/{id}` onWrite | Maintains pre-computed rollups in `aggregates` collection for dashboard performance |
+| `onAlertCreate` | `alerts/{id}` onCreate | Handles new alert creation side effects |
+| `onMessageCreate` | `conversations/{id}/messages/{msgId}` onCreate | Creates notification for recipient when a new message is sent |
+| `notifications` | (helper) | Shared notification utilities used by other functions |
 
 ---
 
@@ -110,11 +117,14 @@ See [`docs/erd.mmd`](docs/erd.mmd) for the full Mermaid ERD.
 
 **Firestore Collections:**
 
-- `users` -- uid, email, displayName, role, status, supervisorId, region
-- `reports` -- disease, symptoms, temp, location, status, reporterId, verifiedBy
-- `caseDefinitions` -- disease, symptoms, dangerSigns, guidance, threshold
+- `users` -- uid, email, displayName, role, status (pending/approved), supervisorId, region
+- `reports` -- disease, symptoms, temp, location (lat/lng + name), status (pending/verified/rejected), reporterId, verifiedBy
+- `caseDefinitions` -- disease, symptoms (JSON), dangerSigns, guidance, active flag
 - `alerts` -- disease, region, caseCount, threshold, severity, status
-- `aggregates` -- disease, region, period, caseCount, verifiedCount, lastUpdated
+- `conversations` -- reportId, reportDisease, reportDate, volunteerId, supervisorId, participantIds, region, lastMessage, lastMessageAt, unreadCounts
+  - `messages` (subcollection) -- senderId, senderName, senderRole, text, sentAt, read
+- `notifications` -- userId, type, title, body, read, createdAt, metadata
+- `aggregates` -- disease, region, period (day/week), caseCount, verifiedCount, lastUpdated
 
 ---
 
@@ -160,18 +170,36 @@ The app automatically connects to emulators when running on `localhost` in devel
 ## Repository Structure
 
 ```
-saha-care/
-├── src/                      # React PWA source
-│   ├── components/           # Shared UI components
+minnetonka/
+├── src/
+│   ├── components/
+│   │   ├── charts/           # AlertsPanel, CasesByDiseaseChart, CasesOverTimeChart, ChartWrapper, DashboardFilters, KPICards
+│   │   ├── maps/             # ReportMap, DiseaseMarker, HeatmapLayer, HeatmapLegend, LocationPickerMap, MapLegend, leafletSetup
+│   │   ├── reports/          # AlertReportsList, ReportDetailDialog
+│   │   ├── ui/               # shadcn/ui primitives (button, card, dialog, form, table, tabs, etc.)
+│   │   ├── Header.tsx        # App header bar
+│   │   ├── RootLayout.tsx    # Root layout wrapper
+│   │   └── Sidebar.tsx       # Navigation sidebar
+│   ├── constants/            # index, regions, roles
+│   ├── contexts/             # AuthContext, DashboardContext, NotificationContext (+ __tests__/)
+│   ├── hooks/                # useCaseDefinitions, useDashboard, useOfflineStatus
 │   ├── pages/
-│   │   ├── auth/             # Login, Register
-│   │   ├── volunteer/        # Report form, report list
-│   │   ├── supervisor/       # Verification, approval
-│   │   └── dashboard/        # Charts, maps, filtering
-│   ├── services/             # Firebase config, auth, firestore helpers
-│   ├── contexts/             # React Context providers (AuthContext)
-│   ├── hooks/                # Custom hooks (useReports, useAlerts, etc.)
-│   ├── types/                # TypeScript interfaces
+│   │   ├── auth/             # LoginPage, SignupPage
+│   │   ├── DashboardPage.tsx
+│   │   ├── GuidePage.tsx     # Case definition guide with report-case actions
+│   │   ├── MessagesPage.tsx  # Conversation list + chat interface
+│   │   ├── NotFoundPage.tsx
+│   │   ├── NotificationsPage.tsx
+│   │   ├── ProfilePage.tsx
+│   │   ├── ReportFormPage.tsx
+│   │   ├── ReportsPage.tsx
+│   │   ├── VolunteersPage.tsx
+│   │   └── __tests__/
+│   ├── router/               # AppRouter, ProtectedRoute, RoleGuard (+ __tests__/)
+│   ├── services/             # firebase, auth, reports, users, dashboard, conversations, notifications (+ __tests__/)
+│   ├── test/                 # Test setup + mocks (firebase mock)
+│   ├── types/                # user, report, alert, caseDefinition, conversation, notification, index
+│   ├── utils/                # location, formatTime, regionDetection, urgency (+ __tests__/)
 │   ├── App.tsx
 │   └── main.tsx
 ├── functions/                # Cloud Functions
@@ -179,14 +207,29 @@ saha-care/
 │   │   ├── onUserApproval.ts
 │   │   ├── onReportWrite.ts
 │   │   ├── aggregateCases.ts
+│   │   ├── onAlertCreate.ts
+│   │   ├── onMessageCreate.ts
+│   │   ├── notifications.ts
 │   │   └── index.ts
 │   ├── package.json
 │   └── tsconfig.json
-├── docs/                     # Architecture & ERD diagrams (Mermaid)
-├── public/                   # PWA manifest, icons
+├── docs/                     # Documentation + GitHub Pages Landing Site
+│   ├── FIREBASE_SETUP.md
+│   ├── MANUAL_TESTS.md
+│   ├── firestore-schema.md
+│   ├── plans/                # Sprint & planning docs
+│   ├── diagrams/             # Mermaid diagrams (architecture.mmd, erd.mmd)
+│   ├── index.html            # Landing page HTML
+│   ├── style.css             # Landing page styles
+│   └── main.js               # Landing page script
+├── public/                   # PWA icons (favicon, apple-touch, pwa-192/512, mask-icon)
+├── scripts/                  # seedCaseDefinitions, seedReports, seedGazaCityAlerts, generateIcons
+├── .github/workflows/        # deploy.yml — CI/CD pipeline
 ├── firestore.rules
+├── firestore.indexes.json
 ├── firebase.json
-└── vite.config.ts            # PWA plugin config
+├── vite.config.ts            # PWA plugin config
+└── vitest.config.ts          # Test config
 ```
 
 ---
