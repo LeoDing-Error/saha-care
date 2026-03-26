@@ -7,6 +7,7 @@ import {
     doc,
     updateDoc,
     serverTimestamp,
+    deleteField,
     type Unsubscribe,
 } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
@@ -152,5 +153,82 @@ export function subscribeToPendingCount(
     }, (error) => {
         console.error('subscribeToPendingCount error:', error);
         callback(0);
+    });
+}
+
+/**
+ * Subscribe to approved volunteers in a specific region.
+ * Used by supervisors to see currently active volunteers.
+ */
+export function subscribeToActiveVolunteers(
+    region: string,
+    callback: (users: User[]) => void
+): Unsubscribe {
+    const q = query(
+        collection(db, USERS_COLLECTION),
+        where('role', '==', 'volunteer'),
+        where('status', '==', 'approved'),
+        where('region', '==', region),
+        orderBy('createdAt', 'desc')
+    );
+
+    return onSnapshot(q, (snapshot) => {
+        const users = snapshot.docs.map((doc) => ({
+            ...doc.data(),
+            uid: doc.id,
+            createdAt: doc.data().createdAt?.toDate() || new Date(),
+            updatedAt: doc.data().updatedAt?.toDate() || new Date(),
+            approvedAt: doc.data().approvedAt?.toDate(),
+        })) as User[];
+        callback(users);
+    }, (error) => {
+        console.error('subscribeToActiveVolunteers error:', error);
+        callback([]);
+    });
+}
+
+/**
+ * Subscribe to rejected volunteers in a specific region.
+ * Used by supervisors to review previously rejected volunteers.
+ */
+export function subscribeToRejectedVolunteers(
+    region: string,
+    callback: (users: User[]) => void
+): Unsubscribe {
+    const q = query(
+        collection(db, USERS_COLLECTION),
+        where('role', '==', 'volunteer'),
+        where('status', '==', 'rejected'),
+        where('region', '==', region),
+        orderBy('createdAt', 'desc')
+    );
+
+    return onSnapshot(q, (snapshot) => {
+        const users = snapshot.docs.map((doc) => ({
+            ...doc.data(),
+            uid: doc.id,
+            createdAt: doc.data().createdAt?.toDate() || new Date(),
+            updatedAt: doc.data().updatedAt?.toDate() || new Date(),
+            rejectedAt: doc.data().rejectedAt?.toDate(),
+            rejectionReason: doc.data().rejectionReason,
+        })) as User[];
+        callback(users);
+    }, (error) => {
+        console.error('subscribeToRejectedVolunteers error:', error);
+        callback([]);
+    });
+}
+
+/**
+ * Move a rejected user back to pending so they can be reconsidered.
+ */
+export async function reconsiderUser(userId: string): Promise<void> {
+    const userRef = doc(db, USERS_COLLECTION, userId);
+    await updateDoc(userRef, {
+        status: 'pending',
+        updatedAt: serverTimestamp(),
+        rejectedBy: deleteField(),
+        rejectedAt: deleteField(),
+        rejectionReason: deleteField(),
     });
 }
