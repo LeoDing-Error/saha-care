@@ -81,7 +81,7 @@ jobs:
         run: npx firebase-tools deploy --only firestore:rules,firestore:indexes --project saha-care
 
       - name: Deploy Cloud Functions
-        run: npx firebase-tools deploy --only functions --project saha-care
+        run: npx firebase-tools deploy --only functions --project saha-care --force
 
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
