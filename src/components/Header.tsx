@@ -40,11 +40,7 @@ export function Header() {
         <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-[1001]">
             <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-teal-600 to-blue-600 rounded-lg flex items-center justify-center">
-                        <div className="w-6 h-6 bg-white rounded-sm flex items-center justify-center">
-                            <div className="w-3 h-3 bg-teal-600 rounded-full"></div>
-                        </div>
-                    </div>
+                    <img src="/logo.png" alt="SAHA-Care" className="w-10 h-10 rounded-lg" />
                     <div>
                         <h1 className="text-xl text-gray-900">SAHA-Care</h1>
                         <p className="text-sm text-gray-500">Disease Surveillance System</p>

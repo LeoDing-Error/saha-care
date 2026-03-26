@@ -83,9 +83,7 @@ export function SignupPage() {
         {/* Logo and Title */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-teal-600 rounded-xl flex items-center justify-center">
-              <Building2 className="w-7 h-7 text-white" />
-            </div>
+            <img src="/logo.png" alt="SAHA-Care" className="w-12 h-12 rounded-xl" />
             <span className="text-2xl font-semibold text-gray-900">SAHA-Care</span>
           </div>
           <h1 className="text-3xl text-gray-900 mb-2">Join the Network</h1>
