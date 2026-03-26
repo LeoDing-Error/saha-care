@@ -1,7 +1,9 @@
+import { useState, useEffect } from 'react';
 import { LayoutDashboard, BookOpen, FileText, MessageSquare, Users, PlusCircle, type LucideIcon } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { Button } from './ui/button';
 import { useAuth } from '../contexts/AuthContext';
+import { subscribeToActiveVolunteers } from '../services/users';
 
 interface NavItem {
     to: string;
@@ -12,6 +14,15 @@ interface NavItem {
 export function Sidebar() {
     const { userProfile } = useAuth();
     const role = userProfile?.role;
+    const [activeCount, setActiveCount] = useState(0);
+
+    useEffect(() => {
+        if (!userProfile?.region) return;
+        const unsubscribe = subscribeToActiveVolunteers(userProfile.region, (users) => {
+            setActiveCount(users.length);
+        });
+        return unsubscribe;
+    }, [userProfile?.region]);
 
     const navItems: NavItem[] = [];
 
@@ -87,7 +98,7 @@ export function Sidebar() {
                 <div className="text-sm text-teal-900">
                     {userProfile?.region || 'Unknown Region'}
                 </div>
-                <div className="mt-3 text-xs text-teal-600">12 Active Volunteers</div>
+                <div className="mt-3 text-xs text-teal-600">{`${activeCount} Active Volunteer${activeCount !== 1 ? 's' : ''}`}</div>
                 <div className="mt-1 w-full bg-teal-200 rounded-full h-1.5">
                     <div className="w-4/5 bg-teal-600 h-1.5 rounded-full"></div>
                 </div>
