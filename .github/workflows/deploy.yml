@@ -69,8 +69,8 @@ jobs:
           name: dist
           path: dist/
 
-      - name: Install Cloud Functions dependencies
-        run: cd functions && npm ci
+      - name: Install and build Cloud Functions
+        run: cd functions && npm ci && npm run build
 
       - name: Authenticate with Firebase
         run: |
