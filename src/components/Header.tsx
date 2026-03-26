@@ -101,7 +101,7 @@ export function Header() {
                                 </div>
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56">
+                        <DropdownMenuContent align="end" className="w-56 z-[1002]">
                             <DropdownMenuItem onClick={() => navigate('/profile')}>
                                 <User className="mr-2 h-4 w-4" />
                                 Profile Settings
