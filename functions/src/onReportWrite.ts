@@ -58,72 +58,75 @@ async function createAlertIfNeeded(
     clusterCenter?: { lat: number; lng: number },
     contributingReportIds?: string[]
 ): Promise<void> {
-    // Query existing active alerts for this disease+region
-    const existingAlerts = await db
-        .collection('alerts')
-        .where('disease', '==', disease)
-        .where('region', '==', region)
-        .where('status', '==', 'active')
-        .get();
+    await db.runTransaction(async (transaction) => {
+        // Query existing active alerts for this disease+region inside the transaction
+        const existingAlerts = await transaction.get(
+            db.collection('alerts')
+                .where('disease', '==', disease)
+                .where('region', '==', region)
+                .where('status', '==', 'active')
+        );
 
-    // For cluster alerts with clusterCenter, check proximity-based dedup
-    if (thresholdType === 'cluster' && clusterCenter) {
-        for (const doc of existingAlerts.docs) {
-            const data = doc.data();
-            if (data.thresholdType === 'cluster' && data.clusterCenter) {
-                const dist = haversineKm(
-                    clusterCenter.lat, clusterCenter.lng,
-                    data.clusterCenter.lat, data.clusterCenter.lng
-                );
-                if (dist <= 2) {
-                    // Update existing cluster alert if higher severity
-                    const newIdx = SEVERITY_ORDER.indexOf(severity as typeof SEVERITY_ORDER[number]);
-                    const existIdx = SEVERITY_ORDER.indexOf(data.severity);
-                    await doc.ref.update({
-                        caseCount,
-                        severity: newIdx > existIdx ? severity : data.severity,
-                        contributingReportIds: contributingReportIds || data.contributingReportIds,
-                    });
-                    logger.info('Updated existing cluster alert', { disease, region, caseCount });
-                    return;
+        // For cluster alerts with clusterCenter, check proximity-based dedup
+        if (thresholdType === 'cluster' && clusterCenter) {
+            for (const doc of existingAlerts.docs) {
+                const data = doc.data();
+                if (data.thresholdType === 'cluster' && data.clusterCenter) {
+                    const dist = haversineKm(
+                        clusterCenter.lat, clusterCenter.lng,
+                        data.clusterCenter.lat, data.clusterCenter.lng
+                    );
+                    if (dist <= 2) {
+                        // Update existing cluster alert if higher severity
+                        const newIdx = SEVERITY_ORDER.indexOf(severity as typeof SEVERITY_ORDER[number]);
+                        const existIdx = SEVERITY_ORDER.indexOf(data.severity);
+                        transaction.update(doc.ref, {
+                            caseCount,
+                            severity: newIdx > existIdx ? severity : data.severity,
+                            contributingReportIds: contributingReportIds || data.contributingReportIds,
+                        });
+                        logger.info('Updated existing cluster alert', { disease, region, caseCount });
+                        return;
+                    }
                 }
             }
+        } else {
+            // Immediate alerts: dedup by disease+region (existing behavior)
+            if (!existingAlerts.empty) {
+                const existingAlert = existingAlerts.docs[0];
+                const existingData = existingAlert.data();
+                const newIdx = SEVERITY_ORDER.indexOf(severity as typeof SEVERITY_ORDER[number]);
+                const existIdx = SEVERITY_ORDER.indexOf(existingData.severity);
+                transaction.update(existingAlert.ref, {
+                    caseCount,
+                    severity: newIdx > existIdx ? severity : existingData.severity,
+                    immediateAlert: existingData.immediateAlert || immediateAlert,
+                });
+                logger.info('Updated existing immediate alert', { disease, region, caseCount });
+                return;
+            }
         }
-    } else {
-        // Immediate alerts: dedup by disease+region (existing behavior)
-        if (!existingAlerts.empty) {
-            const existingAlert = existingAlerts.docs[0];
-            const existingData = existingAlert.data();
-            const newIdx = SEVERITY_ORDER.indexOf(severity as typeof SEVERITY_ORDER[number]);
-            const existIdx = SEVERITY_ORDER.indexOf(existingData.severity);
-            await existingAlert.ref.update({
-                caseCount,
-                severity: newIdx > existIdx ? severity : existingData.severity,
-                immediateAlert: existingData.immediateAlert || immediateAlert,
-            });
-            logger.info('Updated existing immediate alert', { disease, region, caseCount });
-            return;
-        }
-    }
 
-    // Create new alert
-    const alertDoc: Record<string, unknown> = {
-        disease,
-        region,
-        caseCount,
-        threshold: thresholdCount,
-        windowHours,
-        severity,
-        status: 'active',
-        immediateAlert,
-        thresholdType,
-        createdAt: FieldValue.serverTimestamp(),
-    };
-    if (clusterCenter) alertDoc.clusterCenter = clusterCenter;
-    if (contributingReportIds) alertDoc.contributingReportIds = contributingReportIds;
+        // Create new alert
+        const alertDoc: Record<string, unknown> = {
+            disease,
+            region,
+            caseCount,
+            threshold: thresholdCount,
+            windowHours,
+            severity,
+            status: 'active',
+            immediateAlert,
+            thresholdType,
+            createdAt: FieldValue.serverTimestamp(),
+        };
+        if (clusterCenter) alertDoc.clusterCenter = clusterCenter;
+        if (contributingReportIds) alertDoc.contributingReportIds = contributingReportIds;
 
-    await db.collection('alerts').add(alertDoc);
-    logger.info('Created new alert', { disease, region, severity, thresholdType });
+        const newAlertRef = db.collection('alerts').doc();
+        transaction.set(newAlertRef, alertDoc);
+        logger.info('Created new alert', { disease, region, severity, thresholdType });
+    });
 }
 
 /**
