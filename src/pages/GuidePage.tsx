@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Droplet, Activity, Bug, AlertTriangle, Wind, Info, Eye, Zap, type LucideIcon } from 'lucide-react';
+import { Droplet, Activity, Bug, AlertTriangle, Wind, Info, Eye, Zap, Search, type LucideIcon } from 'lucide-react';
+import { Input } from '../components/ui/input';
 import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
@@ -155,6 +157,16 @@ function getDiseaseIcon(disease: string) {
 
 export function GuidePage() {
     const navigate = useNavigate();
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const filteredDiseases = GUIDE_DISEASES.filter((d) => {
+        const term = searchTerm.toLowerCase();
+        return (
+            d.disease.toLowerCase().includes(term) ||
+            d.definition.toLowerCase().includes(term) ||
+            d.recommendations.some((r) => r.toLowerCase().includes(term))
+        );
+    });
 
     const handleReportCase = (entry: GuideDisease) => {
         navigate('/report/new', { state: { selectedDisease: { disease: entry.reportDisease } } });
@@ -193,8 +205,12 @@ export function GuidePage() {
             <div>
                 <h2 className="text-2xl text-gray-900 mb-2">Disease Surveillance Guide</h2>
                 <p className="text-gray-600 mb-6">Quick reference and reporting tool for field volunteers.</p>
+                <div className="relative mb-4">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input placeholder="Search by disease or symptom..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {GUIDE_DISEASES.map((entry) => {
+                    {filteredDiseases.map((entry) => {
                         const { icon: Icon, bg, color } = getDiseaseIcon(entry.disease);
                         return (
                             <Card key={entry.disease} className="hover:shadow-lg transition-shadow">
