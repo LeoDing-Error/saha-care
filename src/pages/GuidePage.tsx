@@ -3,8 +3,125 @@ import { Droplet, Activity, Bug, AlertTriangle, Wind, Info, Eye, Zap, type Lucid
 import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
-import { useCaseDefinitions } from '../hooks/useCaseDefinitions';
-import type { CaseDefinition } from '../types';
+
+interface GuideDisease {
+    disease: string;
+    definition: string;
+    recommendations: string[];
+    prioritySurveillance: boolean;
+    reportDisease: string;
+}
+
+const GUIDE_DISEASES: GuideDisease[] = [
+    {
+        disease: 'Acute Watery Diarrhea',
+        definition: '3 or more loose or watery stools in one day, with no blood.',
+        recommendations: [
+            'Give ORS after each loose stool (children under 2: 50–100 ml, children 2–10: 100–200 ml, adults: 200–250 ml).',
+            'See a doctor if diarrhea lasts more than 3 days, blood appears in stool, or person cannot keep fluids down.',
+        ],
+        prioritySurveillance: true,
+        reportDisease: 'Acute Watery Diarrhea',
+    },
+    {
+        disease: 'Acute Bloody Diarrhea',
+        definition: 'Loose stools with visible blood.',
+        recommendations: [
+            'See a doctor right away.',
+            'Give ORS if available.',
+        ],
+        prioritySurveillance: true,
+        reportDisease: 'Acute Bloody Diarrhea',
+    },
+    {
+        disease: 'Severe Acute Respiratory Infection (SARI)',
+        definition: 'Fever with cough and trouble breathing.',
+        recommendations: [
+            'See a doctor right away.',
+            'Keep the person sitting upright to help with breathing.',
+            'Offer small sips of water.',
+        ],
+        prioritySurveillance: true,
+        reportDisease: 'Severe Acute Respiratory Infection (SARI)',
+    },
+    {
+        disease: 'Suspected Measles',
+        definition: 'Fever with a red rash, plus cough, runny nose, or red eyes.',
+        recommendations: [
+            'Keep the person away from others (very contagious — stay isolated for 4 days after rash starts).',
+            'Give Vitamin A if available.',
+            'Drink plenty of fluids.',
+            'Gently clean eyes with a damp cloth.',
+            'See a doctor if breathing gets difficult, person cannot drink, or rash gets worse.',
+        ],
+        prioritySurveillance: true,
+        reportDisease: 'Suspected Measles',
+    },
+    {
+        disease: 'Chickenpox (Varicella)',
+        definition: 'Itchy blisters filled with fluid, fever, and headache.',
+        recommendations: [
+            'Keep the person away from others until blisters have dried and crusted (about 5–7 days).',
+            'Drink plenty of fluids.',
+            'Use a cool damp cloth on blisters to ease itching.',
+            'Give paracetamol for fever if available.',
+            'See a doctor if blisters look infected (red, swollen, or have pus).',
+        ],
+        prioritySurveillance: false,
+        reportDisease: 'Chickenpox (Varicella)',
+    },
+    {
+        disease: 'Acute Jaundice Syndrome',
+        definition: 'Yellow color in the eyes or skin.',
+        recommendations: [
+            'See a doctor right away.',
+            'Rest and drink plenty of fluids.',
+        ],
+        prioritySurveillance: true,
+        reportDisease: 'Acute Jaundice Syndrome',
+    },
+    {
+        disease: 'Suspected Leishmaniasis',
+        definition: 'Skin sores that do not heal, usually not painful.',
+        recommendations: [
+            'See a doctor if sores have not healed after 2 weeks.',
+            'Cover sores with a clean bandage and keep them clean.',
+        ],
+        prioritySurveillance: false,
+        reportDisease: 'Suspected Leishmaniasis',
+    },
+    {
+        disease: 'Acute Flaccid Paralysis (AFP)',
+        definition: 'Sudden weakness or limpness in one or more arms or legs in a child under 15.',
+        recommendations: [
+            'See a doctor right away.',
+        ],
+        prioritySurveillance: true,
+        reportDisease: 'Acute Flaccid Paralysis (AFP)',
+    },
+    {
+        disease: 'Suspected Pertussis (Whooping Cough)',
+        definition: 'Severe coughing fits lasting 2 or more weeks; person may vomit after coughing or make a "whoop" sound when breathing in.',
+        recommendations: [
+            'See a doctor, especially for babies under 6 months.',
+            'Keep the person away from other children.',
+            'Make sure they drink enough fluids.',
+        ],
+        prioritySurveillance: false,
+        reportDisease: 'Suspected Pertussis (Whooping Cough)',
+    },
+    {
+        disease: 'Suspected Diphtheria',
+        definition: 'Sore throat, fever, thick gray patch in the throat, swollen neck, and trouble breathing or swallowing.',
+        recommendations: [
+            'See a doctor right away.',
+            'Keep the person away from others.',
+            'This is an emergency if breathing is blocked.',
+        ],
+        prioritySurveillance: true,
+        reportDisease: 'Suspected Diphtheria',
+    },
+];
 
 const protocolSteps = [
     { number: '01', title: 'Identify', description: 'Cross-check patient symptoms with the case definitions below.' },
@@ -38,10 +155,9 @@ function getDiseaseIcon(disease: string) {
 
 export function GuidePage() {
     const navigate = useNavigate();
-    const { definitions, loading } = useCaseDefinitions();
 
-    const handleReportCase = (disease: CaseDefinition) => {
-        navigate('/report/new', { state: { selectedDisease: disease } });
+    const handleReportCase = (entry: GuideDisease) => {
+        navigate('/report/new', { state: { selectedDisease: { disease: entry.reportDisease } } });
     };
 
     return (
@@ -77,52 +193,45 @@ export function GuidePage() {
             <div>
                 <h2 className="text-2xl text-gray-900 mb-2">Disease Surveillance Guide</h2>
                 <p className="text-gray-600 mb-6">Quick reference and reporting tool for field volunteers.</p>
-                {loading ? (
-                    <div className="text-center py-8 text-gray-500">Loading disease definitions...</div>
-                ) : definitions.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">No disease definitions available.</div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {definitions.map((disease) => {
-                            const { icon: Icon, bg, color } = getDiseaseIcon(disease.disease);
-                            const recommendations = disease.guidance.split(',').map((r) => r.trim()).filter(Boolean);
-                            return (
-                                <Card key={disease.id} className="hover:shadow-lg transition-shadow">
-                                    <CardContent className="pt-6 flex-1 flex flex-col">
-                                        <div className="flex items-start justify-between mb-4">
-                                            <div className={`w-12 h-12 ${bg} rounded-xl flex items-center justify-center`}>
-                                                <Icon className={`w-6 h-6 ${color}`} />
-                                            </div>
-                                            {disease.prioritySurveillance && (
-                                                <Badge variant="outline" className="bg-red-100 text-red-700 border-red-200 text-xs px-2 py-0.5">HIGH PRIORITY</Badge>
-                                            )}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {GUIDE_DISEASES.map((entry) => {
+                        const { icon: Icon, bg, color } = getDiseaseIcon(entry.disease);
+                        return (
+                            <Card key={entry.disease} className="hover:shadow-lg transition-shadow">
+                                <CardContent className="pt-6 flex-1 flex flex-col">
+                                    <div className="flex items-start justify-between mb-4">
+                                        <div className={`w-12 h-12 ${bg} rounded-xl flex items-center justify-center`}>
+                                            <Icon className={`w-6 h-6 ${color}`} />
                                         </div>
-                                        <h3 className="text-lg font-semibold text-gray-900 mb-4">{disease.disease}</h3>
-                                        <div className="mb-4">
-                                            <h4 className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-2">Case Definition</h4>
-                                            <p className="text-sm text-gray-700 leading-relaxed">{disease.definition}</p>
-                                        </div>
-                                        <div className="mb-6">
-                                            <h4 className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-2">Recommendations</h4>
-                                            <ul className="space-y-1">
-                                                {recommendations.map((rec, idx) => (
-                                                    <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
-                                                        <span className="w-1 h-1 bg-gray-400 rounded-full mt-2 flex-shrink-0"></span>
-                                                        <span>{rec}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                        <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-auto" onClick={() => handleReportCase(disease)}>
-                                            <Activity className="w-4 h-4 mr-2" />
-                                            REPORT CASE
-                                        </Button>
-                                    </CardContent>
-                                </Card>
-                            );
-                        })}
-                    </div>
-                )}
+                                        {entry.prioritySurveillance && (
+                                            <Badge variant="outline" className="bg-red-100 text-red-700 border-red-200 text-xs px-2 py-0.5">HIGH PRIORITY</Badge>
+                                        )}
+                                    </div>
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-4">{entry.disease}</h3>
+                                    <div className="mb-4">
+                                        <h4 className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-2">Case Definition</h4>
+                                        <p className="text-sm text-gray-700 leading-relaxed">{entry.definition}</p>
+                                    </div>
+                                    <div className="mb-6">
+                                        <h4 className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-2">Recommendations</h4>
+                                        <ul className="space-y-1">
+                                            {entry.recommendations.map((rec, idx) => (
+                                                <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
+                                                    <span className="w-1 h-1 bg-gray-400 rounded-full mt-2 flex-shrink-0"></span>
+                                                    <span>{rec}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                    <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-auto" onClick={() => handleReportCase(entry)}>
+                                        <Activity className="w-4 h-4 mr-2" />
+                                        REPORT CASE
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                        );
+                    })}
+                </div>
             </div>
         </div>
     );
