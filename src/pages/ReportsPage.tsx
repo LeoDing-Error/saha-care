@@ -16,6 +16,7 @@ import type { Report } from '../types';
 
 export function ReportsPage() {
     const { userProfile, firebaseUser } = useAuth();
+    const isVolunteer = userProfile?.role === 'volunteer';
     const [regionReports, setRegionReports] = useState<Report[]>([]);
     const [myReports, setMyReports] = useState<Report[]>([]);
     const [loading, setLoading] = useState(true);
@@ -28,13 +29,13 @@ export function ReportsPage() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (!userProfile?.region) return;
+        if (!userProfile?.region || isVolunteer) return;
         const unsub = subscribeToRegionReports(userProfile.region, (reports) => {
             setRegionReports(reports);
             setLoading(false);
         });
         return unsub;
-    }, [userProfile?.region]);
+    }, [userProfile?.region, isVolunteer]);
 
     useEffect(() => {
         if (!firebaseUser?.uid) return;
@@ -203,81 +204,97 @@ export function ReportsPage() {
         <div className="space-y-6">
             <div>
                 <h1 className="text-2xl text-gray-900">Reports</h1>
-                <p className="text-sm text-gray-500 mt-1">Review volunteer reports and view your submitted reports</p>
+                <p className="text-sm text-gray-500 mt-1">{isVolunteer ? 'View your submitted reports' : 'Review volunteer reports and view your submitted reports'}</p>
             </div>
 
-            <Tabs defaultValue="review" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="review" className="relative">
-                        Review Reports
-                        {pendingCount > 0 && <Badge className="ml-2 bg-orange-500">{pendingCount}</Badge>}
-                    </TabsTrigger>
-                    <TabsTrigger value="my-reports">My Reports</TabsTrigger>
-                </TabsList>
+            {isVolunteer ? (
+                <div className="space-y-4">
+                    {myReports.map((report) => (
+                        <ReportCard key={report.id} report={report} showActions={false} />
+                    ))}
+                    {myReports.length === 0 && (
+                        <Card>
+                            <CardContent className="py-12 text-center">
+                                <p className="text-gray-500 mb-4">You haven't submitted any reports yet</p>
+                                <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => navigate('/report/new')}>Submit Report</Button>
+                            </CardContent>
+                        </Card>
+                    )}
+                </div>
+            ) : (
+                <Tabs defaultValue="review" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="review" className="relative">
+                            Review Reports
+                            {pendingCount > 0 && <Badge className="ml-2 bg-orange-500">{pendingCount}</Badge>}
+                        </TabsTrigger>
+                        <TabsTrigger value="my-reports">My Reports</TabsTrigger>
+                    </TabsList>
 
-                <TabsContent value="review" className="space-y-4">
-                    <Card>
-                        <CardContent className="pt-6">
-                            <div className="flex items-center gap-4">
-                                <Filter className="h-5 w-5 text-gray-500" />
-                                <div className="flex gap-2 flex-1">
-                                    {(['all', 'pending', 'verified', 'rejected'] as const).map((status) => (
-                                        <Button key={status} variant={filterStatus === status ? 'default' : 'outline'} size="sm"
-                                            onClick={() => setFilterStatus(status)}
-                                            className={filterStatus === status ? 'bg-teal-600 hover:bg-teal-700' : ''}>
-                                            {status.charAt(0).toUpperCase() + status.slice(1)}
-                                            {status === 'pending' && pendingCount > 0 && <Badge className="ml-2 bg-orange-500">{pendingCount}</Badge>}
-                                        </Button>
-                                    ))}
+                    <TabsContent value="review" className="space-y-4">
+                        <Card>
+                            <CardContent className="pt-6">
+                                <div className="flex items-center gap-4">
+                                    <Filter className="h-5 w-5 text-gray-500" />
+                                    <div className="flex gap-2 flex-1">
+                                        {(['all', 'pending', 'verified', 'rejected'] as const).map((status) => (
+                                            <Button key={status} variant={filterStatus === status ? 'default' : 'outline'} size="sm"
+                                                onClick={() => setFilterStatus(status)}
+                                                className={filterStatus === status ? 'bg-teal-600 hover:bg-teal-700' : ''}>
+                                                {status.charAt(0).toUpperCase() + status.slice(1)}
+                                                {status === 'pending' && pendingCount > 0 && <Badge className="ml-2 bg-orange-500">{pendingCount}</Badge>}
+                                            </Button>
+                                        ))}
+                                    </div>
+                                    <Select value={sortBy} onValueChange={setSortBy}>
+                                        <SelectTrigger className="w-48">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="newest">Newest First</SelectItem>
+                                            <SelectItem value="oldest">Oldest First</SelectItem>
+                                            <SelectItem value="urgent">Most Urgent</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
-                                <Select value={sortBy} onValueChange={setSortBy}>
-                                    <SelectTrigger className="w-48">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="newest">Newest First</SelectItem>
-                                        <SelectItem value="oldest">Oldest First</SelectItem>
-                                        <SelectItem value="urgent">Most Urgent</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </CardContent>
-                    </Card>
+                            </CardContent>
+                        </Card>
 
-                    {loading ? (
-                        <div className="text-center py-8 text-gray-500">Loading reports...</div>
-                    ) : (
+                        {loading ? (
+                            <div className="text-center py-8 text-gray-500">Loading reports...</div>
+                        ) : (
+                            <div className="space-y-4">
+                                {sortedReports.map((report) => (
+                                    <ReportCard key={report.id} report={report} />
+                                ))}
+                                {sortedReports.length === 0 && (
+                                    <Card>
+                                        <CardContent className="py-12 text-center">
+                                            <p className="text-gray-500">No {filterStatus !== 'all' ? filterStatus : ''} reports found</p>
+                                        </CardContent>
+                                    </Card>
+                                )}
+                            </div>
+                        )}
+                    </TabsContent>
+
+                    <TabsContent value="my-reports" className="space-y-4">
                         <div className="space-y-4">
-                            {sortedReports.map((report) => (
-                                <ReportCard key={report.id} report={report} />
+                            {myReports.map((report) => (
+                                <ReportCard key={report.id} report={report} showActions={false} />
                             ))}
-                            {sortedReports.length === 0 && (
+                            {myReports.length === 0 && (
                                 <Card>
                                     <CardContent className="py-12 text-center">
-                                        <p className="text-gray-500">No {filterStatus !== 'all' ? filterStatus : ''} reports found</p>
+                                        <p className="text-gray-500 mb-4">You haven't submitted any reports yet</p>
+                                        <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => navigate('/report/new')}>Submit Report</Button>
                                     </CardContent>
                                 </Card>
                             )}
                         </div>
-                    )}
-                </TabsContent>
-
-                <TabsContent value="my-reports" className="space-y-4">
-                    <div className="space-y-4">
-                        {myReports.map((report) => (
-                            <ReportCard key={report.id} report={report} showActions={false} />
-                        ))}
-                        {myReports.length === 0 && (
-                            <Card>
-                                <CardContent className="py-12 text-center">
-                                    <p className="text-gray-500 mb-4">You haven't submitted any reports yet</p>
-                                    <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => navigate('/report/new')}>Submit Report</Button>
-                                </CardContent>
-                            </Card>
-                        )}
-                    </div>
-                </TabsContent>
-            </Tabs>
+                    </TabsContent>
+                </Tabs>
+            )}
 
             <Dialog open={actionType !== null} onOpenChange={() => setActionType(null)}>
                 <DialogContent>
