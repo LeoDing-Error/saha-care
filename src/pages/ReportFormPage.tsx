@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Search, MapPin, AlertTriangle, CheckCircle, ChevronRight, Pencil } from 'lucide-react';
@@ -101,6 +101,18 @@ export function ReportFormPage() {
         region: userProfile?.region || 'Rafah',
     });
     const [submitLoading, setSubmitLoading] = useState(false);
+
+    useEffect(() => {
+        if (preselectedDisease && !selectedDisease) {
+            const match = diseases.find(
+                (d) => d.id === preselectedDisease.id || d.name === preselectedDisease.disease
+            );
+            if (match) {
+                setSelectedDisease(match);
+                setStep(2);
+            }
+        }
+    }, [diseases]);
 
     const handleMapLocationSelect = (location: ReportLocation) => {
         setLocationData((prev) => ({
