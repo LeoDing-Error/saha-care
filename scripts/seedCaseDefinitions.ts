@@ -32,6 +32,7 @@ type QuestionCategory = 'core' | 'associated' | 'severity' | 'history';
 interface AssessmentQuestion {
     id: string;
     text: string;
+    shortLabel?: string;
     category: QuestionCategory;
     required: boolean;
     inputType: QuestionInputType;
@@ -95,6 +96,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'awd-q1',
                 text: 'Has the person had 3 or more loose/watery stools in the past 24 hours?',
+                shortLabel: '3+ watery stools/24h',
                 category: 'core',
                 required: true,
                 inputType: 'number',
@@ -107,6 +109,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'awd-q2',
                 text: 'Is there blood in the stool?',
+                shortLabel: 'Blood in stool',
                 category: 'core',
                 required: false,
                 inputType: 'none',
@@ -118,6 +121,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'awd-q3',
                 text: 'Is the person vomiting?',
+                shortLabel: 'Vomiting',
                 category: 'associated',
                 required: false,
                 inputType: 'none',
@@ -128,6 +132,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'awd-q4',
                 text: 'Can the person drink normally?',
+                shortLabel: 'Unable to drink',
                 category: 'severity',
                 required: false,
                 inputType: 'none',
@@ -138,6 +143,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'awd-q5',
                 text: 'Are they urinating less than usual?',
+                shortLabel: 'Reduced urination',
                 category: 'severity',
                 required: false,
                 inputType: 'none',
@@ -173,6 +179,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'abd-q1',
                 text: 'Is there visible blood in the diarrhea?',
+                shortLabel: 'Blood in diarrhea',
                 category: 'core',
                 required: true,
                 inputType: 'none',
@@ -183,6 +190,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'abd-q2',
                 text: 'How many days has it been since blood appeared?',
+                shortLabel: 'Duration of bloody diarrhea',
                 category: 'history',
                 required: false,
                 inputType: 'number',
@@ -194,6 +202,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'abd-q3',
                 text: 'Is the person having abdominal pain?',
+                shortLabel: 'Abdominal pain',
                 category: 'associated',
                 required: false,
                 inputType: 'none',
@@ -203,6 +212,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'abd-q4',
                 text: 'Is there fever?',
+                shortLabel: 'Fever',
                 category: 'associated',
                 required: false,
                 inputType: 'none',
@@ -212,6 +222,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'abd-q5',
                 text: 'Can the person drink normally?',
+                shortLabel: 'Unable to drink',
                 category: 'severity',
                 required: false,
                 inputType: 'none',
@@ -242,6 +253,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'sari-q1',
                 text: 'Does the person have fever?',
+                shortLabel: 'Fever',
                 category: 'core',
                 required: true,
                 inputType: 'none',
@@ -251,6 +263,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'sari-q2',
                 text: 'Do they have cough?',
+                shortLabel: 'Cough',
                 category: 'core',
                 required: true,
                 inputType: 'none',
@@ -260,6 +273,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'sari-q3',
                 text: 'Do they have difficulty breathing?',
+                shortLabel: 'Difficulty breathing',
                 category: 'core',
                 required: true,
                 inputType: 'none',
@@ -270,6 +284,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'sari-q4',
                 text: 'Are they breathing faster than normal?',
+                shortLabel: 'Rapid breathing',
                 category: 'severity',
                 required: false,
                 inputType: 'number',
@@ -282,6 +297,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'sari-q5',
                 text: 'Is their chest pulling in (retractions)?',
+                shortLabel: 'Chest retractions',
                 category: 'severity',
                 required: false,
                 inputType: 'none',
@@ -292,6 +308,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'sari-q6',
                 text: 'Can they speak in full sentences?',
+                shortLabel: 'Cannot speak full sentences',
                 category: 'severity',
                 required: false,
                 inputType: 'none',
@@ -302,6 +319,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'sari-q7',
                 text: 'Are their lips or face turning blue?',
+                shortLabel: 'Cyanosis (blue lips/face)',
                 category: 'severity',
                 required: false,
                 inputType: 'none',
@@ -333,6 +351,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'msl-q1',
                 text: 'Does the person have fever?',
+                shortLabel: 'Fever',
                 category: 'core',
                 required: true,
                 inputType: 'none',
@@ -342,6 +361,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'msl-q2',
                 text: 'Do they have a red rash all over the body?',
+                shortLabel: 'Generalized rash',
                 category: 'core',
                 required: true,
                 inputType: 'none',
@@ -352,6 +372,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'msl-q3',
                 text: 'Do they have cough?',
+                shortLabel: 'Cough',
                 category: 'associated',
                 required: false,
                 inputType: 'none',
@@ -361,6 +382,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'msl-q4',
                 text: 'Do they have runny nose?',
+                shortLabel: 'Runny nose',
                 category: 'associated',
                 required: false,
                 inputType: 'none',
@@ -370,6 +392,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'msl-q5',
                 text: 'Do they have red eyes?',
+                shortLabel: 'Red eyes',
                 category: 'associated',
                 required: false,
                 inputType: 'none',
@@ -379,6 +402,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'msl-q6',
                 text: 'Has the rash started on the face and moved down?',
+                shortLabel: 'Rash spreading face→down',
                 category: 'associated',
                 required: false,
                 inputType: 'none',
@@ -389,6 +413,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'msl-q7',
                 text: 'Is the person vaccinated against measles?',
+                shortLabel: 'Measles vaccination status',
                 category: 'history',
                 required: false,
                 inputType: 'none',
@@ -423,6 +448,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'cpx-q1',
                 text: 'Does the person have fever?',
+                shortLabel: 'Fever',
                 category: 'core',
                 required: true,
                 inputType: 'none',
@@ -432,6 +458,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'cpx-q2',
                 text: 'Do they have itchy spots that turned into blisters?',
+                shortLabel: 'Itchy blisters',
                 category: 'core',
                 required: true,
                 inputType: 'none',
@@ -441,6 +468,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'cpx-q3',
                 text: 'Do the blisters have fluid inside?',
+                shortLabel: 'Fluid-filled blisters',
                 category: 'core',
                 required: false,
                 inputType: 'none',
@@ -450,6 +478,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'cpx-q4',
                 text: 'Are the blisters in different stages (new spots, blisters, scabs)?',
+                shortLabel: 'Multi-stage lesions',
                 category: 'associated',
                 required: false,
                 inputType: 'none',
@@ -460,6 +489,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'cpx-q5',
                 text: 'Is the rash mostly on the face, chest, and back?',
+                shortLabel: 'Rash on face/chest/back',
                 category: 'associated',
                 required: false,
                 inputType: 'none',
@@ -469,6 +499,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'cpx-q6',
                 text: 'Is the person scratching intensely?',
+                shortLabel: 'Intense scratching',
                 category: 'severity',
                 required: false,
                 inputType: 'none',
@@ -500,6 +531,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'ajs-q1',
                 text: "Are the person's eyes yellow?",
+                shortLabel: 'Yellow eyes',
                 category: 'core',
                 required: true,
                 inputType: 'none',
@@ -510,6 +542,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'ajs-q2',
                 text: 'Is their skin yellow?',
+                shortLabel: 'Yellow skin',
                 category: 'core',
                 required: false,
                 inputType: 'none',
@@ -519,6 +552,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'ajs-q3',
                 text: 'Is their urine dark (like tea or cola)?',
+                shortLabel: 'Dark urine',
                 category: 'associated',
                 required: false,
                 inputType: 'none',
@@ -528,6 +562,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'ajs-q4',
                 text: 'Are their stools pale or clay-colored?',
+                shortLabel: 'Pale/clay stools',
                 category: 'associated',
                 required: false,
                 inputType: 'none',
@@ -537,6 +572,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'ajs-q5',
                 text: 'Do they have abdominal pain?',
+                shortLabel: 'Abdominal pain',
                 category: 'associated',
                 required: false,
                 inputType: 'none',
@@ -546,6 +582,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'ajs-q6',
                 text: 'Do they have fever?',
+                shortLabel: 'Fever',
                 category: 'associated',
                 required: false,
                 inputType: 'none',
@@ -555,6 +592,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'ajs-q7',
                 text: 'Have they been vomiting?',
+                shortLabel: 'Vomiting',
                 category: 'associated',
                 required: false,
                 inputType: 'none',
@@ -586,6 +624,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'lsh-q1',
                 text: "Does the person have a skin sore that won't heal?",
+                shortLabel: 'Non-healing skin sore',
                 category: 'core',
                 required: true,
                 inputType: 'none',
@@ -595,6 +634,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'lsh-q2',
                 text: 'How long has the sore been there?',
+                shortLabel: 'Sore duration',
                 category: 'history',
                 required: false,
                 inputType: 'number',
@@ -607,6 +647,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'lsh-q3',
                 text: 'Is the sore painless?',
+                shortLabel: 'Painless sore',
                 category: 'core',
                 required: false,
                 inputType: 'none',
@@ -617,6 +658,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'lsh-q4',
                 text: 'Is it on the face, arms, or legs?',
+                shortLabel: 'Sore on face/arms/legs',
                 category: 'associated',
                 required: false,
                 inputType: 'none',
@@ -627,6 +669,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'lsh-q5',
                 text: 'Does it have a raised edge and central crater?',
+                shortLabel: 'Raised edge with crater',
                 category: 'associated',
                 required: false,
                 inputType: 'none',
@@ -637,6 +680,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'lsh-q6',
                 text: 'Has the person been in areas with sandflies?',
+                shortLabel: 'Sandfly exposure',
                 category: 'history',
                 required: false,
                 inputType: 'none',
@@ -664,6 +708,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'afp-q1',
                 text: 'Is the person a child under 15 years?',
+                shortLabel: 'Patient age < 15',
                 category: 'core',
                 required: true,
                 inputType: 'none',
@@ -673,6 +718,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'afp-q2',
                 text: 'Did the weakness start suddenly?',
+                shortLabel: 'Sudden onset weakness',
                 category: 'core',
                 required: true,
                 inputType: 'none',
@@ -683,6 +729,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'afp-q3',
                 text: 'Is the affected limb floppy or limp (not stiff)?',
+                shortLabel: 'Flaccid (limp) limb',
                 category: 'core',
                 required: true,
                 inputType: 'none',
@@ -693,6 +740,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'afp-q4',
                 text: 'Is there fever at the start of weakness?',
+                shortLabel: 'Fever at onset',
                 category: 'associated',
                 required: false,
                 inputType: 'none',
@@ -702,6 +750,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'afp-q5',
                 text: 'Is there pain in the affected limb?',
+                shortLabel: 'Limb pain',
                 category: 'associated',
                 required: false,
                 inputType: 'none',
@@ -711,6 +760,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'afp-q6',
                 text: 'Has the child been vaccinated against polio?',
+                shortLabel: 'Polio vaccination status',
                 category: 'history',
                 required: false,
                 inputType: 'none',
@@ -739,6 +789,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'per-q1',
                 text: 'Has the person had a cough for 2 weeks or more?',
+                shortLabel: 'Cough ≥ 2 weeks',
                 category: 'core',
                 required: true,
                 inputType: 'number',
@@ -751,6 +802,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'per-q2',
                 text: 'Does the coughing come in sudden, uncontrollable fits (paroxysms)?',
+                shortLabel: 'Paroxysmal cough',
                 category: 'core',
                 required: true,
                 inputType: 'none',
@@ -761,6 +813,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'per-q3',
                 text: 'Does the person make a "whooping" sound when breathing in after coughing?',
+                shortLabel: 'Inspiratory whoop',
                 category: 'core',
                 required: false,
                 inputType: 'none',
@@ -771,6 +824,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'per-q4',
                 text: 'Does the person vomit immediately after coughing?',
+                shortLabel: 'Post-tussive vomiting',
                 category: 'associated',
                 required: false,
                 inputType: 'none',
@@ -781,6 +835,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'per-q5',
                 text: "Does the person's face turn red or purple during coughing fits?",
+                shortLabel: 'Facial color change during cough',
                 category: 'severity',
                 required: false,
                 inputType: 'none',
@@ -791,6 +846,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'per-q6',
                 text: 'Is the coughing worse at night?',
+                shortLabel: 'Nocturnal cough',
                 category: 'associated',
                 required: false,
                 inputType: 'none',
@@ -801,6 +857,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'per-q7',
                 text: 'Does the person have a fever?',
+                shortLabel: 'Fever',
                 category: 'associated',
                 required: false,
                 inputType: 'none',
@@ -811,6 +868,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'per-q8',
                 text: 'Is the person an infant under 6 months?',
+                shortLabel: 'Infant < 6 months',
                 category: 'severity',
                 required: false,
                 inputType: 'none',
@@ -821,6 +879,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'per-q9',
                 text: 'For infants only: Does the baby stop breathing or turn blue during/after coughing?',
+                shortLabel: 'Apnea/cyanosis (infant)',
                 category: 'severity',
                 required: false,
                 inputType: 'none',
@@ -831,6 +890,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'per-q10',
                 text: 'Has the person been vaccinated against pertussis (DTP)?',
+                shortLabel: 'DTP vaccination status',
                 category: 'history',
                 required: false,
                 inputType: 'none',
@@ -861,6 +921,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'dph-q1',
                 text: 'Does the person have a sore throat?',
+                shortLabel: 'Sore throat',
                 category: 'core',
                 required: true,
                 inputType: 'none',
@@ -870,6 +931,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'dph-q2',
                 text: 'Do they have a low-grade fever?',
+                shortLabel: 'Low-grade fever',
                 category: 'core',
                 required: false,
                 inputType: 'none',
@@ -879,6 +941,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'dph-q3',
                 text: 'Can you see a thick, grayish-white patch or membrane in their throat or on tonsils?',
+                shortLabel: 'Pharyngeal membrane',
                 category: 'core',
                 required: true,
                 inputType: 'none',
@@ -889,6 +952,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'dph-q4',
                 text: 'If you try to wipe it away, does it bleed?',
+                shortLabel: 'Membrane bleeds on removal',
                 category: 'core',
                 required: false,
                 inputType: 'none',
@@ -899,6 +963,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'dph-q5',
                 text: 'Does the person have swollen neck ("bull neck" appearance)?',
+                shortLabel: 'Bull neck swelling',
                 category: 'core',
                 required: false,
                 inputType: 'none',
@@ -909,6 +974,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'dph-q6',
                 text: 'Do they have difficulty breathing?',
+                shortLabel: 'Difficulty breathing',
                 category: 'severity',
                 required: false,
                 inputType: 'none',
@@ -919,6 +985,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'dph-q7',
                 text: 'Do they have difficulty swallowing?',
+                shortLabel: 'Difficulty swallowing',
                 category: 'severity',
                 required: false,
                 inputType: 'none',
@@ -929,6 +996,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'dph-q8',
                 text: 'Do they have a skin sore or ulcer that won\'t heal (grayish membrane on skin)?',
+                shortLabel: 'Non-healing skin ulcer with membrane',
                 category: 'associated',
                 required: false,
                 inputType: 'none',
@@ -939,6 +1007,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'dph-q9',
                 text: 'Is their voice hoarse or muffled?',
+                shortLabel: 'Hoarse/muffled voice',
                 category: 'associated',
                 required: false,
                 inputType: 'none',
@@ -949,6 +1018,7 @@ const CASE_DEFINITIONS: Omit<CaseDefinition, 'id'>[] = [
             {
                 id: 'dph-q10',
                 text: 'Has the person been vaccinated against diphtheria (DTP)?',
+                shortLabel: 'DTP vaccination status',
                 category: 'history',
                 required: false,
                 inputType: 'none',

@@ -20,7 +20,7 @@ interface LocalDisease {
     name: string;
     summary: string;
     priority: boolean;
-    questions: { id: string; text: string; isDangerSign: boolean; hasNumericInput?: boolean; numericLabel?: string; unit?: string }[];
+    questions: { id: string; text: string; shortLabel?: string; isDangerSign: boolean; hasNumericInput?: boolean; numericLabel?: string; unit?: string }[];
 }
 
 const fallbackDiseases: LocalDisease[] = [
@@ -66,6 +66,7 @@ function caseDefToLocal(def: CaseDefinition): LocalDisease {
         questions: def.questions.map((q: AssessmentQuestion) => ({
             id: q.id,
             text: q.text,
+            shortLabel: q.shortLabel,
             isDangerSign: q.isDangerSign,
             hasNumericInput: q.inputType === 'number',
             numericLabel: q.inputLabel,
@@ -140,14 +141,14 @@ export function ReportFormPage() {
         if (!selectedDisease) return [];
         return selectedDisease.questions
             .filter((q) => answers[q.id]?.answer && !q.isDangerSign)
-            .map((q) => q.text.replace('Does the patient have ', '').replace('?', ''));
+            .map((q) => q.shortLabel || q.text);
     };
 
     const getDetectedDangerSigns = () => {
         if (!selectedDisease) return [];
         return selectedDisease.questions
             .filter((q) => answers[q.id]?.answer && q.isDangerSign)
-            .map((q) => q.text.replace('Does the patient have ', '').replace('?', ''));
+            .map((q) => q.shortLabel || q.text);
     };
 
     const hasImmediateFlag = getDetectedDangerSigns().length > 0;
