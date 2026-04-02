@@ -19,6 +19,8 @@ export interface AssessmentQuestion {
     id: string;
     /** The Yes/No question text shown to the volunteer */
     text: string;
+    /** Concise label used for symptom badges in reports */
+    shortLabel?: string;
     /** Category grouping for UI organization */
     category: QuestionCategory;
     /** Whether a "Yes" answer is required for a suspected case */
