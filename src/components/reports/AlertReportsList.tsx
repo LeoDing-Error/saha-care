@@ -14,7 +14,8 @@ interface AlertReportsListProps {
 export function AlertReportsList({ alert }: AlertReportsListProps) {
     const [reports, setReports] = useState<Report[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+    const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
+    const [selectedReportSnapshot, setSelectedReportSnapshot] = useState<Report | null>(null);
 
     useEffect(() => {
         setLoading(true);
@@ -24,6 +25,10 @@ export function AlertReportsList({ alert }: AlertReportsListProps) {
         });
         return unsub;
     }, [alert.disease, alert.region]);
+
+    const selectedReport =
+        reports.find((report) => report.id === selectedReportId) ??
+        (selectedReportSnapshot?.id === selectedReportId ? selectedReportSnapshot : null);
 
     if (loading) {
         return (
@@ -86,7 +91,10 @@ export function AlertReportsList({ alert }: AlertReportsListProps) {
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => setSelectedReport(report)}
+                                    onClick={() => {
+                                        setSelectedReportId(report.id);
+                                        setSelectedReportSnapshot(report);
+                                    }}
                                 >
                                     <Eye className="h-4 w-4 mr-1" />
                                     View Report
@@ -99,8 +107,11 @@ export function AlertReportsList({ alert }: AlertReportsListProps) {
 
             <ReportDetailDialog
                 report={selectedReport}
-                open={selectedReport !== null}
-                onClose={() => setSelectedReport(null)}
+                open={selectedReportId !== null}
+                onClose={() => {
+                    setSelectedReportId(null);
+                    setSelectedReportSnapshot(null);
+                }}
             />
         </div>
     );

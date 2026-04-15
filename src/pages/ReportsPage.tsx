@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Filter, CheckCircle, X, MapPin, Thermometer, Users, Clock, MessageSquare } from 'lucide-react';
+import { Filter, CheckCircle, X, MapPin, Thermometer, Users, Clock, MessageSquare, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Textarea } from '../components/ui/textarea';
 import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { ReportDetailDialog } from '../components/reports/ReportDetailDialog';
 import { useAuth } from '../contexts/AuthContext';
 import { subscribeToRegionReports, subscribeToMyReports, verifyReport, rejectReport } from '../services/reports';
 import type { Report } from '../types';
@@ -23,6 +24,7 @@ export function ReportsPage() {
     const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'verified' | 'rejected'>('all');
     const [sortBy, setSortBy] = useState('newest');
     const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+    const [detailReportId, setDetailReportId] = useState<string | null>(null);
     const [actionType, setActionType] = useState<'verify' | 'reject' | null>(null);
     const [actionNotes, setActionNotes] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
@@ -57,6 +59,8 @@ export function ReportsPage() {
         if (sortBy === 'oldest') return a.createdAt.getTime() - b.createdAt.getTime();
         return (b.isImmediateReport ? 1 : 0) - (a.isImmediateReport ? 1 : 0);
     });
+
+    const detailReport = [...regionReports, ...myReports].find((report) => report.id === detailReportId) ?? null;
 
     const handleAction = (report: Report, type: 'verify' | 'reject') => {
         setSelectedReport(report);
@@ -167,6 +171,14 @@ export function ReportsPage() {
                         </div>
                     </div>
                     <div className="flex gap-2 mt-4">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setDetailReportId(report.id)}
+                        >
+                            <Eye className="h-4 w-4 mr-2" />
+                            View details
+                        </Button>
                         <Button
                             variant="outline"
                             size="sm"
@@ -330,6 +342,12 @@ export function ReportsPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <ReportDetailDialog
+                report={detailReport}
+                open={detailReportId !== null}
+                onClose={() => setDetailReportId(null)}
+            />
         </div>
     );
 }

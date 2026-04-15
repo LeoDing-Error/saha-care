@@ -1,4 +1,4 @@
-import { MapPin, Thermometer, Users, Clock } from 'lucide-react';
+import { CheckCircle2, Clock, MapPin, Thermometer, Users, XCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Badge } from '../ui/badge';
 import type { Report } from '../../types';
@@ -12,9 +12,11 @@ interface ReportDetailDialogProps {
 export function ReportDetailDialog({ report, open, onClose }: ReportDetailDialogProps) {
     if (!report) return null;
 
+    const sortedAnswers = Array.isArray(report.answers) ? report.answers : [];
+
     return (
         <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-            <DialogContent className="max-w-lg">
+            <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <span className="font-mono text-sm text-gray-500">
@@ -81,6 +83,64 @@ export function ReportDetailDialog({ report, open, onClose }: ReportDetailDialog
                                     <Badge key={idx} variant="secondary" className="text-xs">
                                         {symptom}
                                     </Badge>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Danger signs */}
+                    {report.dangerSigns && report.dangerSigns.length > 0 && (
+                        <div>
+                            <p className="text-xs font-medium text-gray-500 mb-1">Danger Signs</p>
+                            <div className="flex flex-wrap gap-1">
+                                {report.dangerSigns.map((sign, idx) => (
+                                    <Badge key={idx} className="bg-red-100 text-red-700 hover:bg-red-100">
+                                        {sign}
+                                    </Badge>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Structured assessment answers */}
+                    {sortedAnswers.length > 0 && (
+                        <div>
+                            <p className="text-xs font-medium text-gray-500 mb-2">Assessment Responses</p>
+                            <div className="space-y-2">
+                                {sortedAnswers.map((item) => (
+                                    <div
+                                        key={item.questionId}
+                                        className="rounded-lg border border-gray-200 p-3"
+                                    >
+                                        <div className="flex items-start justify-between gap-3">
+                                            <p className="text-sm text-gray-800">{item.questionText}</p>
+                                            <Badge
+                                                variant="outline"
+                                                className={
+                                                    item.answer
+                                                        ? 'border-green-600 text-green-700'
+                                                        : 'border-gray-300 text-gray-600'
+                                                }
+                                            >
+                                                {item.answer ? (
+                                                    <span className="flex items-center gap-1">
+                                                        <CheckCircle2 className="h-3.5 w-3.5" />
+                                                        Yes
+                                                    </span>
+                                                ) : (
+                                                    <span className="flex items-center gap-1">
+                                                        <XCircle className="h-3.5 w-3.5" />
+                                                        No
+                                                    </span>
+                                                )}
+                                            </Badge>
+                                        </div>
+                                        {typeof item.numericValue === 'number' && (
+                                            <p className="mt-2 text-sm text-gray-600">
+                                                Recorded value: <span className="font-medium text-gray-900">{item.numericValue}</span>
+                                            </p>
+                                        )}
+                                    </div>
                                 ))}
                             </div>
                         </div>
