@@ -66,6 +66,12 @@ export function ReportsPage() {
 
     const detailReport = [...regionReports, ...myReports].find((report) => report.id === detailReportId) ?? null;
 
+    useEffect(() => {
+        if (detailReportId && !detailReport) {
+            setDetailReportId(null);
+        }
+    }, [detailReportId, detailReport]);
+
     const handleAction = (report: Report, type: 'verify' | 'reject') => {
         setSelectedReport(report);
         setActionType(type);

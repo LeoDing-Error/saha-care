@@ -14,7 +14,7 @@ interface ReportDetailDialogProps {
 export function ReportDetailDialog({ report, questionLookup, open, onClose }: ReportDetailDialogProps) {
     if (!report) return null;
 
-    const sortedAnswers = Array.isArray(report.answers) ? report.answers : [];
+    const answers = Array.isArray(report.answers) ? report.answers : [];
     const { symptoms, dangerSigns } = getReportDisplayTags(report, questionLookup);
 
     return (
@@ -106,11 +106,11 @@ export function ReportDetailDialog({ report, questionLookup, open, onClose }: Re
                     )}
 
                     {/* Structured assessment answers */}
-                    {sortedAnswers.length > 0 && (
+                    {answers.length > 0 && (
                         <div>
                             <p className="text-xs font-medium text-gray-500 mb-2">Assessment Responses</p>
                             <div className="space-y-2">
-                                {sortedAnswers.map((item) => (
+                                {answers.map((item) => (
                                     <div
                                         key={item.questionId}
                                         className="rounded-lg border border-gray-200 p-3"
