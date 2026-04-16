@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { CaseDefinition, Report } from '../../types';
 import {
+    getAnswerDisplayLabel,
     buildDiseaseQuestionLookup,
     cleanQuestionTextToLabel,
     getReportDisplayTags,
@@ -105,25 +106,27 @@ describe('reportTags utilities', () => {
     });
 
     it('cleans legacy stored tags when answers are missing', () => {
+        const lookup = buildDiseaseQuestionLookup([makeCaseDefinition()]);
         const report = makeReport({
             answers: [],
             symptoms: ['Does the patient have severe vomiting?'],
             dangerSigns: ['Is there blood in stool?'],
         });
 
-        const tags = getReportDisplayTags(report);
+        const tags = getReportDisplayTags(report, lookup);
         expect(tags.symptoms).toEqual(['Have severe vomiting']);
         expect(tags.dangerSigns).toEqual(['Blood in stool']);
     });
 
     it('keeps overlapping unresolved tags in dangerSigns only', () => {
+        const lookup = buildDiseaseQuestionLookup([makeCaseDefinition()]);
         const report = makeReport({
             answers: [{ questionId: 'unknown-q1', questionText: 'Is there blood in stool?', answer: true }],
             symptoms: ['Is there blood in stool?'],
             dangerSigns: ['Is there blood in stool?'],
         });
 
-        const tags = getReportDisplayTags(report);
+        const tags = getReportDisplayTags(report, lookup);
         expect(tags.symptoms).toEqual([]);
         expect(tags.dangerSigns).toEqual(['Blood in stool']);
     });
@@ -133,5 +136,45 @@ describe('reportTags utilities', () => {
             'Affected limb floppy or limp (not stiff)'
         );
         expect(cleanQuestionTextToLabel('Can the patient drink normally?')).toBe('Drink normally');
+    });
+
+    it('falls back to global questionId mapping when disease name does not match', () => {
+        const lookup = buildDiseaseQuestionLookup([makeCaseDefinition()]);
+        const report = makeReport({
+            disease: 'Pertussis',
+            answers: [
+                { questionId: 'afp-q1', questionText: 'Is the affected limb floppy or limp (not stiff)?', answer: true },
+            ],
+            symptoms: ['Is the affected limb floppy or limp (not stiff)?'],
+        });
+
+        const tags = getReportDisplayTags(report, lookup);
+        expect(tags.symptoms).toEqual(['Floppy limb']);
+    });
+
+    it('returns concise answer label from shortLabel when available', () => {
+        const lookup = buildDiseaseQuestionLookup([makeCaseDefinition()]);
+
+        const label = getAnswerDisplayLabel(
+            'Acute Flaccid Paralysis',
+            { questionId: 'afp-q2', questionText: 'Can the patient drink normally?' },
+            lookup
+        );
+
+        expect(label).toBe('Unable to drink');
+    });
+
+    it('uses stored tags only when lookup metadata is unavailable', () => {
+        const report = makeReport({
+            answers: [
+                { questionId: 'afp-q2', questionText: 'Can the patient drink normally?', answer: true },
+            ],
+            symptoms: ['Can the patient drink normally?'],
+            dangerSigns: ['Unable to drink'],
+        });
+
+        const tags = getReportDisplayTags(report, { byDisease: {}, byQuestionId: {} });
+        expect(tags.symptoms).toEqual(['Can the patient drink normally?']);
+        expect(tags.dangerSigns).toEqual(['Unable to drink']);
     });
 });

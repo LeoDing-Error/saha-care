@@ -1,7 +1,7 @@
 import { CheckCircle2, Clock, MapPin, Thermometer, Users, XCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Badge } from '../ui/badge';
-import { getReportDisplayTags, type DiseaseQuestionLookup } from '../../utils/reportTags';
+import { getAnswerDisplayLabel, getReportDisplayTags, type DiseaseQuestionLookup } from '../../utils/reportTags';
 import type { Report } from '../../types';
 
 interface ReportDetailDialogProps {
@@ -116,7 +116,9 @@ export function ReportDetailDialog({ report, questionLookup, open, onClose }: Re
                                         className="rounded-lg border border-gray-200 p-3"
                                     >
                                         <div className="flex items-start justify-between gap-3">
-                                            <p className="text-sm text-gray-800">{item.questionText}</p>
+                                            <p className="text-sm text-gray-800">
+                                                {getAnswerDisplayLabel(report.disease, item, questionLookup)}
+                                            </p>
                                             <Badge
                                                 variant="outline"
                                                 className={
@@ -138,7 +140,7 @@ export function ReportDetailDialog({ report, questionLookup, open, onClose }: Re
                                                 )}
                                             </Badge>
                                         </div>
-                                        {typeof item.numericValue === 'number' && (
+                                        {item.answer && typeof item.numericValue === 'number' && (
                                             <p className="mt-2 text-sm text-gray-600">
                                                 Recorded value: <span className="font-medium text-gray-900">{item.numericValue}</span>
                                             </p>

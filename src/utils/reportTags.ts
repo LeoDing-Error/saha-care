@@ -5,7 +5,10 @@ interface QuestionTagMeta {
     isDangerSign: boolean;
 }
 
-export type DiseaseQuestionLookup = Record<string, Record<string, QuestionTagMeta>>;
+export interface DiseaseQuestionLookup {
+    byDisease: Record<string, Record<string, QuestionTagMeta>>;
+    byQuestionId: Record<string, QuestionTagMeta>;
+}
 
 export interface ReportDisplayTags {
     symptoms: string[];
@@ -58,28 +61,60 @@ function dedupeOrdered(items: string[]): string[] {
     return result;
 }
 
+function normalizeStoredTag(tag: string): string {
+    return tag.trim().replace(/\s+/g, ' ');
+}
+
+function getQuestionMeta(
+    questionId: string,
+    diseaseLookup: Record<string, QuestionTagMeta>,
+    globalLookup: Record<string, QuestionTagMeta>
+): QuestionTagMeta | undefined {
+    return diseaseLookup[questionId] ?? globalLookup[questionId];
+}
+
 export function buildDiseaseQuestionLookup(definitions: CaseDefinition[]): DiseaseQuestionLookup {
-    return definitions.reduce<DiseaseQuestionLookup>((acc, def) => {
-        const questionMap: Record<string, QuestionTagMeta> = {};
-        for (const question of def.questions) {
-            questionMap[question.id] = {
-                shortLabel: question.shortLabel,
-                isDangerSign: question.isDangerSign,
-            };
-        }
-        acc[normalizeDiseaseKey(def.disease)] = questionMap;
-        return acc;
-    }, {});
+    return definitions.reduce<DiseaseQuestionLookup>(
+        (acc, def) => {
+            const questionMap: Record<string, QuestionTagMeta> = {};
+            for (const question of def.questions) {
+                const meta = {
+                    shortLabel: question.shortLabel,
+                    isDangerSign: question.isDangerSign,
+                };
+                questionMap[question.id] = meta;
+                acc.byQuestionId[question.id] = meta;
+            }
+            acc.byDisease[normalizeDiseaseKey(def.disease)] = questionMap;
+            return acc;
+        },
+        { byDisease: {}, byQuestionId: {} }
+    );
 }
 
 export function getReportDisplayTags(
     report: Pick<Report, 'disease' | 'answers' | 'symptoms' | 'dangerSigns'>,
     lookup?: DiseaseQuestionLookup
 ): ReportDisplayTags {
-    const diseaseLookup = lookup?.[normalizeDiseaseKey(report.disease)] ?? {};
+    const diseaseLookup = lookup?.byDisease[normalizeDiseaseKey(report.disease)] ?? {};
+    const globalLookup = lookup?.byQuestionId ?? {};
 
-    const storedSymptoms = dedupeOrdered((report.symptoms ?? []).map(cleanStoredTag).filter(Boolean));
-    const storedDangerSigns = dedupeOrdered((report.dangerSigns ?? []).map(cleanStoredTag).filter(Boolean));
+    const storedRawSymptoms = dedupeOrdered((report.symptoms ?? []).map(normalizeStoredTag).filter(Boolean));
+    const storedRawDangerSigns = dedupeOrdered((report.dangerSigns ?? []).map(normalizeStoredTag).filter(Boolean));
+    const hasLookupMeta = Object.keys(globalLookup).length > 0;
+
+    // If lookup metadata is unavailable (offline first load, failed caseDefinitions read),
+    // prefer stored tags only to avoid contradictory relabeling.
+    if (!hasLookupMeta) {
+        const dangerSignSet = new Set(storedRawDangerSigns.map(normalizeText));
+        return {
+            symptoms: storedRawSymptoms.filter((tag) => !dangerSignSet.has(normalizeText(tag))),
+            dangerSigns: storedRawDangerSigns,
+        };
+    }
+
+    const storedSymptoms = dedupeOrdered(storedRawSymptoms.map(cleanStoredTag).filter(Boolean));
+    const storedDangerSigns = dedupeOrdered(storedRawDangerSigns.map(cleanStoredTag).filter(Boolean));
 
     const storedDangerSet = new Set(storedDangerSigns.map(normalizeText));
 
@@ -90,7 +125,7 @@ export function getReportDisplayTags(
     for (const answer of report.answers ?? []) {
         if (!answer.answer) continue;
 
-        const meta = diseaseLookup[answer.questionId];
+        const meta = getQuestionMeta(answer.questionId, diseaseLookup, globalLookup);
         const cleanedQuestionText = cleanQuestionTextToLabel(answer.questionText);
         const label = formatLabel(meta?.shortLabel || cleanedQuestionText);
         if (!label) continue;
@@ -132,4 +167,15 @@ export function getReportDisplayTags(
     );
 
     return { symptoms, dangerSigns };
+}
+
+export function getAnswerDisplayLabel(
+    disease: string,
+    answer: Pick<Report['answers'][number], 'questionId' | 'questionText'>,
+    lookup?: DiseaseQuestionLookup
+): string {
+    const diseaseLookup = lookup?.byDisease[normalizeDiseaseKey(disease)] ?? {};
+    const globalLookup = lookup?.byQuestionId ?? {};
+    const meta = getQuestionMeta(answer.questionId, diseaseLookup, globalLookup);
+    return formatLabel(meta?.shortLabel || cleanQuestionTextToLabel(answer.questionText));
 }
