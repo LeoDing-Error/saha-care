@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Eye } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '../ui/table';
+import { useCaseDefinitions } from '../../hooks/useCaseDefinitions';
 import { subscribeToReportsByDisease } from '../../services/reports';
 import { ReportDetailDialog } from './ReportDetailDialog';
+import { buildDiseaseQuestionLookup } from '../../utils/reportTags';
 import type { Alert, Report } from '../../types';
 
 interface AlertReportsListProps {
@@ -12,10 +14,12 @@ interface AlertReportsListProps {
 }
 
 export function AlertReportsList({ alert }: AlertReportsListProps) {
+    const { definitions } = useCaseDefinitions();
     const [reports, setReports] = useState<Report[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
     const [selectedReportSnapshot, setSelectedReportSnapshot] = useState<Report | null>(null);
+    const questionLookup = useMemo(() => buildDiseaseQuestionLookup(definitions), [definitions]);
 
     useEffect(() => {
         setLoading(true);
@@ -107,6 +111,7 @@ export function AlertReportsList({ alert }: AlertReportsListProps) {
 
             <ReportDetailDialog
                 report={selectedReport}
+                questionLookup={questionLookup}
                 open={selectedReportId !== null}
                 onClose={() => {
                     setSelectedReportId(null);

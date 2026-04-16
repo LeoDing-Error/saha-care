@@ -1,18 +1,21 @@
 import { CheckCircle2, Clock, MapPin, Thermometer, Users, XCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Badge } from '../ui/badge';
+import { getReportDisplayTags, type DiseaseQuestionLookup } from '../../utils/reportTags';
 import type { Report } from '../../types';
 
 interface ReportDetailDialogProps {
     report: Report | null;
+    questionLookup?: DiseaseQuestionLookup;
     open: boolean;
     onClose: () => void;
 }
 
-export function ReportDetailDialog({ report, open, onClose }: ReportDetailDialogProps) {
+export function ReportDetailDialog({ report, questionLookup, open, onClose }: ReportDetailDialogProps) {
     if (!report) return null;
 
     const sortedAnswers = Array.isArray(report.answers) ? report.answers : [];
+    const { symptoms, dangerSigns } = getReportDisplayTags(report, questionLookup);
 
     return (
         <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -75,11 +78,11 @@ export function ReportDetailDialog({ report, open, onClose }: ReportDetailDialog
                     </div>
 
                     {/* Symptoms */}
-                    {report.symptoms && report.symptoms.length > 0 && (
+                    {symptoms.length > 0 && (
                         <div>
                             <p className="text-xs font-medium text-gray-500 mb-1">Symptoms</p>
                             <div className="flex flex-wrap gap-1">
-                                {report.symptoms.map((symptom, idx) => (
+                                {symptoms.map((symptom, idx) => (
                                     <Badge key={idx} variant="secondary" className="text-xs">
                                         {symptom}
                                     </Badge>
@@ -89,11 +92,11 @@ export function ReportDetailDialog({ report, open, onClose }: ReportDetailDialog
                     )}
 
                     {/* Danger signs */}
-                    {report.dangerSigns && report.dangerSigns.length > 0 && (
+                    {dangerSigns.length > 0 && (
                         <div>
                             <p className="text-xs font-medium text-gray-500 mb-1">Danger Signs</p>
                             <div className="flex flex-wrap gap-1">
-                                {report.dangerSigns.map((sign, idx) => (
+                                {dangerSigns.map((sign, idx) => (
                                     <Badge key={idx} className="bg-red-100 text-red-700 hover:bg-red-100">
                                         {sign}
                                     </Badge>

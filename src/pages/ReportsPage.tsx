@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Filter, CheckCircle, X, MapPin, Thermometer, Users, Clock, MessageSquare, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -12,11 +12,14 @@ import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { ReportDetailDialog } from '../components/reports/ReportDetailDialog';
 import { useAuth } from '../contexts/AuthContext';
+import { useCaseDefinitions } from '../hooks/useCaseDefinitions';
 import { subscribeToRegionReports, subscribeToMyReports, verifyReport, rejectReport } from '../services/reports';
+import { buildDiseaseQuestionLookup, getReportDisplayTags } from '../utils/reportTags';
 import type { Report } from '../types';
 
 export function ReportsPage() {
     const { userProfile, firebaseUser } = useAuth();
+    const { definitions } = useCaseDefinitions();
     const isVolunteer = userProfile?.role === 'volunteer';
     const [regionReports, setRegionReports] = useState<Report[]>([]);
     const [myReports, setMyReports] = useState<Report[]>([]);
@@ -29,6 +32,7 @@ export function ReportsPage() {
     const [actionNotes, setActionNotes] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
     const navigate = useNavigate();
+    const questionLookup = useMemo(() => buildDiseaseQuestionLookup(definitions), [definitions]);
 
     useEffect(() => {
         if (!userProfile?.region || isVolunteer) return;
@@ -107,6 +111,7 @@ export function ReportsPage() {
 
     const ReportCard = ({ report, showActions = true }: { report: Report; showActions?: boolean }) => {
         const fakeReporter = isFakeReporterId(report.reporterId);
+        const { symptoms: displaySymptoms } = getReportDisplayTags(report, questionLookup);
         return (
         <Card className="hover:shadow-md transition-shadow">
             <CardContent className="pt-6">
@@ -151,9 +156,9 @@ export function ReportsPage() {
                                 )}
                             </div>
                             <div className="space-y-2">
-                                {report.symptoms && report.symptoms.length > 0 && (
+                                {displaySymptoms.length > 0 && (
                                     <div className="flex flex-wrap gap-1">
-                                        {report.symptoms.map((symptom, idx) => (
+                                        {displaySymptoms.map((symptom, idx) => (
                                             <Badge key={idx} variant="secondary" className="text-xs">{symptom}</Badge>
                                         ))}
                                     </div>
@@ -345,6 +350,7 @@ export function ReportsPage() {
 
             <ReportDetailDialog
                 report={detailReport}
+                questionLookup={questionLookup}
                 open={detailReportId !== null}
                 onClose={() => setDetailReportId(null)}
             />
