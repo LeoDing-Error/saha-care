@@ -152,6 +152,24 @@ describe('reportTags utilities', () => {
         expect(tags.symptoms).toEqual(['Floppy limb']);
     });
 
+    it('maps short labels by question text when questionId is legacy/mismatched', () => {
+        const lookup = buildDiseaseQuestionLookup([makeCaseDefinition()]);
+        const report = makeReport({
+            disease: 'Acute Flaccid Paralysis',
+            answers: [
+                {
+                    questionId: 'legacy-q1',
+                    questionText: 'Is the affected limb floppy or limp (not stiff)?',
+                    answer: true,
+                },
+            ],
+            symptoms: ['Is the affected limb floppy or limp (not stiff)?'],
+        });
+
+        const tags = getReportDisplayTags(report, lookup);
+        expect(tags.symptoms).toEqual(['Floppy limb']);
+    });
+
     it('returns concise answer label from shortLabel when available', () => {
         const lookup = buildDiseaseQuestionLookup([makeCaseDefinition()]);
 
@@ -173,7 +191,7 @@ describe('reportTags utilities', () => {
             dangerSigns: ['Unable to drink'],
         });
 
-        const tags = getReportDisplayTags(report, { byDisease: {}, byQuestionId: {} });
+        const tags = getReportDisplayTags(report, { byDisease: {}, byQuestionId: {}, byQuestionText: {} });
         expect(tags.symptoms).toEqual(['Can the patient drink normally?']);
         expect(tags.dangerSigns).toEqual(['Unable to drink']);
     });
