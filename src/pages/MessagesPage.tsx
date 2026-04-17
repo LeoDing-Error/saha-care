@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search, Send, FileText, ArrowLeft, AlertTriangle, MapPin, Thermometer, Users, Clock } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback } from '../components/ui/avatar';
 import { Textarea } from '../components/ui/textarea';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { useAuth } from '../contexts/AuthContext';
+import { useCaseDefinitions } from '../hooks/useCaseDefinitions';
 import {
     subscribeToConversations,
     subscribeToMessages,
@@ -17,6 +18,7 @@ import {
     getReport,
     createConversation,
 } from '../services/conversations';
+import { buildDiseaseQuestionLookup, getReportDisplayTags } from '../utils/reportTags';
 import type { Conversation, Message, Report } from '../types';
 
 const supervisorQuickReplies = [
@@ -57,6 +59,7 @@ function getStatusColor(status: string) {
 
 export function MessagesPage() {
     const { firebaseUser, userProfile } = useAuth();
+    const { definitions } = useCaseDefinitions();
     const [searchParams] = useSearchParams();
 
     const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -72,6 +75,7 @@ export function MessagesPage() {
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const conversationsLoadedRef = useRef(false);
+    const questionLookup = useMemo(() => buildDiseaseQuestionLookup(definitions), [definitions]);
 
     const isVolunteer = userProfile?.role === 'volunteer';
 
@@ -237,6 +241,9 @@ export function MessagesPage() {
             conv.reportDisease.toLowerCase().includes(searchTerm.toLowerCase())
         );
     });
+    const reportDisplayTags = reportDetail
+        ? getReportDisplayTags(reportDetail, questionLookup)
+        : { symptoms: [], dangerSigns: [] };
 
     // Chat view
     if (selectedConversation) {
@@ -425,11 +432,11 @@ export function MessagesPage() {
                                         </div>
                                     </div>
 
-                                    {reportDetail.symptoms.length > 0 && (
+                                    {reportDisplayTags.symptoms.length > 0 && (
                                         <div>
                                             <p className="text-sm text-gray-600 mb-2">Symptoms:</p>
                                             <div className="flex flex-wrap gap-1">
-                                                {reportDetail.symptoms.map((symptom, idx) => (
+                                                {reportDisplayTags.symptoms.map((symptom, idx) => (
                                                     <Badge key={idx} variant="outline" className="text-xs">
                                                         {symptom}
                                                     </Badge>
@@ -438,11 +445,11 @@ export function MessagesPage() {
                                         </div>
                                     )}
 
-                                    {reportDetail.dangerSigns && reportDetail.dangerSigns.length > 0 && (
+                                    {reportDisplayTags.dangerSigns.length > 0 && (
                                         <div>
                                             <p className="text-sm text-gray-600 mb-2">Danger Signs:</p>
                                             <div className="flex flex-wrap gap-1">
-                                                {reportDetail.dangerSigns.map((sign, idx) => (
+                                                {reportDisplayTags.dangerSigns.map((sign, idx) => (
                                                     <Badge key={idx} variant="outline" className="text-xs border-red-300 text-red-700 bg-red-50">
                                                         <AlertTriangle className="h-3 w-3 mr-1" />
                                                         {sign}
